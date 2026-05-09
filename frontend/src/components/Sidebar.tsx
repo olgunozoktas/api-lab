@@ -16,13 +16,19 @@ export function Sidebar() {
       <Tabs
         value={ui.sidebarTab}
         onValueChange={(v) => setUi({ sidebarTab: v as "collections" | "history" })}
-        className="flex flex-col flex-1 overflow-hidden"
+        className="shrink-0"
       >
         <TabsList className="px-1 py-1 gap-0.5">
-          <TabsTrigger value="collections" className="flex-1 px-1 py-1 border-b-0 rounded-md text-[11px] data-[state=active]:bg-[var(--color-bg-elev-2)]">
+          <TabsTrigger
+            value="collections"
+            className="flex-1 px-1 py-1 border-b-0 rounded-md text-[11px] data-[state=active]:bg-[var(--color-bg-elev-2)]"
+          >
             {t("sidebar.tab.collections")}
           </TabsTrigger>
-          <TabsTrigger value="history" className="flex-1 px-1 py-1 border-b-0 rounded-md text-[11px] data-[state=active]:bg-[var(--color-bg-elev-2)]">
+          <TabsTrigger
+            value="history"
+            className="flex-1 px-1 py-1 border-b-0 rounded-md text-[11px] data-[state=active]:bg-[var(--color-bg-elev-2)]"
+          >
             {t("sidebar.tab.history")}
           </TabsTrigger>
         </TabsList>
@@ -30,8 +36,10 @@ export function Sidebar() {
       {ui.sidebarTab === "collections" ? (
         <>
           <SectionHeader>{t("sidebar.section.saved")}</SectionHeader>
-          <CollectionList />
-          <div className="px-2 pb-2">
+          <div className="flex-1 min-h-0 overflow-y-auto">
+            <CollectionList />
+          </div>
+          <div className="px-2 pb-2 shrink-0">
             <Button variant="dashed" size="md" className="w-full" onClick={resetCurrent}>
               {t("sidebar.newRequest")}
             </Button>
@@ -39,15 +47,25 @@ export function Sidebar() {
         </>
       ) : (
         <>
-          <SectionHeader rightSlot={<ClearHistoryButton />}>{t("sidebar.section.recent")}</SectionHeader>
-          <HistoryList />
+          <SectionHeader rightSlot={<ClearHistoryButton />}>
+            {t("sidebar.section.recent")}
+          </SectionHeader>
+          <div className="flex-1 min-h-0 overflow-y-auto">
+            <HistoryList />
+          </div>
         </>
       )}
     </aside>
   );
 }
 
-function SectionHeader({ children, rightSlot }: { children: React.ReactNode; rightSlot?: React.ReactNode }) {
+function SectionHeader({
+  children,
+  rightSlot,
+}: {
+  children: React.ReactNode;
+  rightSlot?: React.ReactNode;
+}) {
   return (
     <div className="px-3 py-2 flex items-center justify-between text-[11px] uppercase tracking-wider text-[var(--color-fg-muted)]">
       <span>{children}</span>
@@ -63,7 +81,9 @@ function ClearHistoryButton() {
     <Button
       variant="ghost"
       size="sm"
-      onClick={() => { if (confirm(t("sidebar.confirmClearHistory"))) clearHistory(); }}
+      onClick={() => {
+        if (confirm(t("sidebar.confirmClearHistory"))) clearHistory();
+      }}
       className="text-[11px] h-auto py-0.5 px-1.5"
     >
       {t("sidebar.clearHistory")}
