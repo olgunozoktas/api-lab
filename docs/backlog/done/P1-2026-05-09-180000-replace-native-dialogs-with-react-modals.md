@@ -28,17 +28,17 @@ Users see destructive buttons that "don't work" and have no way to actually dele
 
 ## Items
 
-- [ ] Build a small `useConfirm()` hook returning a Promise-based confirm shaped like the native `window.confirm()` so swap-in is trivial
-- [ ] Build a `useAlert()` hook for one-line notifications (used rarely; could fold into existing toast)
-- [ ] Build a `usePromptDialog()` hook returning a Promise<string|null> for the rare prompt cases (in case we want richer prompts in the future)
-- [ ] Implement these via the existing `Dialog` shadcn primitive (`frontend/src/components/ui/dialog.tsx`)
-- [ ] Mount a single `<DialogProvider>` (or similar) at the App.tsx root so any child can call useConfirm/usePrompt without per-component wiring
-- [ ] Replace every `window.confirm(...)` call in the codebase:
+- [x] Build a small `useConfirm()` hook returning a Promise-based confirm shaped like the native `window.confirm()` so swap-in is trivial
+- [x] Build a `useAlert()` hook for one-line notifications (used rarely; could fold into existing toast)
+- [x] Implement these via the existing `Dialog` shadcn primitive (`frontend/src/components/ui/dialog.tsx`)
+- [x] Mount a single `<DialogsProvider>` at the React root (main.tsx, inside ErrorBoundary)
+- [x] Replace every `window.confirm(...)` call in the codebase:
   - `Sidebar.tsx:ClearHistoryButton`
   - `CollectionList.tsx:FolderRow` delete
   - `CollectionList.tsx:RequestRow` delete
-- [ ] Replace any `alert(...)` (currently in `ErrorBoundary.tsx` for the clipboard-failure fallback) with the new `useAlert()` or a console fallback
-- [ ] Vitest unit tests for the hooks (focus-trap, ESC-cancels, ENTER-confirms)
+- [ ] (deferred) `usePromptDialog()` — no current use cases now that folder-add uses inline rename. File P3 follow-up if needed.
+- [ ] (deferred) Replace `alert(...)` in ErrorBoundary fallback — that path runs only when navigator.clipboard fails AND React tree may be half-broken; using a hook there is risky. Console + alert is the safe last-ditch.
+- [ ] (deferred) Vitest unit tests for the hooks — needs `@testing-library/react` setup (covered by P3 #094100).
 
 ## Acceptance
 
@@ -63,3 +63,17 @@ Users see destructive buttons that "don't work" and have no way to actually dele
    grep -rn "confirm(\|alert(\|prompt(" frontend/src --include="*.ts" --include="*.tsx"
    ```
 4. After this lands, sweep CLAUDE.md to add a note: "WKWebView ignores native JS panels. Use the `useConfirm` / `useAlert` / `usePromptDialog` hooks from `lib/dialogs.ts` — never `window.confirm` / `alert` / `prompt`."
+
+## Status
+
+**Shipped 2026-05-09** in worktree `feat/native-dialogs-replace`
+(merge `80bfd47`). All three confirm() callsites swapped:
+ClearHistoryButton, FolderRow delete, RequestRow delete. Dialog
+renders with `role="alertdialog"`, ENTER confirms, ESC cancels,
+overlay-click cancels.
+
+The deferred items above (prompt hook, ErrorBoundary alert swap,
+unit tests) are intentionally not blockers — see "Items" above for
+rationale per item. When `@testing-library/react` lands via
+`P3-2026-05-09-094100-ui-component-tests.md`, the missing tests
+get added there.
