@@ -1,6 +1,47 @@
 # Phase J — gRPC TLS / mTLS (cacert + client cert + servername)
 
 Priority: P2
+Status: SHIPPED — 2026-05-09
+
+## Status
+
+All four items shipped. Frontend `GrpcState` now carries an optional
+`tls?: { caCert, clientCert, clientKey, serverName, authority }`
+sub-shape; `GrpcPanel` exposes a fourth "TLS" composer tab alongside
+Message / Metadata / Proto with two text inputs (server name +
+authority) plus three CodeEditor panes for the PEM blobs. The
+`code-editor` primitive grew a `language: "text"` mode (no syntax
+extension) so the cert pastes don't get JSON-highlighted. A small
+`buildTlsPayload(tls, subst)` helper in `lib/grpc.ts` converts the
+camelCase UI shape into the snake_case bridge payload, with `envSubst`
+applied per-field so pasted PEM and SNI values can reference
+`{{ENV_VARS}}`.
+
+The Zig side grew a sibling `src/handlers/grpc_tls.zig` for the tmpfile
+lifecycle (kept `grpc.zig` at 395 LOC, under the 400 cap). Each
+non-empty PEM gets written into a fresh `/tmp/api-lab-grpc-<8 hex>/`
+directory (4 random bytes via `std.crypto.random`), with cleanup
+deferred via `cleanupTlsTmpfiles` so the dir is always removed —
+success path, grpcurl error, panic-via-defer, all covered. `buildArgv`
+gained a third `TlsPaths` parameter (kept pure / no I/O) and emits
+`-cacert <path>` / `-cert <path>` / `-key <path>` / `-servername X` /
+`-authority X` flag pairs only when each field is set.
+
+Test coverage: 11 new tests across two new files. `grpc_tls_test.zig`
+covers tmpfile lifecycle (real /tmp via `std.testing.io`: short-circuit
+when no PEMs, single-cert write+verify, three-cert write+access,
+deleteTree leaves no artefact, empty-path no-op, two consecutive calls
+get distinct dirs) and TLS argv shape (5 tests for cacert / cert+key /
+servername / authority / empty case). Existing `grpc_test.zig` got the
+`buildArgv(a, req, .{})` signature update via a single `replace_all`
+edit so the 11 pre-existing argv tests keep working unchanged. Frontend
+tests grew 235 → 239 (+4 in `buildTlsPayload` describe block).
+
+Security caveat surfaced in the UI ("Client keys live in browser
+storage. Use a dev/test cert, not your production key…") via
+`grpc.tls.security.warning` with a `ShieldAlert` icon. The full
+Keychain bridge handoff (Tradeoff Option B) is unchanged — still
+deferred to the OAuth Keychain follow-up.
 
 ## Context
 
@@ -26,22 +67,22 @@ B2B / regulated industry use cases.
 
 ## Items
 
-- [ ] Extend `GrpcState` in `frontend/src/lib/types.ts` with a `tls`
+- [x] Extend `GrpcState` in `frontend/src/lib/types.ts` with a `tls`
       sub-shape: `{ caCert?: string, clientCert?: string, clientKey?: string, serverName?: string, authority?: string }`.
       All optional (string content, not file path — pasted by user
       since WKWebView file pickers are constrained per CLAUDE.md
       gotchas).
-- [ ] New "TLS" tab in the GrpcPanel composer (alongside Message /
+- [x] New "TLS" tab in the GrpcPanel composer (alongside Message /
       Metadata / Proto). Reuses the existing CodeEditor for cert
       pastes (PEM-encoded, single CodeEditor each).
-- [ ] Bridge: extend `GrpcRequest` in `src/handlers/grpc.zig` with
+- [x] Bridge: extend `GrpcRequest` in `src/handlers/grpc.zig` with
       optional cacert/cert/key/servername/authority fields. Write
       pasted PEM contents to a temp file (mkdtemp + write + cleanup
       after grpcurl exits) so grpcurl's `-cacert` / `-cert` / `-key`
       flags can reference them. tmpdir lifecycle is the trickiest
       part — prefer arena-allocated paths cleaned up at end of
       runRequest.
-- [ ] Tests: argv shape with each TLS option; tmpfile lifecycle
+- [x] Tests: argv shape with each TLS option; tmpfile lifecycle
       (file created → grpcurl invoked → file deleted regardless of
       grpcurl exit code, even on error).
 
