@@ -5,6 +5,7 @@
 
 import type {
   Collection,
+  CollectionItem,
   CurrentRequest,
   HistoryItem,
   OpenTab,
@@ -20,8 +21,12 @@ import { detectLocale, type Locale } from "../lib/i18n";
 export const clone = <T>(x: T): T => JSON.parse(JSON.stringify(x));
 
 // Shape of the persisted/runtime state (action methods live in index.ts).
+// `collectionItems` is the v3 tree shape; folders + requests live in one
+// flat array keyed by parentId. `collectionsExpanded` is per-folder UI
+// state — true means the folder is open in the sidebar tree.
 export type CoreState = {
-  collections: Collection[];
+  collectionItems: CollectionItem[];
+  collectionsExpanded: Record<string, boolean>;
   envs: Environment[];
   activeEnv: string;
   history: HistoryItem[];
@@ -40,9 +45,12 @@ export type CoreState = {
 export function buildInitialState(): CoreState {
   const firstTab = emptyTab(uid());
   return {
-    collections: [
+    collectionItems: [
       {
         id: uid(),
+        parentId: null,
+        kind: "request",
+        order: 0,
         name: "Github user (örnek)",
         request: {
           method: "GET",
@@ -56,6 +64,7 @@ export function buildInitialState(): CoreState {
         },
       },
     ],
+    collectionsExpanded: {},
     envs: [{ id: "default", name: "default", vars: {} }],
     activeEnv: "default",
     history: [],
@@ -105,10 +114,16 @@ export function nextActiveAfterClose(tabs: OpenTab[], closingId: string): string
 
 // v0/v1 (no `tabs` field) → v2 migration. Convert the old top-level
 // `current` + `lastResponse` into a single tab so the user's last-open
-// request survives the upgrade.
-export function migrateV1toV2(persisted: unknown): CoreState {
+// request survives the upgrade. Now returns the v2 shape (with the
+// legacy `collections` field) — v2→v3 then promotes that into the
+// tree shape.
+type V2State = Omit<CoreState, "collectionItems" | "collectionsExpanded"> & {
+  collections: Collection[];
+};
+
+export function migrateV1toV2(persisted: unknown): V2State {
   const old =
-    (persisted as Partial<CoreState> & {
+    (persisted as Partial<V2State> & {
       current?: CurrentRequest;
       lastResponse?: ResponseSnapshot | null;
     }) ?? {};
@@ -142,6 +157,61 @@ export function migrateV1toV2(persisted: unknown): CoreState {
     defaults: old.defaults ?? defaultRequestDefaults(),
     toast: null,
   };
+}
+
+// v2 (flat `collections: Collection[]`) → v3 (tree `collectionItems:
+// CollectionItem[]`) migration. Each old collection becomes a root-
+// level request — no folders are introduced automatically; the user
+// can group them later via the new "+ New folder" button. Order
+// preserved by array index.
+export function migrateV2toV3(persisted: unknown): CoreState {
+  const old = (persisted as Partial<V2State>) ?? {};
+  const oldCollections: Collection[] = old.collections ?? [];
+  const collectionItems: CollectionItem[] = oldCollections.map((c, i) => ({
+    id: c.id,
+    parentId: null,
+    kind: "request" as const,
+    name: c.name,
+    order: i,
+    request: c.request,
+  }));
+  // Strip the legacy `collections` field; downstream code only knows
+  // `collectionItems`. Object spread first so we override known keys.
+  const { collections: _drop, ...rest } = old;
+  void _drop;
+  return {
+    ...buildInitialState(),
+    ...rest,
+    collectionItems,
+    collectionsExpanded: {},
+  } as CoreState;
+}
+
+// Recursive descendants helper — returns the IDs of every descendant of
+// `parentId` in `items`. Used by deleteItem (collect-then-purge) and by
+// drag-into-folder validation (refuse to drop a folder into one of its
+// own descendants).
+export function descendantIds(
+  items: CollectionItem[],
+  parentId: string,
+  acc: string[] = []
+): string[] {
+  for (const it of items) {
+    if (it.parentId === parentId) {
+      acc.push(it.id);
+      if (it.kind === "folder") descendantIds(items, it.id, acc);
+    }
+  }
+  return acc;
+}
+
+// Compute the next `order` for a new item under `parentId`.
+export function nextOrder(items: CollectionItem[], parentId: string | null): number {
+  let max = -1;
+  for (const it of items) {
+    if (it.parentId === parentId && it.order > max) max = it.order;
+  }
+  return max + 1;
 }
 
 // Storage adapter — falls back to in-memory map under null-origin

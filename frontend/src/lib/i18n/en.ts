@@ -46,6 +46,11 @@ export const en: Dict = {
   "sidebar.clearHistory": "Clear",
   "sidebar.confirmClearHistory": "Clear history?",
 
+  "collections.newFolder": "+ Folder",
+  "collections.newFolderPrompt": "Folder name:",
+  "collections.newFolderDefault": "New folder",
+  "collections.confirmDeleteFolder": 'Delete folder "{name}" and ALL requests inside it?',
+
   "composer.requestName": "Request name",
   "composer.save": "Save",
   "composer.send": "Send",

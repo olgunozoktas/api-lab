@@ -31,10 +31,27 @@ export type CurrentRequest = RequestSnapshot & {
   name: string;
 };
 
+// Legacy v2 shape — flat list. Kept as a type so the v2→v3 migration
+// can read the old persisted JSON without `any`. Active code uses
+// `CollectionItem` below.
 export type Collection = {
   id: string;
   name: string;
   request: RequestSnapshot;
+};
+
+// v3+ shape: tree with folders. Each item has a parentId (null = root),
+// a kind (folder or request), an `order` field for sibling ordering.
+// Folders carry no request payload; requests carry the snapshot.
+export type CollectionItemKind = "folder" | "request";
+
+export type CollectionItem = {
+  id: string;
+  parentId: string | null;
+  kind: CollectionItemKind;
+  name: string;
+  order: number;
+  request?: RequestSnapshot; // populated only when kind === "request"
 };
 
 export type Environment = {

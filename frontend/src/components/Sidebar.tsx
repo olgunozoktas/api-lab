@@ -35,7 +35,9 @@ export function Sidebar() {
       </Tabs>
       {ui.sidebarTab === "collections" ? (
         <>
-          <SectionHeader>{t("sidebar.section.saved")}</SectionHeader>
+          <SectionHeader rightSlot={<NewFolderButton />}>
+            {t("sidebar.section.saved")}
+          </SectionHeader>
           <div className="flex-1 min-h-0 overflow-y-auto">
             <CollectionList />
           </div>
@@ -87,6 +89,24 @@ function ClearHistoryButton() {
       className="text-[11px] h-auto py-0.5 px-1.5"
     >
       {t("sidebar.clearHistory")}
+    </Button>
+  );
+}
+
+function NewFolderButton() {
+  const addFolder = useStore((s) => s.addFolder);
+  const t = useT();
+  return (
+    <Button
+      variant="ghost"
+      size="sm"
+      onClick={() => {
+        const name = prompt(t("collections.newFolderPrompt"), t("collections.newFolderDefault"));
+        if (name?.trim()) addFolder(null, name);
+      }}
+      className="text-[11px] h-auto py-0.5 px-1.5"
+    >
+      {t("collections.newFolder")}
     </Button>
   );
 }

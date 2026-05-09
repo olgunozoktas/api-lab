@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import type {
-  Collection,
+  CollectionItem,
   Environment,
   HistoryItem,
   CurrentRequest,
@@ -22,6 +22,9 @@ import {
   snapshotActiveIntoTab,
   nextActiveAfterClose,
   migrateV1toV2,
+  migrateV2toV3,
+  descendantIds,
+  nextOrder,
   safeLocalStorage,
   type CoreState,
 } from "./internal";
@@ -36,10 +39,14 @@ type State = CoreState;
 type Actions = {
   setCurrent: (patch: Partial<CurrentRequest>) => void;
   resetCurrent: () => void;
-  loadCollection: (c: Collection) => void;
+  loadCollection: (c: CollectionItem) => void;
   loadHistoryItem: (h: HistoryItem) => void;
   saveCurrent: () => void;
-  deleteCollection: (id: string) => void;
+  deleteCollectionItem: (id: string) => void;
+  addFolder: (parentId: string | null, name: string) => string;
+  renameCollectionItem: (id: string, name: string) => void;
+  toggleFolder: (id: string) => void;
+  moveCollectionItem: (id: string, newParentId: string | null) => void;
   setActiveEnv: (id: string) => void;
   setUi: (patch: Partial<UiState>) => void;
   setEnvs: (envs: Environment[]) => void;
@@ -61,7 +68,7 @@ type Actions = {
   setActiveTab: (id: string) => void;
   renameTab: (id: string, name: string) => void;
   reorderTabs: (fromIdx: number, toIdx: number) => void;
-  loadCollectionInNewTab: (c: Collection) => void;
+  loadCollectionInNewTab: (c: CollectionItem) => void;
 };
 
 export const useStore = create<State & Actions>()(
@@ -113,18 +120,20 @@ export const useStore = create<State & Actions>()(
 
       loadCollection: (c) =>
         set((s) => {
+          if (c.kind !== "request" || !c.request) return {};
+          const r = c.request;
           const nextCurrent: CurrentRequest = {
             id: c.id,
             name: c.name,
-            method: c.request.method ?? "GET",
-            url: c.request.url ?? "",
-            params: clone(c.request.params ?? [{ enabled: true, k: "", v: "" }]),
-            headers: clone(c.request.headers ?? [{ enabled: true, k: "", v: "" }]),
-            auth: clone(c.request.auth ?? { type: "none" }),
-            body: clone(c.request.body ?? { mode: "none", text: "" }),
-            gql: clone(c.request.gql ?? { query: "", vars: "" }),
+            method: r.method ?? "GET",
+            url: r.url ?? "",
+            params: clone(r.params ?? [{ enabled: true, k: "", v: "" }]),
+            headers: clone(r.headers ?? [{ enabled: true, k: "", v: "" }]),
+            auth: clone(r.auth ?? { type: "none" }),
+            body: clone(r.body ?? { mode: "none", text: "" }),
+            gql: clone(r.gql ?? { query: "", vars: "" }),
           };
-          const composerTab: ComposerTab = c.request.isGraphql ? "graphql" : "params";
+          const composerTab: ComposerTab = r.isGraphql ? "graphql" : "params";
           return {
             current: nextCurrent,
             ui: { ...s.ui, composerTab },
@@ -173,13 +182,21 @@ export const useStore = create<State & Actions>()(
           gql: clone(cur.gql),
           isGraphql,
         };
-        const cols = get().collections.slice();
+        const items = get().collectionItems.slice();
         if (cur.id) {
-          const i = cols.findIndex((c) => c.id === cur.id);
-          if (i >= 0) cols[i] = { id: cur.id, name, request: snap };
+          // Update existing item in-place — preserve its parentId/order.
+          const i = items.findIndex((c) => c.id === cur.id);
+          if (i >= 0) items[i] = { ...items[i], name, kind: "request", request: snap };
         } else {
           const id = uid();
-          cols.unshift({ id, name, request: snap });
+          items.push({
+            id,
+            parentId: null,
+            kind: "request",
+            order: nextOrder(items, null),
+            name,
+            request: snap,
+          });
           set((s) => ({
             current: { ...cur, id, name },
             tabs: s.tabs.map((t) =>
@@ -187,18 +204,98 @@ export const useStore = create<State & Actions>()(
             ),
           }));
         }
-        set({ collections: cols });
+        set({ collectionItems: items });
         get().showToast("Kaydedildi");
       },
 
-      deleteCollection: (id) =>
+      deleteCollectionItem: (id) =>
+        set((s) => {
+          // Recursive: collect all descendants (folders take their kids
+          // with them) and purge in one pass.
+          const toRemove = new Set<string>([id, ...descendantIds(s.collectionItems, id)]);
+          const items = s.collectionItems.filter((c) => !toRemove.has(c.id));
+          const expanded = { ...s.collectionsExpanded };
+          for (const k of toRemove) delete expanded[k];
+          // If any open tab pointed at a removed request, drop the
+          // collection link so the tab still works (just unsaved).
+          const tabs = s.tabs.map((t) =>
+            t.request.id && toRemove.has(t.request.id)
+              ? { ...t, request: { ...t.request, id: null } }
+              : t
+          );
+          const current =
+            s.current.id && toRemove.has(s.current.id) ? { ...s.current, id: null } : s.current;
+          return { collectionItems: items, collectionsExpanded: expanded, tabs, current };
+        }),
+
+      addFolder: (parentId, name) => {
+        const id = uid();
+        const trimmed = name.trim() || "Yeni klasör";
         set((s) => ({
-          collections: s.collections.filter((c) => c.id !== id),
-          current: s.current.id === id ? { ...s.current, id: null } : s.current,
-          tabs: s.tabs.map((t) =>
-            t.request.id === id ? { ...t, request: { ...t.request, id: null } } : t
-          ),
+          collectionItems: [
+            ...s.collectionItems,
+            {
+              id,
+              parentId,
+              kind: "folder",
+              order: nextOrder(s.collectionItems, parentId),
+              name: trimmed,
+            },
+          ],
+          collectionsExpanded: { ...s.collectionsExpanded, [id]: true },
+        }));
+        return id;
+      },
+
+      renameCollectionItem: (id, name) =>
+        set((s) => {
+          const trimmed = name.trim();
+          if (!trimmed) return {};
+          return {
+            collectionItems: s.collectionItems.map((c) =>
+              c.id === id ? { ...c, name: trimmed } : c
+            ),
+            // Mirror rename into open tabs that reference this request.
+            tabs: s.tabs.map((t) =>
+              t.request.id === id
+                ? { ...t, name: trimmed, request: { ...t.request, name: trimmed } }
+                : t
+            ),
+            current: s.current.id === id ? { ...s.current, name: trimmed } : s.current,
+          };
+        }),
+
+      toggleFolder: (id) =>
+        set((s) => ({
+          collectionsExpanded: {
+            ...s.collectionsExpanded,
+            [id]: !s.collectionsExpanded[id],
+          },
         })),
+
+      moveCollectionItem: (id, newParentId) =>
+        set((s) => {
+          // Refuse to move a folder into one of its own descendants
+          // (would create a cycle).
+          if (newParentId !== null) {
+            const item = s.collectionItems.find((c) => c.id === id);
+            if (item?.kind === "folder") {
+              const cycle = descendantIds(s.collectionItems, id);
+              if (cycle.includes(newParentId) || newParentId === id) return {};
+            }
+          }
+          const items = s.collectionItems.map((c) =>
+            c.id === id
+              ? { ...c, parentId: newParentId, order: nextOrder(s.collectionItems, newParentId) }
+              : c
+          );
+          // Auto-expand the destination folder so the moved item is visible.
+          const expanded =
+            newParentId !== null
+              ? { ...s.collectionsExpanded, [newParentId]: true }
+              : s.collectionsExpanded;
+          return { collectionItems: items, collectionsExpanded: expanded };
+        }),
 
       setActiveEnv: (id) => set({ activeEnv: id }),
 
@@ -341,8 +438,10 @@ export const useStore = create<State & Actions>()(
 
       loadCollectionInNewTab: (c) =>
         set((s) => {
+          if (c.kind !== "request" || !c.request) return {};
+          const r = c.request;
           const tabs = snapshotActiveIntoTab(s);
-          const composerTab: ComposerTab = c.request.isGraphql ? "graphql" : "params";
+          const composerTab: ComposerTab = r.isGraphql ? "graphql" : "params";
           const responseTab: ResponseTab = "body";
           const fresh: OpenTab = {
             id: uid(),
@@ -350,13 +449,13 @@ export const useStore = create<State & Actions>()(
             request: {
               id: c.id,
               name: c.name,
-              method: c.request.method ?? "GET",
-              url: c.request.url ?? "",
-              params: clone(c.request.params ?? [{ enabled: true, k: "", v: "" }]),
-              headers: clone(c.request.headers ?? [{ enabled: true, k: "", v: "" }]),
-              auth: clone(c.request.auth ?? { type: "none" }),
-              body: clone(c.request.body ?? { mode: "none", text: "" }),
-              gql: clone(c.request.gql ?? { query: "", vars: "" }),
+              method: r.method ?? "GET",
+              url: r.url ?? "",
+              params: clone(r.params ?? [{ enabled: true, k: "", v: "" }]),
+              headers: clone(r.headers ?? [{ enabled: true, k: "", v: "" }]),
+              auth: clone(r.auth ?? { type: "none" }),
+              body: clone(r.body ?? { mode: "none", text: "" }),
+              gql: clone(r.gql ?? { query: "", vars: "" }),
             },
             lastResponse: null,
             composerTab,
@@ -373,13 +472,18 @@ export const useStore = create<State & Actions>()(
     }),
     {
       name: "apilab.store.v1",
-      version: 2,
-      migrate: (persisted, fromVersion) =>
-        fromVersion >= 2 ? (persisted as State) : (migrateV1toV2(persisted) as State),
+      version: 3,
+      migrate: (persisted, fromVersion) => {
+        let s: unknown = persisted;
+        if (fromVersion < 2) s = migrateV1toV2(s);
+        if (fromVersion < 3) s = migrateV2toV3(s);
+        return s as State;
+      },
       storage: createJSONStorage(safeLocalStorage),
       partialize: (s) =>
         ({
-          collections: s.collections,
+          collectionItems: s.collectionItems,
+          collectionsExpanded: s.collectionsExpanded,
           envs: s.envs,
           activeEnv: s.activeEnv,
           history: s.history,
