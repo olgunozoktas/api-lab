@@ -222,6 +222,24 @@ export const tr = {
   "grpc.tab.message": "Mesaj",
   "grpc.tab.metadata": "Metadata",
   "grpc.tab.proto": "Proto",
+  "grpc.tab.tls": "TLS",
+  "grpc.tls.serverName.label": "TLS sunucu adı (SNI override)",
+  "grpc.tls.serverName.placeholder": "api.internal.example.com",
+  "grpc.tls.authority.label": "Authority override (HTTP/2 :authority)",
+  "grpc.tls.authority.placeholder": "actual-backend.internal",
+  "grpc.tls.caCert.label": "CA sertifikası (PEM)",
+  "grpc.tls.caCert.placeholder":
+    "-----BEGIN CERTIFICATE-----\nMIID...self-signed root CA...\n-----END CERTIFICATE-----",
+  "grpc.tls.clientCert.label": "Client sertifikası (PEM, mTLS için)",
+  "grpc.tls.clientCert.placeholder":
+    "-----BEGIN CERTIFICATE-----\nMIID...client cert...\n-----END CERTIFICATE-----",
+  "grpc.tls.clientKey.label": "Client key (PEM, mTLS için)",
+  "grpc.tls.clientKey.placeholder":
+    "-----BEGIN PRIVATE KEY-----\nMIIE...client key...\n-----END PRIVATE KEY-----",
+  "grpc.tls.security.warning":
+    "Client key tarayıcı depolamasında saklanır. Production key yerine dev/test sertifikası kullan; export ile başka cihaza taşımadan önce iki kez düşün.",
+  "grpc.tls.hint":
+    "Boş bırakılırsa grpcurl sistem trust root'larını kullanır. Self-signed dev sunucuları + internal PKI + mTLS gerektiren prod servisler için doldur.",
   "grpc.message.placeholder": "{}",
   "grpc.addMetadata": "+ Metadata ekle",
   "grpc.useReflection.label": "Server reflection kullan (önerilir)",

@@ -221,6 +221,24 @@ export const en: Dict = {
   "grpc.tab.message": "Message",
   "grpc.tab.metadata": "Metadata",
   "grpc.tab.proto": "Proto",
+  "grpc.tab.tls": "TLS",
+  "grpc.tls.serverName.label": "TLS server name (SNI override)",
+  "grpc.tls.serverName.placeholder": "api.internal.example.com",
+  "grpc.tls.authority.label": "Authority override (HTTP/2 :authority)",
+  "grpc.tls.authority.placeholder": "actual-backend.internal",
+  "grpc.tls.caCert.label": "CA certificate (PEM)",
+  "grpc.tls.caCert.placeholder":
+    "-----BEGIN CERTIFICATE-----\nMIID...self-signed root CA...\n-----END CERTIFICATE-----",
+  "grpc.tls.clientCert.label": "Client certificate (PEM, for mTLS)",
+  "grpc.tls.clientCert.placeholder":
+    "-----BEGIN CERTIFICATE-----\nMIID...client cert...\n-----END CERTIFICATE-----",
+  "grpc.tls.clientKey.label": "Client key (PEM, for mTLS)",
+  "grpc.tls.clientKey.placeholder":
+    "-----BEGIN PRIVATE KEY-----\nMIIE...client key...\n-----END PRIVATE KEY-----",
+  "grpc.tls.security.warning":
+    "Client keys live in browser storage. Use a dev/test cert, not your production key; think twice before exporting to another machine.",
+  "grpc.tls.hint":
+    "Leave blank to let grpcurl use the system trust roots. Fill these in for self-signed dev servers, internal PKIs, or services that authenticate via mTLS.",
   "grpc.message.placeholder": "{}",
   "grpc.addMetadata": "+ Add metadata",
   "grpc.useReflection.label": "Use server reflection (recommended)",

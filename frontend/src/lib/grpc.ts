@@ -3,6 +3,8 @@
 // lifecycle lives in the GrpcPanel container; the bridge call itself
 // goes through `bridge.invoke<GrpcResponse>("grpc.invoke", ...)`.
 
+import type { GrpcTls } from "./types";
+
 export function isGrpcUrl(url: string): boolean {
   const t = url.trim().toLowerCase();
   return t.startsWith("grpc://") || t.startsWith("grpcs://");
@@ -35,4 +37,35 @@ export function isLikelyFullMethod(s: string): boolean {
   const t = s.trim();
   if (t.length === 0) return false;
   return t.includes("/") && t.includes(".");
+}
+
+// Snake-case TLS subset of GrpcRequest the bridge consumes. Kept as a
+// standalone shape (instead of `Pick<GrpcRequest, ...>`) so this file
+// doesn't depend on bridge.ts and stays cheap to unit-test.
+export type GrpcTlsPayload = {
+  ca_cert?: string;
+  client_cert?: string;
+  client_key?: string;
+  server_name?: string;
+  authority?: string;
+};
+
+// Map the camelCase GrpcTls UI shape to the snake_case fields the Zig
+// handler expects. Empty / undefined fields are stripped (Zig defaults
+// the corresponding GrpcRequest fields to ""), so the wire payload only
+// carries the overrides the user actually set. `subst` applies env-var
+// substitution per field — pasted PEM may include `{{CA_BUNDLE}}`-style
+// references the user wants resolved at send time.
+export function buildTlsPayload(
+  tls: GrpcTls | undefined,
+  subst: (s: string) => string
+): GrpcTlsPayload {
+  const t = tls ?? {};
+  return {
+    ca_cert: t.caCert ? subst(t.caCert) : undefined,
+    client_cert: t.clientCert ? subst(t.clientCert) : undefined,
+    client_key: t.clientKey ? subst(t.clientKey) : undefined,
+    server_name: t.serverName ? subst(t.serverName) : undefined,
+    authority: t.authority ? subst(t.authority) : undefined,
+  };
 }

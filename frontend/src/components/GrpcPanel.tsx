@@ -2,16 +2,16 @@ import { useState } from "react";
 import { useStore, useActiveVars } from "../store";
 import { useT } from "../lib/i18n/useT";
 import { envSubst } from "../lib/utils";
-import { emptyGrpcState, type GrpcState, type KvRow } from "../lib/types";
+import { emptyGrpcState, type GrpcState, type GrpcTls, type KvRow } from "../lib/types";
 import { bridge } from "../lib/bridge";
 import type { GrpcMetadataEntry, GrpcRequest, GrpcResponse } from "../lib/bridge";
-import { derivePlaintext, extractTarget, isLikelyFullMethod } from "../lib/grpc";
+import { buildTlsPayload, derivePlaintext, extractTarget, isLikelyFullMethod } from "../lib/grpc";
 import { Button } from "./ui/button";
 import { CodeEditor } from "./ui/code-editor";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { KvTable } from "./KvTable";
 import { cn } from "../lib/cn";
-import { Send, Plug, Info } from "lucide-react";
+import { Send, Plug, Info, ShieldAlert } from "lucide-react";
 import { GrpcResponseSection, GrpcStatusPill, type GrpcStatus } from "./GrpcResponseSection";
 
 export type { GrpcStatus };
@@ -29,12 +29,14 @@ export type GrpcPanelProps = {
   onUseReflectionChange: (b: boolean) => void;
   onImportPathsChange: (s: string) => void;
   onProtoFilesChange: (s: string) => void;
+  onTlsChange: (patch: Partial<GrpcTls>) => void;
   onSend: () => void;
 };
 
 export function GrpcPanel(p: GrpcPanelProps) {
   const t = useT();
-  const [reqTab, setReqTab] = useState<"message" | "metadata" | "proto">("message");
+  const [reqTab, setReqTab] = useState<"message" | "metadata" | "proto" | "tls">("message");
+  const tls = p.grpc.tls ?? {};
   const [resTab, setResTab] = useState<"message" | "headers" | "trailers" | "raw">("message");
   const target = extractTarget(p.url);
   const canSend = target.length > 0 && p.fullMethod.trim().length > 0 && p.status !== "running";
@@ -88,6 +90,7 @@ export function GrpcPanel(p: GrpcPanelProps) {
             <TabsTrigger value="message">{t("grpc.tab.message")}</TabsTrigger>
             <TabsTrigger value="metadata">{t("grpc.tab.metadata")}</TabsTrigger>
             <TabsTrigger value="proto">{t("grpc.tab.proto")}</TabsTrigger>
+            <TabsTrigger value="tls">{t("grpc.tab.tls")}</TabsTrigger>
           </TabsList>
           <TabsContent value="message" className="p-3">
             <CodeEditor
@@ -140,6 +143,66 @@ export function GrpcPanel(p: GrpcPanelProps) {
             <p className="text-[10px] text-[var(--color-fg-muted)] flex gap-1.5 items-start">
               <Info className="w-3 h-3 mt-0.5 shrink-0" aria-hidden />
               {t("grpc.proto.hint")}
+            </p>
+          </TabsContent>
+          <TabsContent value="tls" className="p-3 space-y-3 overflow-auto">
+            <p className="text-[10px] text-[var(--color-fg-muted)] flex gap-1.5 items-start">
+              <Info className="w-3 h-3 mt-0.5 shrink-0" aria-hidden />
+              {t("grpc.tls.hint")}
+            </p>
+            <label className="block text-xs space-y-1">
+              <span className="text-[var(--color-fg-muted)]">{t("grpc.tls.serverName.label")}</span>
+              <input
+                type="text"
+                placeholder={t("grpc.tls.serverName.placeholder")}
+                value={tls.serverName ?? ""}
+                onChange={(e) => p.onTlsChange({ serverName: e.target.value })}
+                className="w-full bg-[var(--color-bg-elev)] border border-[var(--color-border)] rounded px-2 py-1 font-mono text-xs outline-none focus:border-[var(--color-accent)]"
+              />
+            </label>
+            <label className="block text-xs space-y-1">
+              <span className="text-[var(--color-fg-muted)]">{t("grpc.tls.authority.label")}</span>
+              <input
+                type="text"
+                placeholder={t("grpc.tls.authority.placeholder")}
+                value={tls.authority ?? ""}
+                onChange={(e) => p.onTlsChange({ authority: e.target.value })}
+                className="w-full bg-[var(--color-bg-elev)] border border-[var(--color-border)] rounded px-2 py-1 font-mono text-xs outline-none focus:border-[var(--color-accent)]"
+              />
+            </label>
+            <label className="block text-xs space-y-1">
+              <span className="text-[var(--color-fg-muted)]">{t("grpc.tls.caCert.label")}</span>
+              <CodeEditor
+                value={tls.caCert ?? ""}
+                onChange={(v) => p.onTlsChange({ caCert: v })}
+                language="text"
+                placeholder={t("grpc.tls.caCert.placeholder")}
+                minHeight={96}
+              />
+            </label>
+            <label className="block text-xs space-y-1">
+              <span className="text-[var(--color-fg-muted)]">{t("grpc.tls.clientCert.label")}</span>
+              <CodeEditor
+                value={tls.clientCert ?? ""}
+                onChange={(v) => p.onTlsChange({ clientCert: v })}
+                language="text"
+                placeholder={t("grpc.tls.clientCert.placeholder")}
+                minHeight={96}
+              />
+            </label>
+            <label className="block text-xs space-y-1">
+              <span className="text-[var(--color-fg-muted)]">{t("grpc.tls.clientKey.label")}</span>
+              <CodeEditor
+                value={tls.clientKey ?? ""}
+                onChange={(v) => p.onTlsChange({ clientKey: v })}
+                language="text"
+                placeholder={t("grpc.tls.clientKey.placeholder")}
+                minHeight={96}
+              />
+            </label>
+            <p className="text-[10px] text-[var(--color-warning)] flex gap-1.5 items-start">
+              <ShieldAlert className="w-3 h-3 mt-0.5 shrink-0" aria-hidden />
+              {t("grpc.tls.security.warning")}
             </p>
           </TabsContent>
         </Tabs>
@@ -220,6 +283,7 @@ export function GrpcPanelContainer() {
         import_paths: grpc.importPaths,
         proto_files: grpc.protoFiles,
         timeout_ms: 60000,
+        ...buildTlsPayload(grpc.tls, (s) => envSubst(s, vars)),
       };
       const r = await bridge.invoke<GrpcResponse>("grpc.invoke", payload);
       setResponse(r);
@@ -273,6 +337,7 @@ export function GrpcPanelContainer() {
             .filter((p) => p.length > 0),
         })
       }
+      onTlsChange={(patch) => updateGrpc({ tls: { ...(grpc.tls ?? {}), ...patch } })}
       onSend={onSend}
     />
   );
