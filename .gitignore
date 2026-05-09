@@ -1,0 +1,19 @@
+# Zig build artifacts
+zig-out/
+.zig-cache/
+
+# macOS
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Local-only files
+*.bak
+.env
+.env.local
+
+# Logs
+*.log

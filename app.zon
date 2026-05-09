@@ -1,0 +1,21 @@
+.{
+    .id = "dev.olgun.api-lab",
+    .name = "api-lab",
+    .display_name = "API Lab",
+    .version = "0.1.0",
+    .icons = .{ "assets/icon.icns" },
+    .platforms = .{ "macos" },
+    .permissions = .{ "filesystem", "network" },
+    .capabilities = .{ "webview", "js_bridge" },
+    .security = .{
+        .navigation = .{
+            .allowed_origins = .{ "zero://app", "zero://inline" },
+            .external_links = .{ .action = "deny" },
+        },
+    },
+    .web_engine = "system",
+    .cef = .{ .dir = "third_party/cef/macos", .auto_install = false },
+    .windows = .{
+        .{ .label = "main", .title = "API Lab", .width = 1280, .height = 800, .restore_state = true },
+    },
+}

@@ -1,0 +1,1344 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>API Lab</title>
+<style>
+:root {
+  color-scheme: light dark;
+  --bg: #f5f5f7;
+  --bg2: #ffffff;
+  --bg3: #ececef;
+  --fg: #1d1d1f;
+  --fg2: #6e6e73;
+  --border: #d2d2d7;
+  --accent: #007aff;
+  --green: #34c759;
+  --red: #ff3b30;
+  --orange: #ff9500;
+  --purple: #af52de;
+  --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --sans: -apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1c1c1e;
+    --bg2: #2c2c2e;
+    --bg3: #3a3a3c;
+    --fg: #f5f5f7;
+    --fg2: #98989d;
+    --border: #38383a;
+  }
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100vh; overflow: hidden; }
+body {
+  font-family: var(--sans);
+  background: var(--bg);
+  color: var(--fg);
+  font-size: 13px;
+  line-height: 1.4;
+  -webkit-user-select: none;
+  user-select: none;
+  display: flex;
+  flex-direction: column;
+}
+input, textarea, select { font-family: var(--sans); font-size: 13px; color: var(--fg); }
+button { font-family: var(--sans); font-size: 13px; cursor: pointer; }
+
+.topbar {
+  height: 44px;
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  gap: 12px;
+  flex-shrink: 0;
+}
+.brand {
+  font-weight: 600;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.brand-dot {
+  width: 10px; height: 10px;
+  border-radius: 3px;
+  background: linear-gradient(135deg, var(--accent), var(--purple));
+}
+.spacer { flex: 1; }
+.env-pick {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 5px 10px;
+  font-size: 12px;
+}
+.icon-btn {
+  background: transparent;
+  border: 0;
+  border-radius: 6px;
+  padding: 6px 10px;
+  color: var(--fg2);
+  font-size: 12px;
+}
+.icon-btn:hover { background: var(--bg3); color: var(--fg); }
+
+.main {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 240px 1fr 1fr;
+  min-height: 0;
+}
+@media (max-width: 1100px) {
+  .main { grid-template-columns: 200px 1fr 1fr; }
+}
+
+.sidebar {
+  background: var(--bg2);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.sidebar-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+  padding: 4px;
+  gap: 2px;
+  background: var(--bg2);
+}
+.sidebar-tab {
+  flex: 1;
+  border: 0;
+  background: transparent;
+  padding: 6px 4px;
+  border-radius: 5px;
+  color: var(--fg2);
+  font-size: 11px;
+  font-weight: 500;
+}
+.sidebar-tab.active { background: var(--bg3); color: var(--fg); }
+.sidebar-section {
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--fg2);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.sidebar-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 6px 12px;
+}
+.sidebar-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  color: var(--fg);
+}
+.sidebar-item:hover { background: var(--bg3); }
+.sidebar-item.active { background: rgba(0,122,255,0.15); }
+.sidebar-item .method {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  width: 38px;
+  flex-shrink: 0;
+}
+.sidebar-item .name {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sidebar-item .x {
+  opacity: 0;
+  color: var(--fg2);
+  border: 0;
+  background: transparent;
+  padding: 2px 4px;
+  border-radius: 3px;
+}
+.sidebar-item:hover .x { opacity: 1; }
+.sidebar-item .x:hover { background: var(--red); color: #fff; }
+.sidebar-add {
+  width: 100%;
+  background: transparent;
+  border: 1px dashed var(--border);
+  color: var(--fg2);
+  padding: 6px;
+  border-radius: 6px;
+  margin: 4px 0;
+}
+.sidebar-add:hover { border-color: var(--accent); color: var(--accent); }
+.method-GET    { color: #34c759; }
+.method-POST   { color: var(--orange); }
+.method-PUT    { color: #5ac8fa; }
+.method-PATCH  { color: var(--purple); }
+.method-DELETE { color: var(--red); }
+.method-HEAD,
+.method-OPTIONS { color: var(--fg2); }
+
+.composer {
+  background: var(--bg);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.compose-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg2);
+}
+.compose-title input {
+  flex: 1;
+  background: transparent;
+  border: 0;
+  outline: none;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--fg);
+  -webkit-user-select: text;
+  user-select: text;
+}
+.compose-title .save {
+  border: 0;
+  background: var(--bg3);
+  color: var(--fg);
+  padding: 5px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+}
+.compose-title .save:hover { background: var(--accent); color: #fff; }
+
+.url-bar {
+  display: flex;
+  gap: 6px;
+  padding: 10px 12px;
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+}
+.method-select {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 8px;
+  font-family: var(--mono);
+  font-weight: 700;
+  font-size: 12px;
+  width: 90px;
+}
+.url-input {
+  flex: 1;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 10px;
+  outline: none;
+  font-family: var(--mono);
+  font-size: 12px;
+  -webkit-user-select: text;
+  user-select: text;
+}
+.url-input:focus { border-color: var(--accent); }
+.send-btn {
+  background: var(--accent);
+  color: #fff;
+  border: 0;
+  border-radius: 6px;
+  padding: 6px 18px;
+  font-weight: 600;
+}
+.send-btn:active { transform: scale(0.97); }
+.send-btn:disabled { opacity: 0.5; cursor: progress; }
+
+.tabs {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg2);
+  padding: 0 8px;
+  gap: 2px;
+}
+.tab {
+  border: 0;
+  background: transparent;
+  padding: 8px 14px;
+  border-radius: 6px 6px 0 0;
+  color: var(--fg2);
+  font-size: 12px;
+  font-weight: 500;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+}
+.tab.active { color: var(--fg); border-bottom-color: var(--accent); }
+.tab .badge {
+  background: var(--accent);
+  color: #fff;
+  font-size: 9px;
+  padding: 1px 5px;
+  border-radius: 8px;
+  margin-left: 4px;
+}
+
+.panel {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px;
+  background: var(--bg);
+}
+.panel.hidden { display: none; }
+
+.kv-row {
+  display: grid;
+  grid-template-columns: 24px 1fr 1fr 24px;
+  gap: 6px;
+  margin-bottom: 4px;
+  align-items: center;
+}
+.kv-row input[type=text] {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 5px 8px;
+  outline: none;
+  font-family: var(--mono);
+  font-size: 12px;
+  -webkit-user-select: text;
+  user-select: text;
+}
+.kv-row input[type=text]:focus { border-color: var(--accent); }
+.kv-row input[type=checkbox] { accent-color: var(--accent); }
+.kv-row .del {
+  border: 0;
+  background: transparent;
+  color: var(--fg2);
+  font-size: 14px;
+  padding: 0;
+}
+.kv-row .del:hover { color: var(--red); }
+
+.body-bar {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+.body-bar select, .body-bar button {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 4px 8px;
+  color: var(--fg);
+  font-size: 12px;
+}
+.body-bar button:hover { background: var(--bg3); }
+.body-textarea {
+  width: 100%;
+  min-height: 200px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px 10px;
+  outline: none;
+  font-family: var(--mono);
+  font-size: 12px;
+  resize: vertical;
+  -webkit-user-select: text;
+  user-select: text;
+  color: var(--fg);
+  line-height: 1.5;
+}
+.body-textarea:focus { border-color: var(--accent); }
+
+.auth-row {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 8px;
+  margin-bottom: 8px;
+  align-items: center;
+}
+.auth-row label { font-size: 12px; color: var(--fg2); }
+.auth-row input, .auth-row select {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 5px 8px;
+  outline: none;
+  font-family: var(--mono);
+  font-size: 12px;
+  -webkit-user-select: text;
+  user-select: text;
+  color: var(--fg);
+}
+
+.response {
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.response-head {
+  padding: 10px 12px;
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.status-pill {
+  font-family: var(--mono);
+  font-weight: 700;
+  font-size: 12px;
+  padding: 3px 10px;
+  border-radius: 12px;
+  background: var(--bg3);
+  color: var(--fg2);
+}
+.status-pill.ok    { background: rgba(52,199,89,0.15);  color: var(--green); }
+.status-pill.warn  { background: rgba(255,149,0,0.15);  color: var(--orange); }
+.status-pill.err   { background: rgba(255,59,48,0.15);  color: var(--red); }
+.meta-pill {
+  font-size: 12px;
+  color: var(--fg2);
+}
+.response-tabs {
+  display: flex;
+  padding: 0 8px;
+  gap: 2px;
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+}
+.response-body {
+  flex: 1;
+  overflow: auto;
+  padding: 12px;
+  background: var(--bg);
+}
+.response-body pre {
+  margin: 0;
+  font-family: var(--mono);
+  font-size: 12px;
+  white-space: pre-wrap;
+  word-break: break-word;
+  -webkit-user-select: text;
+  user-select: text;
+  line-height: 1.5;
+}
+.response-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--fg2);
+  flex-direction: column;
+  gap: 8px;
+  text-align: center;
+}
+.response-empty kbd {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-family: var(--mono);
+  font-size: 11px;
+}
+
+.json-key    { color: var(--accent); }
+.json-string { color: var(--green); }
+.json-number { color: var(--orange); }
+.json-bool   { color: var(--purple); }
+.json-null   { color: var(--fg2); }
+
+.h-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--mono);
+  font-size: 11px;
+  -webkit-user-select: text;
+  user-select: text;
+}
+.h-table tr { border-bottom: 1px solid var(--border); }
+.h-table td { padding: 6px 10px; vertical-align: top; word-break: break-all; }
+.h-table td:first-child { color: var(--fg2); width: 30%; }
+
+.toast {
+  position: fixed;
+  bottom: 16px; left: 50%;
+  transform: translateX(-50%);
+  background: var(--fg);
+  color: var(--bg);
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 12px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 200ms ease;
+  z-index: 9999;
+}
+.toast.show { opacity: 1; }
+
+.modal-back {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 1000;
+}
+.modal {
+  background: var(--bg2);
+  border-radius: 12px;
+  padding: 20px;
+  min-width: 400px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+}
+.modal h2 { margin: 0 0 14px; font-size: 16px; }
+.modal-actions {
+  display: flex; justify-content: flex-end; gap: 8px;
+  margin-top: 14px;
+}
+.modal-actions button {
+  border: 0;
+  border-radius: 6px;
+  padding: 6px 16px;
+  font-weight: 500;
+}
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-secondary { background: var(--bg3); color: var(--fg); }
+
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 5px; }
+::-webkit-scrollbar-thumb:hover { background: var(--fg2); }
+::-webkit-scrollbar-track { background: transparent; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand"><div class="brand-dot"></div>API Lab</div>
+  <div class="spacer"></div>
+  <select id="env-pick" class="env-pick"></select>
+  <button class="icon-btn" id="env-edit-btn">Env...</button>
+  <button class="icon-btn" id="theme-btn">Theme</button>
+</div>
+
+<div class="main">
+  <aside class="sidebar">
+    <div class="sidebar-tabs">
+      <button class="sidebar-tab active" data-side="collections">Koleksiyon</button>
+      <button class="sidebar-tab" data-side="history">Geçmiş</button>
+    </div>
+    <div id="side-collections" style="display:flex; flex-direction:column; flex:1; overflow:hidden;">
+      <div class="sidebar-section"><span>Saved</span></div>
+      <div class="sidebar-list" id="coll-list"></div>
+      <div style="padding: 0 8px 8px">
+        <button class="sidebar-add" id="new-req-btn">+ Yeni İstek</button>
+      </div>
+    </div>
+    <div id="side-history" style="display:none; flex:1; flex-direction: column; overflow: hidden;">
+      <div class="sidebar-section">
+        <span>Son istekler</span>
+        <button class="icon-btn" id="hist-clear" style="padding: 2px 6px; font-size: 11px;">Temizle</button>
+      </div>
+      <div class="sidebar-list" id="hist-list"></div>
+    </div>
+  </aside>
+
+  <section class="composer">
+    <div class="compose-title">
+      <input id="req-name" type="text" placeholder="İstek adı" />
+      <button class="save" id="save-btn">Kaydet</button>
+    </div>
+    <div class="url-bar">
+      <select id="method-select" class="method-select">
+        <option>GET</option><option>POST</option><option>PUT</option>
+        <option>PATCH</option><option>DELETE</option>
+        <option>HEAD</option><option>OPTIONS</option>
+      </select>
+      <input id="url-input" class="url-input"
+             placeholder="https://api.example.com/path  (env: {{base_url}}/path)" />
+      <button id="send-btn" class="send-btn">Gönder</button>
+    </div>
+
+    <div class="tabs">
+      <button class="tab active" data-tab="params">Params <span class="badge" id="params-badge" hidden>0</span></button>
+      <button class="tab" data-tab="headers">Headers <span class="badge" id="headers-badge" hidden>0</span></button>
+      <button class="tab" data-tab="auth">Auth</button>
+      <button class="tab" data-tab="body">Body <span class="badge" id="body-badge" hidden>•</span></button>
+      <button class="tab" data-tab="graphql">GraphQL</button>
+    </div>
+
+    <div class="panel" id="panel-params">
+      <div id="params-rows"></div>
+      <button class="sidebar-add" id="params-add">+ Param ekle</button>
+    </div>
+    <div class="panel hidden" id="panel-headers">
+      <div id="headers-rows"></div>
+      <button class="sidebar-add" id="headers-add">+ Header ekle</button>
+    </div>
+    <div class="panel hidden" id="panel-auth">
+      <div class="auth-row">
+        <label>Tip</label>
+        <select id="auth-type">
+          <option value="none">Yok</option>
+          <option value="bearer">Bearer Token</option>
+          <option value="basic">Basic Auth</option>
+          <option value="apikey">API Key</option>
+        </select>
+      </div>
+      <div id="auth-fields"></div>
+    </div>
+    <div class="panel hidden" id="panel-body">
+      <div class="body-bar">
+        <select id="body-mode">
+          <option value="none">Yok</option>
+          <option value="json">JSON</option>
+          <option value="form">x-www-form-urlencoded</option>
+          <option value="raw">Raw</option>
+        </select>
+        <button id="body-format">Pretty Format</button>
+      </div>
+      <textarea id="body-text" class="body-textarea" placeholder='{"key": "value"}' spellcheck="false"></textarea>
+    </div>
+    <div class="panel hidden" id="panel-graphql">
+      <div style="margin-bottom: 8px; color: var(--fg2); font-size: 11px;">
+        Method otomatik POST, body application/json olarak gönderilir.
+      </div>
+      <label style="font-size: 11px; color: var(--fg2);">Query</label>
+      <textarea id="gql-query" class="body-textarea" style="min-height: 140px"
+                placeholder='query { users { id name } }' spellcheck="false"></textarea>
+      <label style="font-size: 11px; color: var(--fg2); display:block; margin-top: 8px;">Variables (JSON)</label>
+      <textarea id="gql-vars" class="body-textarea" style="min-height: 80px"
+                placeholder='{ "id": 1 }' spellcheck="false"></textarea>
+    </div>
+  </section>
+
+  <section class="response">
+    <div class="response-head" id="resp-head" style="display:none;">
+      <span class="status-pill" id="resp-status">—</span>
+      <span class="meta-pill" id="resp-time">—</span>
+      <span class="meta-pill" id="resp-size">—</span>
+      <span class="meta-pill" id="resp-transport" title="HTTP transport">—</span>
+      <div class="spacer"></div>
+      <button class="icon-btn" id="copy-body">Body Kopyala</button>
+      <button class="icon-btn" id="copy-curl">cURL Kopyala</button>
+    </div>
+    <div class="response-tabs" id="resp-tabs" style="display:none;">
+      <button class="tab active" data-rtab="body">Body</button>
+      <button class="tab" data-rtab="headers">Headers</button>
+      <button class="tab" data-rtab="raw">Raw</button>
+    </div>
+    <div class="response-body" id="resp-body">
+      <div class="response-empty">
+        <div>İstek atmaya hazır.</div>
+        <div style="font-size: 11px;"><kbd>⌘</kbd>+<kbd>Enter</kbd> Gönder · <kbd>⌘</kbd>+<kbd>S</kbd> Kaydet · <kbd>⌘</kbd>+<kbd>N</kbd> Yeni</div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script>
+"use strict";
+
+// ───────────────── zero-native bridge ─────────────────
+// window.zero.invoke(command, payload) returns Promise<result>
+// Used to call into native Zig handlers (HTTP, etc.).
+const bridge = {
+  get available() {
+    return typeof window !== "undefined"
+        && window.zero
+        && typeof window.zero.invoke === "function";
+  },
+  async invoke(command, payload) {
+    if (!this.available) throw new Error("zero-native bridge yok");
+    return await window.zero.invoke(command, payload);
+  },
+};
+
+const LS = {
+  collections: "apilab.collections.v1",
+  envs: "apilab.envs.v1",
+  active: "apilab.active.v1",
+  history: "apilab.history.v1",
+  ui: "apilab.ui.v1",
+};
+// localStorage may throw SecurityError when origin is opaque (data: / about:blank).
+// Fall back to in-memory store so the UI still works; persistence survives session only.
+const memStore = {};
+let lsAvailable = true;
+try { localStorage.setItem("__t", "1"); localStorage.removeItem("__t"); }
+catch { lsAvailable = false; }
+const load = (k, fallback) => {
+  try {
+    if (!lsAvailable) return memStore[k] ?? fallback;
+    const raw = localStorage.getItem(k);
+    return raw == null ? fallback : (JSON.parse(raw) ?? fallback);
+  } catch { return fallback; }
+};
+const save = (k, v) => {
+  try {
+    if (lsAvailable) localStorage.setItem(k, JSON.stringify(v));
+    else memStore[k] = v;
+  } catch {}
+};
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+
+let state = {
+  collections: load(LS.collections, []),
+  envs:        load(LS.envs, [{id:"default", name:"default", vars:{}}]),
+  activeEnv:   load(LS.active, "default"),
+  history:     load(LS.history, []),
+  ui:          load(LS.ui, { theme: "auto", tab: "params", rtab: "body", side: "collections" }),
+  current: emptyRequest(),
+  lastResponse: null,
+};
+
+function emptyRequest() {
+  return {
+    id: null,
+    name: "Yeni istek",
+    method: "GET",
+    url: "",
+    params:  [{enabled:true, k:"", v:""}],
+    headers: [{enabled:true, k:"", v:""}],
+    auth: { type: "none" },
+    body: { mode: "none", text: "" },
+    gql:  { query: "", vars: "" },
+  };
+}
+
+const $  = (s) => document.querySelector(s);
+const $$ = (s) => document.querySelectorAll(s);
+const el = (tag, props = {}, ...children) => {
+  const e = document.createElement(tag);
+  for (const [k, v] of Object.entries(props)) {
+    if (k === "class") e.className = v;
+    else if (k === "html") e.innerHTML = v;
+    else if (k.startsWith("on") && typeof v === "function")
+      e.addEventListener(k.slice(2).toLowerCase(), v);
+    else if (k === "checked") e.checked = !!v;
+    else if (k === "value") e.value = v;
+    else e.setAttribute(k, v);
+  }
+  for (const c of children) {
+    if (c == null) continue;
+    e.append(c.nodeType ? c : document.createTextNode(c));
+  }
+  return e;
+};
+const toast = (msg, ms=1500) => {
+  const t = $("#toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => t.classList.remove("show"), ms);
+};
+
+const activeVars = () => {
+  const e = state.envs.find(e => e.id === state.activeEnv);
+  return e?.vars ?? {};
+};
+const envSubst = (s) => {
+  if (s == null) return s;
+  const vars = activeVars();
+  return String(s).replace(/\{\{\s*([\w.-]+)\s*\}\}/g, (_, k) => vars[k] ?? `{{${k}}}`);
+};
+
+function renderSidebar() {
+  $$(".sidebar-tab").forEach(b => b.classList.toggle("active", b.dataset.side === state.ui.side));
+  $("#side-collections").style.display = state.ui.side === "collections" ? "flex" : "none";
+  $("#side-history").style.display     = state.ui.side === "history"     ? "flex" : "none";
+
+  const list = $("#coll-list");
+  list.innerHTML = "";
+  if (state.collections.length === 0) {
+    list.append(el("div", {style:"padding:14px 8px;color:var(--fg2);font-size:11px;text-align:center;"}, "Henüz kayıtlı istek yok"));
+  } else {
+    for (const c of state.collections) {
+      const isActive = c.id === state.current.id;
+      const m = c.request?.method || "GET";
+      const item = el("div", {
+        class: "sidebar-item" + (isActive ? " active" : ""),
+        onclick: () => loadRequest(c),
+      },
+        el("span", { class: "method method-" + m }, m),
+        el("span", { class: "name" }, c.name || "(adsız)"),
+        el("button", { class: "x", onclick: (ev) => { ev.stopPropagation(); deleteCollection(c.id); } }, "✕")
+      );
+      list.append(item);
+    }
+  }
+
+  const hl = $("#hist-list");
+  hl.innerHTML = "";
+  if (state.history.length === 0) {
+    hl.append(el("div", {style:"padding:14px 8px;color:var(--fg2);font-size:11px;text-align:center;"}, "Henüz geçmiş yok"));
+  } else {
+    for (const h of state.history.slice(0, 100)) {
+      const m = h.request.method;
+      const status = h.response?.status ?? 0;
+      const dot = status >= 500 ? "var(--red)" : status >= 400 ? "var(--orange)" : status >= 200 ? "var(--green)" : "var(--fg2)";
+      const item = el("div", {
+        class: "sidebar-item",
+        onclick: () => loadFromHistory(h),
+      },
+        el("span", { class: "method method-" + m }, m),
+        el("span", { class: "name" }, h.request.url || "(boş)"),
+        el("span", { style: `width:6px;height:6px;border-radius:50%;background:${dot};flex-shrink:0;` }),
+      );
+      hl.append(item);
+    }
+  }
+}
+
+function renderEnvPick() {
+  const sel = $("#env-pick");
+  sel.innerHTML = "";
+  for (const e of state.envs) sel.append(el("option", { value: e.id }, e.name));
+  sel.value = state.activeEnv;
+}
+
+function renderComposer() {
+  $("#req-name").value     = state.current.name || "";
+  $("#method-select").value = state.current.method;
+  $("#url-input").value    = state.current.url;
+  $("#auth-type").value    = state.current.auth.type;
+  $("#body-mode").value    = state.current.body.mode;
+  $("#body-text").value    = state.current.body.text;
+  $("#gql-query").value    = state.current.gql.query;
+  $("#gql-vars").value     = state.current.gql.vars;
+  renderKv("params", state.current.params);
+  renderKv("headers", state.current.headers);
+  renderAuth();
+  updateBadges();
+  $$(".tabs .tab").forEach(t => t.classList.toggle("active", t.dataset.tab === state.ui.tab));
+  $$(".composer .panel").forEach(p => p.classList.add("hidden"));
+  $(`#panel-${state.ui.tab}`).classList.remove("hidden");
+}
+
+function renderKv(kind, rows) {
+  const root = $(`#${kind}-rows`);
+  root.innerHTML = "";
+  rows.forEach((r, i) => {
+    const node = el("div", { class: "kv-row" },
+      el("input", { type: "checkbox", checked: r.enabled, onchange: e => { r.enabled = e.target.checked; updateBadges(); }}),
+      el("input", { type: "text", placeholder: "key", value: r.k, oninput: e => { r.k = e.target.value; updateBadges(); }}),
+      el("input", { type: "text", placeholder: "value", value: r.v, oninput: e => { r.v = e.target.value; }}),
+      el("button", { class: "del", onclick: () => { rows.splice(i, 1); renderKv(kind, rows); updateBadges(); }}, "✕"),
+    );
+    root.append(node);
+  });
+}
+
+function renderAuth() {
+  const a = state.current.auth;
+  const root = $("#auth-fields");
+  root.innerHTML = "";
+  const field = (label, key, ph="", typ="text") => el("div", { class:"auth-row" },
+    el("label", {}, label),
+    el("input", { type: typ, placeholder: ph, value: a[key] || "", oninput: e => { a[key] = e.target.value; }}),
+  );
+  if (a.type === "bearer") root.append(field("Token", "token", "eyJhbGc..."));
+  else if (a.type === "basic") {
+    root.append(field("Kullanıcı", "user"));
+    root.append(field("Parola", "pass", "", "password"));
+  }
+  else if (a.type === "apikey") {
+    root.append(field("Header", "header", "X-API-Key"));
+    root.append(field("Value", "value"));
+  }
+}
+
+function updateBadges() {
+  const pcount = state.current.params.filter(r => r.enabled && r.k).length;
+  const hcount = state.current.headers.filter(r => r.enabled && r.k).length;
+  $("#params-badge").textContent = pcount;
+  $("#params-badge").hidden = pcount === 0;
+  $("#headers-badge").textContent = hcount;
+  $("#headers-badge").hidden = hcount === 0;
+  $("#body-badge").hidden = state.current.body.mode === "none" && state.ui.tab !== "graphql";
+}
+
+function buildHeaders() {
+  const headers = new Headers();
+  for (const h of state.current.headers) {
+    if (!h.enabled || !h.k) continue;
+    try { headers.append(envSubst(h.k), envSubst(h.v)); } catch {}
+  }
+  const a = state.current.auth;
+  if (a.type === "bearer" && a.token) {
+    headers.set("Authorization", "Bearer " + envSubst(a.token));
+  } else if (a.type === "basic" && (a.user || a.pass)) {
+    headers.set("Authorization", "Basic " + btoa(envSubst(a.user || "") + ":" + envSubst(a.pass || "")));
+  } else if (a.type === "apikey" && a.header && a.value) {
+    headers.set(envSubst(a.header), envSubst(a.value));
+  }
+  if (state.ui.tab === "graphql") {
+    headers.set("Content-Type", "application/json");
+  } else if (state.current.body.mode === "json" && state.current.body.text) {
+    if (!headers.has("Content-Type")) headers.set("Content-Type", "application/json");
+  } else if (state.current.body.mode === "form" && state.current.body.text) {
+    headers.set("Content-Type", "application/x-www-form-urlencoded");
+  }
+  return headers;
+}
+
+function buildUrl() {
+  let url = envSubst(state.current.url);
+  const params = state.current.params.filter(r => r.enabled && r.k);
+  if (params.length === 0) return url;
+  const qs = params.map(r => encodeURIComponent(envSubst(r.k)) + "=" + encodeURIComponent(envSubst(r.v))).join("&");
+  url += (url.includes("?") ? "&" : "?") + qs;
+  return url;
+}
+
+function buildBody() {
+  if (state.ui.tab === "graphql") {
+    let vars = {};
+    try { vars = state.current.gql.vars ? JSON.parse(envSubst(state.current.gql.vars)) : {}; } catch {}
+    return JSON.stringify({ query: envSubst(state.current.gql.query), variables: vars });
+  }
+  if (state.current.body.mode === "none") return undefined;
+  return envSubst(state.current.body.text);
+}
+
+async function sendRequest() {
+  const btn = $("#send-btn");
+  if (btn.disabled) return;
+  const url = buildUrl();
+  if (!url) { toast("URL boş"); return; }
+  const method = state.ui.tab === "graphql" ? "POST" : state.current.method;
+  const headers = buildHeaders();
+  const body = (method === "GET" || method === "HEAD") ? undefined : buildBody();
+
+  btn.disabled = true; btn.textContent = "Gönderiliyor...";
+  const t0 = performance.now();
+  let result = null, err = null;
+  try {
+    result = bridge.available
+      ? await sendViaNative(url, method, headers, body)
+      : await sendViaFetch(url, method, headers, body);
+  } catch (e) { err = e; }
+  const elapsed = Math.round(performance.now() - t0);
+  btn.disabled = false; btn.textContent = "Gönder";
+
+  if (err) {
+    renderError(err, elapsed, url, method);
+    return;
+  }
+  state.lastResponse = { ...result, elapsedMs: result.elapsedMs ?? elapsed };
+
+  state.history.unshift({
+    id: uid(),
+    ts: Date.now(),
+    request: snapshotCurrent(),
+    response: { status: result.status, sizeBytes: result.sizeBytes, elapsedMs: state.lastResponse.elapsedMs },
+  });
+  if (state.history.length > 200) state.history.length = 200;
+  save(LS.history, state.history);
+
+  renderResponse();
+  renderSidebar();
+}
+
+async function sendViaNative(url, method, headers, body) {
+  const headerArr = [];
+  headers.forEach((v, k) => headerArr.push({ name: k, value: v }));
+  const payload = {
+    method,
+    url,
+    headers: headerArr,
+    body: body ?? null,
+    timeout_ms: 60000,
+    follow_redirects: 10,
+  };
+  const r = await bridge.invoke("http.request", payload);
+  if (r.error) {
+    throw new Error(r.error + (r.stderr ? " — " + r.stderr : ""));
+  }
+  const respHeaders = (r.headers || []).map(h => ({ k: h.name, v: h.value }));
+  const ct = (r.headers || []).find(h => h.name.toLowerCase() === "content-type")?.value || "";
+  return {
+    status: r.status,
+    statusText: "",
+    headers: respHeaders,
+    body: r.body || "",
+    contentType: ct,
+    sizeBytes: r.size_bytes ?? (r.body ? r.body.length : 0),
+    elapsedMs: r.timing_ms ?? r.timing?.total_ms,
+    url: r.url || url,
+    timing: r.timing,
+    transport: "native",
+  };
+}
+
+async function sendViaFetch(url, method, headers, body) {
+  const res = await fetch(url, { method, headers, body, redirect: "follow" });
+  const respHeaders = [];
+  res.headers.forEach((v, k) => respHeaders.push({ k, v }));
+  let bodyBuf;
+  try { bodyBuf = await res.arrayBuffer(); } catch { bodyBuf = new ArrayBuffer(0); }
+  const bodyText = new TextDecoder("utf-8", { fatal: false }).decode(bodyBuf);
+  return {
+    status: res.status,
+    statusText: res.statusText,
+    headers: respHeaders,
+    body: bodyText,
+    contentType: res.headers.get("content-type") || "",
+    sizeBytes: bodyBuf.byteLength,
+    url: res.url,
+    transport: "fetch",
+  };
+}
+
+function renderError(err, elapsed, url, method) {
+  state.lastResponse = null;
+  $("#resp-head").style.display = "flex";
+  $("#resp-tabs").style.display = "none";
+  $("#resp-status").className = "status-pill err";
+  $("#resp-status").textContent = "Network Error";
+  $("#resp-time").textContent = elapsed + " ms";
+  $("#resp-size").textContent = "";
+  const body = $("#resp-body");
+  body.innerHTML = "";
+  body.append(el("pre", {}, `${method} ${url}\n\nError: ${err.message || err}\n\nNot: WebView fetch CORS uygulayabilir. Cross-origin istekler için sunucunun Access-Control-Allow-Origin header'ı gerekli, ya da native HTTP bridge gerekiyor (Phase 2).`));
+}
+
+function renderResponse() {
+  const r = state.lastResponse;
+  if (!r) return;
+  $("#resp-head").style.display = "flex";
+  $("#resp-tabs").style.display = "flex";
+
+  const sp = $("#resp-status");
+  const code = r.status;
+  sp.textContent = code + " " + (r.statusText || statusText(code));
+  sp.className = "status-pill " + (code >= 500 ? "err" : code >= 400 ? "warn" : code >= 200 ? "ok" : "");
+
+  $("#resp-time").textContent = r.elapsedMs + " ms";
+  $("#resp-size").textContent = humanSize(r.sizeBytes);
+  $("#resp-transport").textContent = r.transport === "native" ? "native" : "fetch";
+  $("#resp-transport").style.color = r.transport === "native" ? "var(--green)" : "var(--fg2)";
+  drawResponseTab();
+}
+
+function drawResponseTab() {
+  const r = state.lastResponse;
+  if (!r) return;
+  $$(".response-tabs .tab").forEach(b => b.classList.toggle("active", b.dataset.rtab === state.ui.rtab));
+  const body = $("#resp-body");
+  body.innerHTML = "";
+  if (state.ui.rtab === "headers") {
+    const tbl = el("table", { class: "h-table" });
+    for (const h of r.headers) tbl.append(el("tr", {}, el("td", {}, h.k), el("td", {}, h.v)));
+    body.append(tbl);
+  } else if (state.ui.rtab === "raw") {
+    body.append(el("pre", {}, r.body));
+  } else {
+    if (r.contentType.includes("application/json") || isProbablyJson(r.body)) {
+      try {
+        const parsed = JSON.parse(r.body);
+        const pre = document.createElement("pre");
+        pre.innerHTML = highlightJson(JSON.stringify(parsed, null, 2));
+        body.append(pre);
+        return;
+      } catch {}
+    }
+    body.append(el("pre", {}, r.body));
+  }
+}
+
+function statusText(code) {
+  const T = {200:"OK",201:"Created",204:"No Content",301:"Moved",302:"Found",304:"Not Modified",400:"Bad Request",401:"Unauthorized",403:"Forbidden",404:"Not Found",405:"Method Not Allowed",409:"Conflict",422:"Unprocessable",429:"Too Many",500:"Server Error",502:"Bad Gateway",503:"Unavailable",504:"Timeout"};
+  return T[code] || "";
+}
+function humanSize(b) {
+  if (b < 1024) return b + " B";
+  if (b < 1024*1024) return (b/1024).toFixed(1) + " KB";
+  return (b/(1024*1024)).toFixed(2) + " MB";
+}
+function isProbablyJson(s) {
+  s = s.trim();
+  return s.startsWith("{") || s.startsWith("[");
+}
+function escapeHtml(s) {
+  return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+}
+function highlightJson(json) {
+  const out = [];
+  let i = 0;
+  const n = json.length;
+  while (i < n) {
+    const c = json[i];
+    if (c === '"') {
+      const start = i++;
+      while (i < n && json[i] !== '"') {
+        if (json[i] === '\\' && i + 1 < n) i++;
+        i++;
+      }
+      i++;
+      const str = json.slice(start, i);
+      let j = i;
+      while (j < n && /\s/.test(json[j])) j++;
+      const isKey = json[j] === ':';
+      out.push('<span class="' + (isKey ? "json-key" : "json-string") + '">' + escapeHtml(str) + '</span>');
+    } else if (c === '-' || (c >= '0' && c <= '9')) {
+      const start = i++;
+      while (i < n && /[\d.eE+\-]/.test(json[i])) i++;
+      out.push('<span class="json-number">' + json.slice(start, i) + '</span>');
+    } else if (json.startsWith("true", i))  { out.push('<span class="json-bool">true</span>'); i += 4; }
+    else   if (json.startsWith("false", i)) { out.push('<span class="json-bool">false</span>'); i += 5; }
+    else   if (json.startsWith("null", i))  { out.push('<span class="json-null">null</span>'); i += 4; }
+    else { out.push(escapeHtml(c)); i++; }
+  }
+  return out.join("");
+}
+
+function snapshotCurrent() {
+  return JSON.parse(JSON.stringify({
+    method: state.current.method,
+    url: state.current.url,
+    params: state.current.params,
+    headers: state.current.headers,
+    auth: state.current.auth,
+    body: state.current.body,
+    gql: state.current.gql,
+    isGraphql: state.ui.tab === "graphql",
+  }));
+}
+function loadRequest(c) {
+  state.current = {
+    id: c.id,
+    name: c.name,
+    method: c.request.method || "GET",
+    url: c.request.url || "",
+    params: clone(c.request.params || [{enabled:true,k:"",v:""}]),
+    headers: clone(c.request.headers || [{enabled:true,k:"",v:""}]),
+    auth: clone(c.request.auth || { type: "none" }),
+    body: clone(c.request.body || { mode:"none", text:"" }),
+    gql: clone(c.request.gql || { query:"", vars:"" }),
+  };
+  if (c.request.isGraphql) state.ui.tab = "graphql";
+  renderComposer(); renderSidebar();
+}
+function loadFromHistory(h) {
+  state.current = {
+    id: null,
+    name: state.current.name,
+    method: h.request.method,
+    url: h.request.url,
+    params: clone(h.request.params),
+    headers: clone(h.request.headers),
+    auth: clone(h.request.auth),
+    body: clone(h.request.body),
+    gql: clone(h.request.gql),
+  };
+  state.ui.tab = h.request.isGraphql ? "graphql" : "params";
+  renderComposer(); renderSidebar();
+}
+function clone(x) { return JSON.parse(JSON.stringify(x)); }
+
+function saveCurrent() {
+  const name = state.current.name?.trim() || "(adsız)";
+  state.current.name = name;
+  const snap = snapshotCurrent();
+  if (state.current.id) {
+    const i = state.collections.findIndex(c => c.id === state.current.id);
+    if (i >= 0) state.collections[i] = { ...state.collections[i], name, request: snap };
+  } else {
+    const id = uid();
+    state.current.id = id;
+    state.collections.unshift({ id, name, request: snap });
+  }
+  save(LS.collections, state.collections);
+  renderSidebar();
+  toast("Kaydedildi");
+}
+function deleteCollection(id) {
+  if (!confirm("Silinsin mi?")) return;
+  state.collections = state.collections.filter(c => c.id !== id);
+  if (state.current.id === id) state.current.id = null;
+  save(LS.collections, state.collections);
+  renderSidebar();
+}
+function newRequest() {
+  state.current = emptyRequest();
+  state.ui.tab = "params";
+  renderComposer(); renderSidebar();
+}
+
+function toCurl() {
+  const url = buildUrl();
+  const method = state.ui.tab === "graphql" ? "POST" : state.current.method;
+  const lines = [`curl -X ${method} '${url.replace(/'/g, "'\\''")}'`];
+  const headers = buildHeaders();
+  headers.forEach((v, k) => lines.push(`  -H '${k}: ${v.replace(/'/g, "'\\''")}'`));
+  const body = (method === "GET" || method === "HEAD") ? undefined : buildBody();
+  if (body) lines.push(`  --data-raw '${body.replace(/'/g, "'\\''")}'`);
+  return lines.join(" \\\n");
+}
+
+function openEnvEditor() {
+  const back = el("div", { class: "modal-back", onclick: e => { if (e.target === back) close(); }});
+  const list = el("div", {});
+  const refresh = () => {
+    list.innerHTML = "";
+    for (const e of state.envs) {
+      const row = el("div", { style: "border:1px solid var(--border); border-radius:8px; padding:10px; margin-bottom:10px;" },
+        el("div", { style:"display:flex;gap:8px;align-items:center;margin-bottom:6px;" },
+          el("input", { type:"text", value:e.name, oninput: ev => { e.name = ev.target.value; }, style:"flex:1;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:4px 8px;color:var(--fg);" }),
+          el("button", { class:"btn-secondary", style:"padding:4px 10px;border:0;border-radius:5px;", onclick: () => {
+            if (state.envs.length > 1) { state.envs = state.envs.filter(x => x.id !== e.id); save(LS.envs, state.envs); refresh(); renderEnvPick(); }
+            else toast("En az 1 environment olmalı");
+          }}, "Sil"),
+        ),
+        el("textarea", { class:"body-textarea", style:"min-height:90px;", placeholder:"key=value\nbase_url=https://api.example.com\ntoken=abc123",
+          value: Object.entries(e.vars).map(([k,v]) => `${k}=${v}`).join("\n"),
+          oninput: ev => {
+            const vars = {};
+            ev.target.value.split("\n").forEach(line => {
+              const eq = line.indexOf("=");
+              if (eq > 0) {
+                const k = line.slice(0, eq).trim();
+                const v = line.slice(eq+1);
+                if (k) vars[k] = v;
+              }
+            });
+            e.vars = vars;
+          }
+        }),
+      );
+      list.append(row);
+    }
+  };
+  refresh();
+  const modal = el("div", { class: "modal", style:"min-width:500px; max-height:80vh; overflow-y:auto;" },
+    el("h2", {}, "Environments"),
+    list,
+    el("button", { class:"sidebar-add", onclick: () => {
+      state.envs.push({ id: uid(), name: "yeni", vars: {} });
+      refresh(); renderEnvPick();
+    }}, "+ Environment ekle"),
+    el("div", { class:"modal-actions" },
+      el("button", { class:"btn-primary", onclick: () => { save(LS.envs, state.envs); renderEnvPick(); close(); toast("Environments kaydedildi"); }}, "Kaydet"),
+    ),
+  );
+  back.append(modal);
+  document.body.append(back);
+  function close() { back.remove(); }
+}
+
+function init() {
+  applyTheme();
+  $$(".sidebar-tab").forEach(b => b.addEventListener("click", () => { state.ui.side = b.dataset.side; save(LS.ui, state.ui); renderSidebar(); }));
+  $$(".tabs .tab").forEach(b => b.addEventListener("click", () => { state.ui.tab = b.dataset.tab; save(LS.ui, state.ui); renderComposer(); }));
+  $$(".response-tabs .tab").forEach(b => b.addEventListener("click", () => { state.ui.rtab = b.dataset.rtab; save(LS.ui, state.ui); drawResponseTab(); }));
+
+  $("#method-select").addEventListener("change", e => { state.current.method = e.target.value; renderSidebar(); });
+  $("#url-input").addEventListener("input", e => { state.current.url = e.target.value; });
+  $("#req-name").addEventListener("input", e => { state.current.name = e.target.value; });
+  $("#auth-type").addEventListener("change", e => { state.current.auth = { type: e.target.value }; renderAuth(); });
+  $("#body-mode").addEventListener("change", e => { state.current.body.mode = e.target.value; updateBadges(); });
+  $("#body-text").addEventListener("input", e => { state.current.body.text = e.target.value; });
+  $("#body-format").addEventListener("click", () => {
+    if (state.current.body.mode !== "json") return;
+    try { state.current.body.text = JSON.stringify(JSON.parse(state.current.body.text), null, 2); $("#body-text").value = state.current.body.text; }
+    catch (e) { toast("Geçersiz JSON: " + e.message); }
+  });
+  $("#gql-query").addEventListener("input", e => { state.current.gql.query = e.target.value; });
+  $("#gql-vars").addEventListener("input", e => { state.current.gql.vars = e.target.value; });
+  $("#params-add").addEventListener("click", () => { state.current.params.push({enabled:true,k:"",v:""}); renderKv("params", state.current.params); });
+  $("#headers-add").addEventListener("click", () => { state.current.headers.push({enabled:true,k:"",v:""}); renderKv("headers", state.current.headers); });
+
+  $("#new-req-btn").addEventListener("click", newRequest);
+  $("#hist-clear").addEventListener("click", () => { if (confirm("Geçmiş silinsin mi?")) { state.history = []; save(LS.history, state.history); renderSidebar(); } });
+
+  $("#env-pick").addEventListener("change", e => { state.activeEnv = e.target.value; save(LS.active, state.activeEnv); });
+  $("#env-edit-btn").addEventListener("click", openEnvEditor);
+  $("#theme-btn").addEventListener("click", () => {
+    const order = ["auto","light","dark"];
+    state.ui.theme = order[(order.indexOf(state.ui.theme)+1) % 3];
+    save(LS.ui, state.ui);
+    applyTheme();
+    toast("Theme: " + state.ui.theme);
+  });
+
+  $("#send-btn").addEventListener("click", sendRequest);
+  $("#save-btn").addEventListener("click", saveCurrent);
+
+  $("#copy-body").addEventListener("click", () => {
+    if (!state.lastResponse) return;
+    navigator.clipboard.writeText(state.lastResponse.body).then(() => toast("Body kopyalandı"));
+  });
+  $("#copy-curl").addEventListener("click", () => {
+    navigator.clipboard.writeText(toCurl()).then(() => toast("cURL kopyalandı"));
+  });
+
+  document.addEventListener("keydown", e => {
+    const cmd = e.metaKey || e.ctrlKey;
+    if (cmd && e.key === "Enter") { e.preventDefault(); sendRequest(); }
+    else if (cmd && (e.key === "s" || e.key === "S")) { e.preventDefault(); saveCurrent(); }
+    else if (cmd && (e.key === "n" || e.key === "N")) { e.preventDefault(); newRequest(); }
+  });
+
+  renderEnvPick();
+  renderComposer();
+  renderSidebar();
+
+  if (state.collections.length === 0) {
+    state.collections.unshift({
+      id: uid(),
+      name: "Github user (örnek)",
+      request: { method: "GET", url: "https://api.github.com/users/octocat",
+                 params: [{enabled:true,k:"",v:""}],
+                 headers: [{enabled:true,k:"Accept",v:"application/vnd.github+json"}],
+                 auth: { type: "none" },
+                 body: { mode: "none", text: "" },
+                 gql: { query: "", vars: "" } }
+    });
+    save(LS.collections, state.collections);
+    renderSidebar();
+  }
+}
+
+function applyTheme() {
+  const t = state.ui.theme;
+  document.documentElement.style.colorScheme = t === "auto" ? "light dark" : t;
+}
+
+window.addEventListener("error", (e) => {
+  const body = document.getElementById("resp-body") || document.body;
+  if (body) {
+    const pre = document.createElement("pre");
+    pre.style.cssText = "padding:16px;color:var(--red);background:var(--bg2);font-family:var(--mono);font-size:12px;white-space:pre-wrap;-webkit-user-select:text;user-select:text;";
+    pre.textContent = "JS error: " + (e.error?.stack || e.message);
+    body.prepend(pre);
+  }
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+  try { init(); }
+  catch (e) {
+    document.body.innerHTML = '<pre style="padding:20px;font-family:monospace;color:#ff3b30;white-space:pre-wrap;-webkit-user-select:text;">init() crashed:\n' + (e.stack || e.message) + '</pre>';
+  }
+});
+</script>
+</body>
+</html>
