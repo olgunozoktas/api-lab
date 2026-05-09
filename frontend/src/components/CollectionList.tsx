@@ -12,24 +12,70 @@ import { FolderRow, RequestRow } from "./CollectionRows";
 // supports moving items into folders; dropping on the empty area below
 // moves to the root.
 
-export function CollectionList() {
+export function CollectionList({ query = "" }: { query?: string }) {
   const items = useStore((s) => s.collectionItems);
   const expanded = useStore((s) => s.collectionsExpanded);
   const t = useT();
+  const trimmedQuery = query.trim();
+  const filtering = trimmedQuery.length > 0;
 
-  // Build the per-parent index once per render so the tree walker can
-  // do O(1) lookups without re-filtering at every level.
-  const childrenOf = useMemo(() => {
-    const map = new Map<string | null, CollectionItem[]>();
+  // When filtering, build the visible-id set: every item whose name matches
+  // PLUS every ancestor folder of a match (so the tree stays coherent —
+  // a request match without its parent would orphan visually). Also force
+  // every visible folder open during the filter so users see hits.
+  const { childrenOf, forcedOpen, hasMatches } = useMemo(() => {
+    const byParent = new Map<string | null, CollectionItem[]>();
+    const byId = new Map<string, CollectionItem>();
     for (const it of items) {
-      const arr = map.get(it.parentId) ?? [];
+      byId.set(it.id, it);
+      const arr = byParent.get(it.parentId) ?? [];
       arr.push(it);
-      map.set(it.parentId, arr);
+      byParent.set(it.parentId, arr);
     }
-    for (const arr of map.values()) arr.sort((a, b) => a.order - b.order);
-    return map;
-  }, [items]);
+    for (const arr of byParent.values()) arr.sort((a, b) => a.order - b.order);
 
+    if (!filtering) {
+      return {
+        childrenOf: byParent,
+        forcedOpen: null as Record<string, boolean> | null,
+        hasMatches: items.length > 0,
+      };
+    }
+
+    const q = trimmedQuery.toLowerCase();
+    const visible = new Set<string>();
+    for (const it of items) {
+      if ((it.name ?? "").toLowerCase().includes(q)) {
+        visible.add(it.id);
+        // walk up ancestors so the tree path renders
+        let p = it.parentId;
+        while (p) {
+          if (visible.has(p)) break;
+          visible.add(p);
+          p = byId.get(p)?.parentId ?? null;
+        }
+      }
+    }
+
+    const filteredByParent = new Map<string | null, CollectionItem[]>();
+    for (const it of items) {
+      if (!visible.has(it.id)) continue;
+      const arr = filteredByParent.get(it.parentId) ?? [];
+      arr.push(it);
+      filteredByParent.set(it.parentId, arr);
+    }
+    for (const arr of filteredByParent.values()) arr.sort((a, b) => a.order - b.order);
+
+    const open: Record<string, boolean> = {};
+    for (const id of visible) {
+      const it = byId.get(id);
+      if (it?.kind === "folder") open[id] = true;
+    }
+
+    return { childrenOf: filteredByParent, forcedOpen: open, hasMatches: visible.size > 0 };
+  }, [items, filtering, trimmedQuery]);
+
+  const effectiveExpanded = forcedOpen ?? expanded;
   const roots = childrenOf.get(null) ?? [];
 
   if (items.length === 0) {
@@ -42,12 +88,28 @@ export function CollectionList() {
     );
   }
 
+  if (filtering && !hasMatches) {
+    return (
+      <div className="px-1.5 pb-3">
+        <div className="text-center text-[11px] text-[var(--color-fg-muted)] py-3">
+          {t("collections.search.empty")}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="px-1.5 pb-3">
       {roots.map((it) => (
-        <TreeNode key={it.id} item={it} depth={0} childrenOf={childrenOf} expanded={expanded} />
+        <TreeNode
+          key={it.id}
+          item={it}
+          depth={0}
+          childrenOf={childrenOf}
+          expanded={effectiveExpanded}
+        />
       ))}
-      <RootDropZone />
+      {!filtering && <RootDropZone />}
     </div>
   );
 }

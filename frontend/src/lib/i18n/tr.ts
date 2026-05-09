@@ -62,6 +62,9 @@ export const tr = {
   "collections.context.delete": "Sil",
   "collections.context.open": "Aç",
   "collections.context.openInNewTab": "Yeni sekmede aç",
+  "collections.search.placeholder": "Ara...",
+  "collections.search.empty": "Eşleşme yok",
+  "collections.search.clear": "Temizle",
 
   "curl.detected": "cURL algılandı",
   "curl.import": "İçeri aktar",

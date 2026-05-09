@@ -76,7 +76,15 @@ export function FolderRow({
             dragOver && "bg-[var(--color-accent)]/15 ring-1 ring-[var(--color-accent)]"
           )}
           style={{ paddingLeft: 8 + depth * 12 }}
-          onClick={() => toggleFolder(item.id)}
+          onClick={(e) => {
+            // Skip toggle when this click is a context-menu trigger
+            // (macOS Control+click synthesizes a click; some trackpads
+            // emit click before contextmenu). Without this, the first
+            // right-click expanded/collapsed the folder before the menu
+            // opened — second right-click was needed to actually see it.
+            if (e.ctrlKey || e.button !== 0) return;
+            toggleFolder(item.id);
+          }}
           onDoubleClick={(e) => {
             e.stopPropagation();
             setRenaming(true);
@@ -196,7 +204,11 @@ export function RequestRow({ item, depth }: { item: CollectionItem; depth: numbe
     <ContextMenu>
       <ContextMenuTrigger asChild>
         <div
-          onClick={() => loadCollection(item)}
+          onClick={(e) => {
+            // Skip load on macOS Control+click (context menu modifier).
+            if (e.ctrlKey || e.button !== 0) return;
+            loadCollection(item);
+          }}
           onDoubleClick={(e) => {
             e.stopPropagation();
             setRenaming(true);

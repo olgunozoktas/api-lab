@@ -62,6 +62,9 @@ export const en: Dict = {
   "collections.context.delete": "Delete",
   "collections.context.open": "Open",
   "collections.context.openInNewTab": "Open in new tab",
+  "collections.search.placeholder": "Search...",
+  "collections.search.empty": "No matches",
+  "collections.search.clear": "Clear",
 
   "curl.detected": "cURL detected",
   "curl.import": "Import",

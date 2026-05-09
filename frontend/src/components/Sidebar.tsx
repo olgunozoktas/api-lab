@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { useStore } from "../store";
 import { CollectionList } from "./CollectionList";
 import { HistoryList } from "./HistoryList";
@@ -7,12 +7,14 @@ import { useConfirm } from "../lib/dialogs";
 import { Tabs, TabsList, TabsTrigger } from "./ui/tabs";
 import { Button } from "./ui/button";
 import { parsePostmanV2 } from "../lib/importers/postmanV2";
+import { Search, X } from "lucide-react";
 
 export function Sidebar() {
   const ui = useStore((s) => s.ui);
   const setUi = useStore((s) => s.setUi);
   const resetCurrent = useStore((s) => s.resetCurrent);
   const t = useT();
+  const [query, setQuery] = useState("");
 
   return (
     <aside className="bg-[var(--color-bg-elev)] border-r border-[var(--color-border)] flex flex-col overflow-hidden">
@@ -48,8 +50,9 @@ export function Sidebar() {
           >
             {t("sidebar.section.saved")}
           </SectionHeader>
+          <SearchInput query={query} onChange={setQuery} />
           <div className="flex-1 min-h-0 overflow-y-auto">
-            <CollectionList />
+            <CollectionList query={query} />
           </div>
           <div className="px-2 pb-2 shrink-0">
             <Button variant="dashed" size="md" className="w-full" onClick={resetCurrent}>
@@ -68,6 +71,36 @@ export function Sidebar() {
         </>
       )}
     </aside>
+  );
+}
+
+function SearchInput({ query, onChange }: { query: string; onChange: (s: string) => void }) {
+  const t = useT();
+  return (
+    <div className="px-2 pb-2 shrink-0 relative">
+      <Search
+        className="absolute left-4 top-1/2 -translate-y-1/2 w-3 h-3 text-[var(--color-fg-muted)] pointer-events-none"
+        aria-hidden
+      />
+      <input
+        type="text"
+        value={query}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={t("collections.search.placeholder")}
+        aria-label={t("collections.search.placeholder")}
+        className="w-full bg-[var(--color-bg)] border border-[var(--color-border)] rounded-md pl-7 pr-7 py-1 text-xs outline-none focus:border-[var(--color-accent)] transition-colors"
+      />
+      {query.length > 0 && (
+        <button
+          type="button"
+          aria-label={t("collections.search.clear")}
+          onClick={() => onChange("")}
+          className="absolute right-4 top-1/2 -translate-y-1/2 p-0.5 text-[var(--color-fg-muted)] hover:text-[var(--color-fg)] rounded transition-colors"
+        >
+          <X className="w-3 h-3" />
+        </button>
+      )}
+    </div>
   );
 }
 
