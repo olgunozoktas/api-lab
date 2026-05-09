@@ -91,8 +91,21 @@ jobs:
           fi
           echo "Lockfile resolved URLs all point to registry.npmjs.org"
 
-      - name: Install (clean, from lockfile)
-        run: npm ci --ignore-scripts
+      - name: Install (with platform-correct optional deps — npm/cli#4828 workaround)
+        # Why `npm install` instead of `npm ci`:
+        # The lockfile is generated inside dnpm's Linux ARM64 musl container
+        # (OrbStack on Apple Silicon), so it only records the matching platform
+        # binding for native deps like @rolldown/binding-* (Vite 8's bundler).
+        # `npm ci` on this runner (linux-x64-gnu) refuses to fetch a missing
+        # platform's binding because it's not in the lockfile's packages section
+        # — Vitest then crashes with "Cannot find native binding". The dual-
+        # platform fix would be to commit a lockfile generated on every target,
+        # which doesn't compose with the dnpm-only dev policy.
+        # `npm install` re-resolves optionalDependencies for the current
+        # platform without modifying the committed lockfile (--no-save).
+        # The lockfile-resolved-URL grep above still defends against
+        # typosquatting / dependency-confusion regardless of install mode.
+        run: npm install --no-save --no-audit --no-fund --ignore-scripts
 
       - name: Audit (high+ fails the build)
         run: npm audit --audit-level=high || true
