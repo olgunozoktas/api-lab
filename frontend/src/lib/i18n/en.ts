@@ -271,6 +271,8 @@ export const en: Dict = {
   "grpc.reflect.retry": "Retry",
   "grpc.reflect.refresh": "Refresh",
   "grpc.reflect.servicesCount": "{count} services found",
+  "grpc.reflect.cachedAgo.seconds": "(cached {count}s ago)",
+  "grpc.reflect.cachedAgo.minutes": "(cached {count}m ago)",
   "grpc.reflect.serviceError": "describe failed for this service: {error}",
   "grpc.reflect.method.title": "request: {request} → response: {response}",
   "grpc.reflect.stream.client": "client stream",

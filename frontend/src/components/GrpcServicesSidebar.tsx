@@ -13,13 +13,14 @@ import { useState } from "react";
 import { ChevronRight, ChevronDown, RefreshCw, Globe, Layers, AlertTriangle } from "lucide-react";
 import { Button } from "./ui/button";
 import { useT } from "../lib/i18n/useT";
+import { formatCachedAge } from "../lib/reflectionCache";
 import type { GrpcReflectMethod, GrpcReflectService } from "../lib/bridge";
 
 export type SidebarState =
   | { kind: "idle" }
   | { kind: "loading" }
   | { kind: "error"; error: string; hint?: string }
-  | { kind: "ready"; services: GrpcReflectService[] };
+  | { kind: "ready"; services: GrpcReflectService[]; cachedAt?: number };
 
 export type ServiceMethodPick = {
   service: string;
@@ -29,10 +30,19 @@ export type ServiceMethodPick = {
 export type GrpcServicesSidebarProps = {
   state: SidebarState;
   onLoad: () => void;
+  // Explicit-invalidate refresh used by the ready-state header. Falls
+  // back to onLoad for callers that don't yet differentiate (so the
+  // sidebar stays drop-in compatible).
+  onRefresh?: () => void;
   onMethodPick: (pick: ServiceMethodPick) => void;
 };
 
-export function GrpcServicesSidebar({ state, onLoad, onMethodPick }: GrpcServicesSidebarProps) {
+export function GrpcServicesSidebar({
+  state,
+  onLoad,
+  onRefresh,
+  onMethodPick,
+}: GrpcServicesSidebarProps) {
   const t = useT();
 
   if (state.kind === "idle") {
@@ -82,10 +92,16 @@ export function GrpcServicesSidebar({ state, onLoad, onMethodPick }: GrpcService
   return (
     <div className="space-y-1">
       <div className="flex items-center justify-between">
-        <span className="text-[10px] text-[var(--color-fg-muted)] uppercase tracking-wide">
+        <span className="text-[10px] text-[var(--color-fg-muted)] uppercase tracking-wide flex items-center gap-1.5">
           {t("grpc.reflect.servicesCount", { count: String(services.length) })}
+          {state.cachedAt !== undefined && <CachedBadge cachedAt={state.cachedAt} />}
         </span>
-        <Button variant="ghost" size="sm" onClick={onLoad} title={t("grpc.reflect.refresh")}>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={onRefresh ?? onLoad}
+          title={t("grpc.reflect.refresh")}
+        >
           <RefreshCw className="w-3 h-3" />
         </Button>
       </div>
@@ -189,4 +205,16 @@ function shortType(t: string): string {
   const cleaned = t.startsWith(".") ? t.slice(1) : t;
   const dot = cleaned.lastIndexOf(".");
   return dot >= 0 ? cleaned.slice(dot + 1) : cleaned;
+}
+
+function CachedBadge({ cachedAt }: { cachedAt: number }) {
+  const t = useT();
+  const age = formatCachedAge(Date.now() - cachedAt);
+  return (
+    <span className="text-[9px] normal-case tracking-normal text-[var(--color-fg-muted)] italic">
+      {age.unit === "seconds"
+        ? t("grpc.reflect.cachedAgo.seconds", { count: String(age.count) })
+        : t("grpc.reflect.cachedAgo.minutes", { count: String(age.count) })}
+    </span>
+  );
 }

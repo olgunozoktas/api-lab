@@ -11,12 +11,14 @@
 
 import { useState } from "react";
 import { useStore, useActiveVars } from "../store";
+import { useReflectionCache } from "../store/reflectionCache";
 import { envSubst } from "../lib/utils";
 import { emptyGrpcState, type GrpcState } from "../lib/types";
 import { bridge } from "../lib/bridge";
 import type {
   GrpcMetadataEntry,
   GrpcReflectListResponse,
+  GrpcReflectService,
   GrpcReflectSkeletonResponse,
   GrpcRequest,
   GrpcResponse,
@@ -40,11 +42,37 @@ export function GrpcPanelContainer() {
   const [reqTab, setReqTab] = useState<"message" | "metadata" | "proto" | "tls">("message");
   const [reflectState, setReflectState] = useState<SidebarState>({ kind: "idle" });
 
+  const getCached = useReflectionCache((s) => s.getCached);
+  const setCached = useReflectionCache((s) => s.setCached);
+  const invalidateCached = useReflectionCache((s) => s.invalidate);
+
   const substitutedUrl = envSubst(url, vars);
   const target = extractTarget(substitutedUrl);
 
   const updateGrpc = (patch: Partial<GrpcState>) => {
     setCurrent({ grpc: { ...grpc, ...patch } });
+  };
+
+  const fetchAndCacheReflection = async (currentTarget: string) => {
+    setReflectState({ kind: "loading" });
+    try {
+      const r = await bridge.invoke<GrpcReflectListResponse>("grpc.reflect.list", {
+        target: currentTarget,
+        plaintext: grpc.plaintext ?? derivePlaintext(substitutedUrl),
+        timeout_ms: 30000,
+      });
+      if (r.error) {
+        setReflectState({ kind: "error", error: r.error, hint: r.stderr ?? r.install_hint });
+      } else {
+        const services: GrpcReflectService[] = r.services ?? [];
+        setCached(currentTarget, services);
+        // Fresh fetch: omit cachedAt so the sidebar doesn't render the
+        // "(cached Xs ago)" badge until the next cache hit.
+        setReflectState({ kind: "ready", services });
+      }
+    } catch (e) {
+      setReflectState({ kind: "error", error: (e as Error).message || String(e) });
+    }
   };
 
   const onReflectLoad = async () => {
@@ -56,21 +84,22 @@ export function GrpcPanelContainer() {
       });
       return;
     }
-    setReflectState({ kind: "loading" });
-    try {
-      const r = await bridge.invoke<GrpcReflectListResponse>("grpc.reflect.list", {
-        target,
-        plaintext: grpc.plaintext ?? derivePlaintext(substitutedUrl),
-        timeout_ms: 30000,
+    const cached = getCached(target);
+    if (cached) {
+      setReflectState({
+        kind: "ready",
+        services: cached.services,
+        cachedAt: cached.fetchedAt,
       });
-      if (r.error) {
-        setReflectState({ kind: "error", error: r.error, hint: r.stderr ?? r.install_hint });
-      } else {
-        setReflectState({ kind: "ready", services: r.services ?? [] });
-      }
-    } catch (e) {
-      setReflectState({ kind: "error", error: (e as Error).message || String(e) });
+      return;
     }
+    await fetchAndCacheReflection(target);
+  };
+
+  const onReflectRefresh = async () => {
+    if (!target) return;
+    invalidateCached(target);
+    await fetchAndCacheReflection(target);
   };
 
   const onReflectMethodPick = async (pick: ServiceMethodPick) => {
@@ -175,6 +204,7 @@ export function GrpcPanelContainer() {
       reqTab={reqTab}
       onReqTabChange={setReqTab}
       onReflectLoad={onReflectLoad}
+      onReflectRefresh={onReflectRefresh}
       onReflectMethodPick={onReflectMethodPick}
       onSend={onSend}
     />

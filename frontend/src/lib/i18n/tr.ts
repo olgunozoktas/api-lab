@@ -272,6 +272,8 @@ export const tr = {
   "grpc.reflect.retry": "Tekrar dene",
   "grpc.reflect.refresh": "Yenile",
   "grpc.reflect.servicesCount": "{count} servis bulundu",
+  "grpc.reflect.cachedAgo.seconds": "(önbellek, {count}sn önce)",
+  "grpc.reflect.cachedAgo.minutes": "(önbellek, {count}dk önce)",
   "grpc.reflect.serviceError": "Bu servis için describe başarısız oldu: {error}",
   "grpc.reflect.method.title": "request: {request} → response: {response}",
   "grpc.reflect.stream.client": "client stream",
