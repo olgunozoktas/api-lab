@@ -10,8 +10,8 @@ Adds protocol breadth (WebSocket) and developer ergonomics (export request as co
 
 ## Items
 
-- [ ] `WsPanel` component using browser-side `WebSocket` API (no CORS for ws://wss://)
-- [ ] Message log, send box, ping helper, JSON-message tagging
+- [x] `WsPanel` component using browser-side `WebSocket` API (no CORS for ws://wss://)
+- [x] Message log, send box, ping helper, JSON-message tagging
 - [x] Code generators (`lib/codegen/*.ts`): curl, fetch, axios, python-requests, Go net/http, Node.js
 - [x] "Copy as ..." dropdown in response head bar
 - [x] Full URL/header/body/auth substitution in generated code
@@ -23,19 +23,14 @@ WebSocket connects to wss://echo.websocket.org, sends + receives.
 
 ## Status
 
-**Code-gen half shipped 2026-05-09** (worktree `feat/websocket-codegen`).
-Six formatters live (cURL / fetch / axios / python-requests / Go net/http
-/ Node.js https). "Copy as code" dropdown replaces the old single-purpose
-"Copy as cURL" button in `ResponseHead`. Env / auth substitution flows
-through the existing `sendRequest.ts` builders, so the emitted code is
-copy-paste-runnable.
+**Both halves shipped 2026-05-09.**
 
-WebSocket half (items 1-2) intentionally deferred — different concern
-(stateful protocol vs pure formatters), different complexity, different
-acceptance. Stays in this file rather than being moved to a new one so
-GitHub issue #2 keeps a single source of truth.
+- Code-gen half (items 3-5) shipped via `feat/websocket-codegen` (merge `b331e47`).
+- WebSocket half (items 1-2) shipped via `feat/websocket`.
 
 ## Follow-ups (from Step 8 ultrathink)
+
+Code-gen slice:
 
 - `P3-2026-05-09-094000-codegen-redact-secrets.md` — toggle that
   replaces `Authorization`, `Cookie`, `X-Api-Key` header values with
@@ -45,3 +40,10 @@ GitHub issue #2 keeps a single source of truth.
   `@testing-library/react` + `jsdom` so leaf components (`CopyAsMenu`,
   `QuickSwitcher`, `TabStrip`) get behavior tests, not just store-action
   tests.
+
+WebSocket slice:
+
+- `P3-2026-05-09-101500-ws-per-tab-persistence.md` — preserve WebSocket
+  connections across tab switches. v1 closes the socket on tab change.
+- `P3-2026-05-09-101600-ws-history-recording.md` — log WS sessions into
+  the History sidebar (currently only HTTP requests are recorded).
