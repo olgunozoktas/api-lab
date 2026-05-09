@@ -66,11 +66,14 @@ export class ErrorBoundary extends Component<Props, State> {
 
   // Build a multi-section payload that's useful both for the user
   // copy-pasting into a chat AND for an LLM trying to diagnose. Includes
-  // location, user agent, the resolved (or raw, if resolution didn't
-  // land) error stack, the message, and the component stack.
+  // location, user agent, the error MESSAGE (the most diagnostic single
+  // field — WebKit's `error.stack` is just frames without the message),
+  // the resolved-or-raw stack, and the component stack.
   private buildReport(): string {
     const e = this.state.error;
-    const stack = this.state.resolvedStack || e?.stack || e?.message || String(e || "(no error)");
+    const errorName = e?.name || "Error";
+    const errorMsg = e?.message || "(no message)";
+    const stack = this.state.resolvedStack || e?.stack || "(no stack)";
     const lines: string[] = [];
     lines.push("# API Lab runtime error");
     lines.push("");
@@ -79,11 +82,14 @@ export class ErrorBoundary extends Component<Props, State> {
     lines.push(
       `User-Agent: ${typeof navigator !== "undefined" ? navigator.userAgent : "(no nav)"}`
     );
-    if (e?.message && this.state.resolvedStack) {
-      lines.push(`Message: ${e.message}`);
-    }
+    lines.push(`Source-map resolved: ${this.state.resolvedStack ? "yes" : "no"}`);
     lines.push("");
-    lines.push(this.state.resolvedStack ? "## Error (source-map resolved)" : "## Error");
+    lines.push("## Message");
+    lines.push("```");
+    lines.push(`${errorName}: ${errorMsg}`);
+    lines.push("```");
+    lines.push("");
+    lines.push(this.state.resolvedStack ? "## Stack (source-map resolved)" : "## Stack (raw)");
     lines.push("```");
     lines.push(stack);
     lines.push("```");
@@ -162,10 +168,26 @@ export class ErrorBoundary extends Component<Props, State> {
         <h1 style={{ fontSize: "18px", margin: "0 0 12px", color: "#c53030" }}>
           API Lab — runtime error
         </h1>
-        <p style={{ margin: "0 0 12px" }}>
-          The UI crashed during render. The full error is shown below — click{" "}
-          <strong>Copy report</strong> to grab a complete bundle (error + stack + component tree +
-          UA) for pasting into a chat or bug report. If the error mentions{" "}
+        <div
+          style={{
+            background: "#fee",
+            color: "#7a1010",
+            padding: "10px 12px",
+            margin: "0 0 12px",
+            borderRadius: "4px",
+            border: "1px solid #f5b8b8",
+            fontSize: "13px",
+            fontWeight: 600,
+            wordBreak: "break-word",
+          }}
+        >
+          {(this.state.error?.name || "Error") + ": "}
+          <span style={{ fontWeight: 400 }}>{this.state.error?.message || "(no message)"}</span>
+        </div>
+        <p style={{ margin: "0 0 12px", fontSize: "12px" }}>
+          Click <strong>Copy report</strong> to grab a complete bundle (message + stack + component
+          tree + UA) for pasting into a chat or bug report. Wait for source-map resolution to finish
+          so the stack carries real function names. If the error mentions{" "}
           <code>collectionItems</code>, <code>tabs</code>, or migration, try{" "}
           <strong>Reset state + reload</strong>.
         </p>
@@ -178,7 +200,8 @@ export class ErrorBoundary extends Component<Props, State> {
               color: "#666",
             }}
           >
-            Resolving source maps…
+            Resolving source maps… (Copy disabled until done — this can take 5-15 s on a 4-5 MB
+            sourcemap)
           </p>
         )}
         <pre
@@ -219,13 +242,15 @@ export class ErrorBoundary extends Component<Props, State> {
         )}
         <button
           onClick={this.copy}
+          disabled={this.state.resolving}
           style={{
             ...btnBase,
-            background: this.state.copied ? "#22863a" : "#1a1a1a",
+            background: this.state.resolving ? "#999" : this.state.copied ? "#22863a" : "#1a1a1a",
             color: "#fff",
+            cursor: this.state.resolving ? "not-allowed" : "pointer",
           }}
         >
-          {this.state.copied ? "✓ Copied" : "Copy report"}
+          {this.state.resolving ? "Resolving…" : this.state.copied ? "✓ Copied" : "Copy report"}
         </button>
         <button
           onClick={this.reset}

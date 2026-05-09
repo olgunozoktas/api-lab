@@ -59,7 +59,45 @@ type TreeNodeProps = {
   expanded: Record<string, boolean>;
 };
 
-function TreeNode({ item, depth, childrenOf, expanded }: TreeNodeProps) {
+function TreeNode({
+  item,
+  depth,
+  childrenOf,
+  expanded,
+  ancestors,
+}: TreeNodeProps & { ancestors?: ReadonlySet<string> }) {
+  // Cycle guard. If a corrupted store somehow contains a self-referential
+  // parentId chain (item.id === item.parentId, or A→B→A), refuse to recurse.
+  // Without this, the tree walker would stack-overflow before any UI lands —
+  // which is what surfaced the white-screen-of-death on 2026-05-09. Render
+  // a tiny inline error instead so the user sees what happened and can
+  // delete the offender.
+  if (ancestors?.has(item.id)) {
+    return (
+      <div
+        className="text-[10px] text-[var(--color-danger)] px-2 py-1"
+        style={{ paddingLeft: 8 + depth * 12 }}
+        title={`parentId chain loops on ${item.id}`}
+      >
+        ⚠ cycle detected — {item.name || item.id}
+      </div>
+    );
+  }
+  // Defensive cap. 32 levels is well past any sane folder depth.
+  if (depth > 32) {
+    return (
+      <div
+        className="text-[10px] text-[var(--color-warning)] px-2 py-1"
+        style={{ paddingLeft: 8 + depth * 12 }}
+      >
+        ⚠ folder depth &gt; 32 — render aborted
+      </div>
+    );
+  }
+
+  const nextAncestors = new Set(ancestors ?? []);
+  nextAncestors.add(item.id);
+
   if (item.kind === "folder") {
     const kids = childrenOf.get(item.id) ?? [];
     const open = !!expanded[item.id];
@@ -74,6 +112,7 @@ function TreeNode({ item, depth, childrenOf, expanded }: TreeNodeProps) {
               depth={depth + 1}
               childrenOf={childrenOf}
               expanded={expanded}
+              ancestors={nextAncestors}
             />
           ))}
       </>

@@ -253,4 +253,14 @@ All credit for the native shell, runtime, and bridge dispatcher goes to the zero
 
 ## License
 
-MIT — see [LICENSE](./LICENSE).
+**PolyForm Noncommercial 1.0.0** + binding attribution addendum — see [LICENSE](./LICENSE).
+
+In short:
+
+- ✅ Free to download, use, modify for personal, educational, internal business, research, and not-for-profit purposes.
+- ✅ Forks welcome — but must reference back to <https://github.com/olgunozoktas/api-lab> in the README and the application's About / Credits surface.
+- ❌ Cannot be sold, repackaged for sale, or hosted as a paid SaaS.
+- ❌ Cannot be presented as your own original work — marketing, branding, splash screens, and About text must preserve attribution to the upstream project.
+- ❌ The names "API Lab" and "Olgun Özoktaş" cannot be used to endorse forks or to suggest sponsorship by the upstream project.
+
+Read the full [LICENSE](./LICENSE) for the binding terms.
