@@ -66,6 +66,8 @@ export const en: Dict = {
   "collections.search.empty": "No matches",
   "collections.search.clear": "Clear",
   "history.search.placeholder": "Search... (e.g. GET 401 login)",
+  "layout.sidebar.aria": "Resize sidebar (drag to set, double-click to reset)",
+  "layout.composer.aria": "Resize composer / response split (drag, double-click to reset)",
 
   "chain.saveAs": "Save as variable...",
   "chain.dialog.title": "Save value as variable",

@@ -174,11 +174,34 @@ export type Theme = "auto" | "light" | "dark" | "tokyo-night" | "github-light";
 
 export const THEMES: Theme[] = ["auto", "light", "dark", "tokyo-night", "github-light"];
 
+// Pixel widths persisted across reloads via the IDB Zustand middleware.
+// `composerPx` is the request composer's width when the 3-pane layout
+// is active; the response viewer takes whatever's left. In single-column
+// modes (WS / gRPC) only `sidebarPx` is honored.
+export type Layout = {
+  sidebarPx: number;
+  composerPx: number;
+};
+
+export const DEFAULT_LAYOUT: Layout = {
+  sidebarPx: 240,
+  composerPx: 560,
+};
+
+// Hard min/max bounds. Sidebar can't shrink below 180 (icons + nav text
+// need room) or grow past 400 (no real upside). Composer 320–1200 covers
+// laptop → ultrawide; tighter clamps would feel restrictive.
+export const SIDEBAR_PX_MIN = 180;
+export const SIDEBAR_PX_MAX = 400;
+export const COMPOSER_PX_MIN = 320;
+export const COMPOSER_PX_MAX = 1200;
+
 export type UiState = {
   theme: Theme;
   composerTab: ComposerTab;
   responseTab: ResponseTab;
   sidebarTab: SidebarTab;
+  layout: Layout;
 };
 
 // Default request behaviors — surfaced in the Settings modal so power

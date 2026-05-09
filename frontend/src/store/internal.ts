@@ -14,7 +14,7 @@ import type {
   Environment,
   RequestDefaults,
 } from "../lib/types";
-import { emptyRequest, emptyTab, defaultRequestDefaults } from "../lib/types";
+import { emptyRequest, emptyTab, defaultRequestDefaults, DEFAULT_LAYOUT } from "../lib/types";
 import { uid } from "../lib/utils";
 import { detectLocale, type Locale } from "../lib/i18n";
 
@@ -77,6 +77,7 @@ export function buildInitialState(): CoreState {
       composerTab: firstTab.composerTab,
       responseTab: firstTab.responseTab,
       sidebarTab: "collections",
+      layout: DEFAULT_LAYOUT,
     },
     locale: detectLocale("tr"),
     defaults: defaultRequestDefaults(),
@@ -147,6 +148,7 @@ export function migrateV1toV2(persisted: unknown): V2State {
       composerTab: tab.composerTab,
       responseTab: tab.responseTab,
       sidebarTab: old.ui?.sidebarTab ?? "collections",
+      layout: old.ui?.layout ?? DEFAULT_LAYOUT,
     },
     // Re-init missing top-level fields with sensible defaults
     collections: old.collections ?? [],

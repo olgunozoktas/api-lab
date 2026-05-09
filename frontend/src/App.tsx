@@ -9,12 +9,20 @@ import { WsPanelContainer } from "./components/WsPanel";
 import { GrpcPanelContainer } from "./components/GrpcPanel";
 import { UrlBarContainer } from "./components/UrlBar";
 import { Toast } from "./components/Toast";
+import { ResizableDivider } from "./components/ResizableDivider";
 import { useStore, useActiveVars } from "./store";
 import { useT } from "./lib/i18n/useT";
 import { send } from "./lib/sendRequest";
 import { isWsUrl } from "./lib/ws";
 import { isGrpcUrl } from "./lib/grpc";
 import { envSubst } from "./lib/utils";
+import {
+  COMPOSER_PX_MAX,
+  COMPOSER_PX_MIN,
+  DEFAULT_LAYOUT,
+  SIDEBAR_PX_MAX,
+  SIDEBAR_PX_MIN,
+} from "./lib/types";
 
 export function App() {
   const current = useStore((s) => s.current);
@@ -153,14 +161,32 @@ export function App() {
   const grpcMode = !wsMode && isGrpcUrl(substitutedUrl);
   const singleColumn = wsMode || grpcMode;
 
+  const layout = ui.layout ?? DEFAULT_LAYOUT;
+  const setUi = useStore((s) => s.setUi);
+  const updateLayout = (patch: Partial<typeof layout>) =>
+    setUi({ layout: { ...layout, ...patch } });
+  const t2 = useT(); // separate ref for the layout-aria labels
+
+  // Grid template: sidebar | divider (8px) | composer | divider (8px) | response.
+  // In single-column modes (WS / gRPC) the third divider + composer collapse —
+  // only the sidebar divider remains.
+  const gridTemplateColumns = singleColumn
+    ? `${layout.sidebarPx}px 8px 1fr`
+    : `${layout.sidebarPx}px 8px ${layout.composerPx}px 8px 1fr`;
+
   return (
     <div className="h-full flex flex-col bg-[var(--color-bg)] text-[var(--color-fg)] text-[13px]">
       <TopBar />
-      <main
-        className="flex-1 grid min-h-0"
-        style={{ gridTemplateColumns: singleColumn ? "240px 1fr" : "240px 1fr 1fr" }}
-      >
+      <main className="flex-1 grid min-h-0" style={{ gridTemplateColumns }}>
         <Sidebar />
+        <ResizableDivider
+          value={layout.sidebarPx}
+          onChange={(sidebarPx) => updateLayout({ sidebarPx })}
+          onReset={() => updateLayout({ sidebarPx: DEFAULT_LAYOUT.sidebarPx })}
+          min={SIDEBAR_PX_MIN}
+          max={SIDEBAR_PX_MAX}
+          ariaLabel={t2("layout.sidebar.aria")}
+        />
         {singleColumn ? (
           <div className="flex flex-col min-h-0 min-w-0 overflow-hidden">
             <TabStripContainer />
@@ -181,6 +207,14 @@ export function App() {
                 <RequestComposerContainer busy={busy} onSend={onSend} />
               </div>
             </div>
+            <ResizableDivider
+              value={layout.composerPx}
+              onChange={(composerPx) => updateLayout({ composerPx })}
+              onReset={() => updateLayout({ composerPx: DEFAULT_LAYOUT.composerPx })}
+              min={COMPOSER_PX_MIN}
+              max={COMPOSER_PX_MAX}
+              ariaLabel={t2("layout.composer.aria")}
+            />
             <ResponseViewerContainer />
           </>
         )}

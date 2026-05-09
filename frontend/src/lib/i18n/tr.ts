@@ -66,6 +66,8 @@ export const tr = {
   "collections.search.empty": "Eşleşme yok",
   "collections.search.clear": "Temizle",
   "history.search.placeholder": "Ara... (örn: GET 401 login)",
+  "layout.sidebar.aria": "Yan menü genişliğini ayarla (sürükle, çift-tıkla = sıfırla)",
+  "layout.composer.aria": "Composer/Yanıt oranını ayarla (sürükle, çift-tıkla = sıfırla)",
 
   "chain.saveAs": "Değişken olarak kaydet...",
   "chain.dialog.title": "Yanıttan değişken kaydet",
