@@ -102,7 +102,11 @@ export async function resolveStack(rawStack: string): Promise<string> {
 // resolveStack with a try/catch + timeout. Used by ErrorBoundary.
 export async function resolveStackSafe(
   rawStack: string,
-  timeoutMs: number = 4000
+  // 30s ceiling — enough for a 4-5 MB sourcemap to fetch + parse on a
+  // slow disk/connection. The earlier 4s default was tight enough that
+  // on first launch (cold cache) the resolver lost the race against
+  // the user clicking "Copy report" before resolution landed.
+  timeoutMs: number = 30000
 ): Promise<string> {
   try {
     return await Promise.race([
