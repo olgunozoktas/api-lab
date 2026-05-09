@@ -25,9 +25,9 @@ import {
   migrateV2toV3,
   descendantIds,
   nextOrder,
-  safeLocalStorage,
   type CoreState,
 } from "./internal";
+import { idbStorage } from "./idbStorage";
 
 // Multi-request workspace store. `tabs[]` is the source of truth; each tab
 // carries its own request/lastResponse/composerTab/responseTab. The
@@ -479,7 +479,11 @@ export const useStore = create<State & Actions>()(
         if (fromVersion < 3) s = migrateV2toV3(s);
         return s as State;
       },
-      storage: createJSONStorage(safeLocalStorage),
+      // IndexedDB-backed storage. Uncaps the 5 MB localStorage limit
+      // and includes a one-shot migration on first read for users
+      // upgrading from the localStorage-era persisted snapshot. See
+      // store/idbStorage.ts for the migration logic.
+      storage: createJSONStorage(() => idbStorage),
       partialize: (s) =>
         ({
           collectionItems: s.collectionItems,
