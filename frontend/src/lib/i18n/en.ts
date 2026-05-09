@@ -95,6 +95,8 @@ export const en: Dict = {
   "composer.save": "Save",
   "composer.send": "Send",
   "composer.sending": "Sending...",
+  "composer.cancel": "Cancel",
+  "composer.cancelTitle": "Cancel this request (⌘+.)",
   "composer.urlPlaceholder": "https://api.example.com/path  (env: {{vars}})",
   "composer.tab.params": "Params",
   "composer.tab.headers": "Headers",
@@ -315,4 +317,5 @@ export const en: Dict = {
   "toast.saved": "Saved",
   "toast.urlEmpty": "URL is empty",
   "toast.networkError": "Error: {msg}",
+  "toast.requestCancelled": "Request cancelled",
 };

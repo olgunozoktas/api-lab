@@ -20,6 +20,7 @@ export type UrlBarProps = {
   onMethodChange: (m: string) => void;
   onUrlChange: (u: string) => void;
   onSend: () => void;
+  onCancel?: () => void;
   onCurlPaste?: (text: string) => boolean; // returns true if handled
 };
 
@@ -32,9 +33,14 @@ export function UrlBar({
   onMethodChange,
   onUrlChange,
   onSend,
+  onCancel,
   onCurlPaste,
 }: UrlBarProps) {
   const t = useT();
+  // While in-flight, the green Send morphs into a red Cancel that
+  // calls the abort-controller wired up in App.tsx. Falls back to
+  // the disabled-Send shape when no onCancel is wired (older callers).
+  const showCancel = busy && !!onCancel;
   return (
     <div className="flex gap-1.5 px-3 py-2.5 bg-[var(--color-bg-elev)] border-b border-[var(--color-border)]">
       {!hideMethod && (
@@ -73,7 +79,18 @@ export function UrlBar({
           "focus:border-[var(--color-accent)]"
         }
       />
-      {!hideSend && (
+      {!hideSend && showCancel && (
+        <Button
+          variant="danger"
+          onClick={onCancel}
+          title={t("composer.cancelTitle")}
+          aria-label={t("composer.cancelTitle")}
+        >
+          <X className="w-3.5 h-3.5" />
+          {t("composer.cancel")}
+        </Button>
+      )}
+      {!hideSend && !showCancel && (
         <Button variant="primary" onClick={onSend} disabled={busy}>
           <Send className="w-3.5 h-3.5" />
           {busy ? t("composer.sending") : t("composer.send")}
@@ -87,11 +104,18 @@ export function UrlBar({
 export type UrlBarContainerProps = {
   busy: boolean;
   onSend: () => void;
+  onCancel?: () => void;
   hideSend?: boolean;
   hideMethod?: boolean;
 };
 
-export function UrlBarContainer({ busy, onSend, hideSend, hideMethod }: UrlBarContainerProps) {
+export function UrlBarContainer({
+  busy,
+  onSend,
+  onCancel,
+  hideSend,
+  hideMethod,
+}: UrlBarContainerProps) {
   const method = useStore((s) => s.current.method);
   const url = useStore((s) => s.current.url);
   const setCurrent = useStore((s) => s.setCurrent);
@@ -149,6 +173,7 @@ export function UrlBarContainer({ busy, onSend, hideSend, hideMethod }: UrlBarCo
         onMethodChange={(m) => setCurrent({ method: m })}
         onUrlChange={(u) => setCurrent({ url: u })}
         onSend={onSend}
+        onCancel={onCancel}
         onCurlPaste={onCurlPaste}
       />
       {pending && (

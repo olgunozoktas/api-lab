@@ -25,6 +25,7 @@ const TABS: { id: ComposerTab; key: TKey }[] = [
 export type RequestComposerProps = {
   busy: boolean;
   onSend: () => void;
+  onCancel?: () => void;
   name: string;
   params: KvRow[];
   headers: KvRow[];
@@ -39,6 +40,7 @@ export type RequestComposerProps = {
 export function RequestComposer({
   busy,
   onSend,
+  onCancel,
   name,
   params,
   headers,
@@ -67,7 +69,7 @@ export function RequestComposer({
         </Button>
       </div>
 
-      <UrlBarContainer busy={busy} onSend={onSend} />
+      <UrlBarContainer busy={busy} onSend={onSend} onCancel={onCancel} />
 
       <Tabs
         value={composerTab}
@@ -115,9 +117,17 @@ function Badge({ n }: { n: number }) {
 }
 
 // Container — wires the store. App-level concerns (busy, onSend) are passed in.
-export type RequestComposerContainerProps = { busy: boolean; onSend: () => void };
+export type RequestComposerContainerProps = {
+  busy: boolean;
+  onSend: () => void;
+  onCancel?: () => void;
+};
 
-export function RequestComposerContainer({ busy, onSend }: RequestComposerContainerProps) {
+export function RequestComposerContainer({
+  busy,
+  onSend,
+  onCancel,
+}: RequestComposerContainerProps) {
   const name = useStore((s) => s.current.name);
   const params = useStore((s) => s.current.params);
   const headers = useStore((s) => s.current.headers);
@@ -130,6 +140,7 @@ export function RequestComposerContainer({ busy, onSend }: RequestComposerContai
     <RequestComposer
       busy={busy}
       onSend={onSend}
+      onCancel={onCancel}
       name={name}
       params={params}
       headers={headers}

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { TopBar } from "./components/TopBar";
 import { Sidebar } from "./components/Sidebar";
 import { TabStripContainer } from "./components/TabStrip";
@@ -42,8 +42,18 @@ export function App() {
   const t = useT();
   const [busy, setBusy] = useState(false);
   const [switcherOpen, setSwitcherOpen] = useState(false);
+  // Holds the AbortController of the currently-flying request so the
+  // Cancel button + ⌘+. shortcut can both reach it. Reset to null in
+  // the onSend `finally` so subsequent ⌘+. presses no-op once the
+  // request has settled.
+  const abortRef = useRef<AbortController | null>(null);
 
   const defaults = useStore((s) => s.defaults);
+
+  const onCancel = useCallback(() => {
+    if (!abortRef.current) return;
+    abortRef.current.abort();
+  }, []);
 
   useEffect(() => {
     const html = document.documentElement;
@@ -65,9 +75,11 @@ export function App() {
       showToast(t("toast.urlEmpty"));
       return;
     }
+    const controller = new AbortController();
+    abortRef.current = controller;
     setBusy(true);
     try {
-      const res = await send(current, isGraphql, vars, defaults);
+      const res = await send(current, isGraphql, vars, defaults, { signal: controller.signal });
       setLastResponse(res);
       pushHistory(
         {
@@ -85,21 +97,32 @@ export function App() {
         res.elapsedMs
       );
     } catch (e) {
-      const msg = (e as Error).message || String(e);
-      setLastResponse({
-        status: 0,
-        statusText: "Network Error",
-        headers: [],
-        body: msg,
-        contentType: "",
-        sizeBytes: msg.length,
-        elapsedMs: 0,
-        url: current.url,
-        transport: "fetch",
-      });
-      showToast(t("toast.networkError", { msg: msg.slice(0, 80) }));
+      // AbortError → user pressed Cancel. Skip the network-error
+      // toast/lastResponse update and surface a cancel-specific toast.
+      // (Native path's late-arriving response is already discarded by
+      // viaNative's race; fetch path's underlying request was actually
+      // aborted by the browser.)
+      if ((e as Error).name === "AbortError") {
+        showToast(t("toast.requestCancelled"));
+      } else {
+        const msg = (e as Error).message || String(e);
+        setLastResponse({
+          status: 0,
+          statusText: "Network Error",
+          headers: [],
+          body: msg,
+          contentType: "",
+          sizeBytes: msg.length,
+          elapsedMs: 0,
+          url: current.url,
+          transport: "fetch",
+        });
+        showToast(t("toast.networkError", { msg: msg.slice(0, 80) }));
+      }
     } finally {
       setBusy(false);
+      // Clear so a stale Cancel/⌘+. press after the request settles is a no-op.
+      if (abortRef.current === controller) abortRef.current = null;
     }
   }, [busy, current, defaults, isGraphql, pushHistory, setLastResponse, showToast, t, vars]);
 
@@ -112,6 +135,14 @@ export function App() {
       if (e.key === "Enter") {
         e.preventDefault();
         onSend();
+        return;
+      }
+      // ⌘+. (period) — cancel the in-flight request. macOS canonical
+      // "abort current foreground action" gesture (mirrors Finder /
+      // Xcode / many native apps).
+      if (e.key === ".") {
+        e.preventDefault();
+        onCancel();
         return;
       }
       if (e.key === "s" || e.key === "S") {
@@ -155,7 +186,7 @@ export function App() {
     };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
-  }, [onSend, saveCurrent, resetCurrent, newTab, closeTab, setActiveTab]);
+  }, [onSend, onCancel, saveCurrent, resetCurrent, newTab, closeTab, setActiveTab]);
 
   const activeTabId = useStore((s) => s.activeTabId);
   const substitutedUrl = envSubst(current.url, vars);
@@ -193,7 +224,7 @@ export function App() {
         {singleColumn ? (
           <div className="flex flex-col min-h-0 min-w-0 overflow-hidden">
             <TabStripContainer />
-            <UrlBarContainer busy={false} onSend={onSend} hideSend hideMethod />
+            <UrlBarContainer busy={false} onSend={onSend} onCancel={onCancel} hideSend hideMethod />
             <div className="flex-1 min-h-0 overflow-hidden">
               {wsMode ? (
                 <WsPanelContainer key={activeTabId} />
@@ -209,7 +240,7 @@ export function App() {
             <div className="flex flex-col min-h-0 min-w-0 border-r border-[var(--color-border)]">
               <TabStripContainer />
               <div className="flex-1 min-h-0 overflow-hidden">
-                <RequestComposerContainer busy={busy} onSend={onSend} />
+                <RequestComposerContainer busy={busy} onSend={onSend} onCancel={onCancel} />
               </div>
             </div>
             <ResizableDivider
