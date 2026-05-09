@@ -66,6 +66,18 @@ export const en: Dict = {
   "collections.search.empty": "No matches",
   "collections.search.clear": "Clear",
 
+  "chain.saveAs": "Save as variable...",
+  "chain.dialog.title": "Save value as variable",
+  "chain.dialog.hint":
+    "Stores the selected text under a variable name in the environment. Use it in other requests with {{name}}.",
+  "chain.value.label": "Value",
+  "chain.varName.label": "Variable name",
+  "chain.varName.placeholder": "e.g. access_token",
+  "chain.env.label": "Environment",
+  "chain.env.empty": "No environments yet. Create one first via the Env... button in the top bar.",
+  "chain.save": "Save",
+  "chain.savedToast": 'Saved "{name}" → {env} environment',
+
   "curl.detected": "cURL detected",
   "curl.import": "Import",
   "curl.imported": "cURL imported",

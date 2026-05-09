@@ -66,6 +66,18 @@ export const tr = {
   "collections.search.empty": "Eşleşme yok",
   "collections.search.clear": "Temizle",
 
+  "chain.saveAs": "Değişken olarak kaydet...",
+  "chain.dialog.title": "Yanıttan değişken kaydet",
+  "chain.dialog.hint":
+    "Seçtiğin değer, ismini verdiğin değişken olarak environment'a kaydedilir. Diğer isteklerde {{name}} ile kullan.",
+  "chain.value.label": "Değer",
+  "chain.varName.label": "Değişken adı",
+  "chain.varName.placeholder": "ör. access_token",
+  "chain.env.label": "Environment",
+  "chain.env.empty": "Henüz environment yok. Önce TopBar'daki Env... butonundan bir tane oluştur.",
+  "chain.save": "Kaydet",
+  "chain.savedToast": '"{name}" → {env} environment\'ına kaydedildi',
+
   "curl.detected": "cURL algılandı",
   "curl.import": "İçeri aktar",
   "curl.imported": "cURL içeri aktarıldı",
