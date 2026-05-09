@@ -1,6 +1,32 @@
 # Phase G.1 — OAuth 2.0 (auth code + PKCE) end-to-end
 
 Priority: P1
+Status: SHIPPED (helper variant) — 2026-05-09
+
+## Status
+
+Helper variant landed: paste-token + auto-Bearer + Refresh button via
+existing curl bridge + 19 unit tests. PKCE generators
+(`frontend/src/lib/oauth.ts`) wired and tested but UNUSED until popup
+flow ships. The two parts that need zero-native upstream changes are
+filed as P2 follow-ups:
+
+- `P2-2026-05-09-180200-oauth2-popup-flow-zero-native.md` — popup
+  WebView, redirect interception, automated PKCE flow, provider
+  presets.
+- `P2-2026-05-09-180300-keychain-bridge-secrets-vault.md` — macOS
+  Keychain bridge, move tokens out of plaintext IndexedDB.
+
+Acceptance for the helper variant: user pastes a Bearer token (from
+any external OAuth flow — Google Cloud Console's OAuth 2.0 Playground,
+auth0 dashboard, gh-cli, etc.) into the access_token field; selects
+oauth2 auth type; sends a request — Authorization: Bearer header is
+injected. Refresh button POSTs refresh_token + token_url + client_id
+to the token endpoint via curl bridge, parses the response, updates
+state. Expiry indicator shows "expires in 42m" / "expired 5m ago".
+
+Full popup-driven flow + Keychain storage land when the P2 follow-ups
+ship (gated on zero-native upstream PRs).
 
 ## Context
 
