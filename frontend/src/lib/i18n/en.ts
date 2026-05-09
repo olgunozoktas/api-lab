@@ -70,6 +70,18 @@ export const en: Dict = {
   "composer.tab.auth": "Auth",
   "composer.tab.body": "Body",
   "composer.tab.graphql": "GraphQL",
+  "composer.tab.scripts": "Scripts",
+
+  "scripts.preLabel": "Pre-request Script",
+  "scripts.preHelp": "Runs before the HTTP call — can mutate request + env",
+  "scripts.postLabel": "Tests / Post-response Script",
+  "scripts.postHelp": "Runs after the response — pm.test, pm.expect available",
+  "scripts.sandboxNote": "Runs isolated in a QuickJS sandbox (5s CPU, 10 MB memory, no fetch/XHR).",
+  "scripts.testsHeader": "Tests",
+  "scripts.consoleHeader": "Console",
+  "scripts.passed": "passed",
+  "scripts.failed": "failed",
+  "scripts.runtimeError": "Script error",
 
   "tabs.new": "New tab",
   "tabs.close": "Close tab",

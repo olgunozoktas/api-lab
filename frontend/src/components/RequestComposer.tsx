@@ -4,6 +4,7 @@ import { KvTable } from "./KvTable";
 import { AuthPanelContainer } from "./AuthPanel";
 import { BodyPanelContainer } from "./BodyPanel";
 import { GraphqlPanelContainer } from "./GraphqlPanel";
+import { ScriptsPanelContainer } from "./ScriptsPanel";
 import { useT } from "../lib/i18n/useT";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { Button } from "./ui/button";
@@ -11,11 +12,12 @@ import type { ComposerTab, KvRow } from "../lib/types";
 import type { TKey } from "../lib/i18n";
 
 const TABS: { id: ComposerTab; key: TKey }[] = [
-  { id: "params",  key: "composer.tab.params" },
+  { id: "params", key: "composer.tab.params" },
   { id: "headers", key: "composer.tab.headers" },
-  { id: "auth",    key: "composer.tab.auth" },
-  { id: "body",    key: "composer.tab.body" },
+  { id: "auth", key: "composer.tab.auth" },
+  { id: "body", key: "composer.tab.body" },
   { id: "graphql", key: "composer.tab.graphql" },
+  { id: "scripts", key: "composer.tab.scripts" },
 ];
 
 // Presenter — most state via internal containers since there are many panels;
@@ -35,8 +37,17 @@ export type RequestComposerProps = {
 };
 
 export function RequestComposer({
-  busy, onSend, name, params, headers, composerTab,
-  onNameChange, onParamsChange, onHeadersChange, onTabChange, onSave,
+  busy,
+  onSend,
+  name,
+  params,
+  headers,
+  composerTab,
+  onNameChange,
+  onParamsChange,
+  onHeadersChange,
+  onTabChange,
+  onSave,
 }: RequestComposerProps) {
   const t = useT();
   const pCount = params.filter((r) => r.enabled && r.k).length;
@@ -51,7 +62,9 @@ export function RequestComposer({
           placeholder={t("composer.requestName")}
           className="flex-1 bg-transparent border-0 outline-none text-sm font-medium"
         />
-        <Button variant="secondary" size="sm" onClick={onSave}>{t("composer.save")}</Button>
+        <Button variant="secondary" size="sm" onClick={onSave}>
+          {t("composer.save")}
+        </Button>
       </div>
 
       <UrlBarContainer busy={busy} onSend={onSend} />
@@ -70,15 +83,24 @@ export function RequestComposer({
             </TabsTrigger>
           ))}
         </TabsList>
-        <TabsContent value="params"  className="p-3 bg-[var(--color-bg)]">
-          <KvTable rows={params}  onChange={onParamsChange}  addLabelKey="kv.addParam" />
+        <TabsContent value="params" className="p-3 bg-[var(--color-bg)]">
+          <KvTable rows={params} onChange={onParamsChange} addLabelKey="kv.addParam" />
         </TabsContent>
         <TabsContent value="headers" className="p-3 bg-[var(--color-bg)]">
           <KvTable rows={headers} onChange={onHeadersChange} addLabelKey="kv.addHeader" />
         </TabsContent>
-        <TabsContent value="auth"    className="p-3 bg-[var(--color-bg)]"><AuthPanelContainer /></TabsContent>
-        <TabsContent value="body"    className="p-3 bg-[var(--color-bg)]"><BodyPanelContainer /></TabsContent>
-        <TabsContent value="graphql" className="p-3 bg-[var(--color-bg)]"><GraphqlPanelContainer /></TabsContent>
+        <TabsContent value="auth" className="p-3 bg-[var(--color-bg)]">
+          <AuthPanelContainer />
+        </TabsContent>
+        <TabsContent value="body" className="p-3 bg-[var(--color-bg)]">
+          <BodyPanelContainer />
+        </TabsContent>
+        <TabsContent value="graphql" className="p-3 bg-[var(--color-bg)]">
+          <GraphqlPanelContainer />
+        </TabsContent>
+        <TabsContent value="scripts" className="p-3 bg-[var(--color-bg)]">
+          <ScriptsPanelContainer />
+        </TabsContent>
       </Tabs>
     </section>
   );

@@ -40,6 +40,13 @@ export type RequestSnapshot = {
   body: Body;
   gql: Gql;
   isGraphql?: boolean;
+  // Pre-request and post-response scripts. Run inside a QuickJS WASM
+  // sandbox (lib/scriptSandbox.ts) with a Postman-compatible `pm.*`
+  // surface. Empty / undefined skips the script entirely. The
+  // sandbox has no fetch/XHR access — network calls only happen
+  // through the host bridge.
+  preScript?: string;
+  postScript?: string;
 };
 
 export type CurrentRequest = RequestSnapshot & {
@@ -103,7 +110,7 @@ export type HistoryItem = {
   response: { status: number; sizeBytes: number; elapsedMs: number };
 };
 
-export type ComposerTab = "params" | "headers" | "auth" | "body" | "graphql";
+export type ComposerTab = "params" | "headers" | "auth" | "body" | "graphql" | "scripts";
 export type ResponseTab = "body" | "headers" | "raw";
 export type SidebarTab = "collections" | "history";
 

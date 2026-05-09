@@ -3,6 +3,21 @@ import type { HttpHeader, HttpResponse } from "./bridge";
 import type { CurrentRequest, RequestDefaults, ResponseSnapshot } from "./types";
 import { defaultRequestDefaults } from "./types";
 import { envSubst } from "./utils";
+import { runScript, type ScriptAssert } from "./scriptSandbox";
+
+export type ScriptOutcome = {
+  asserts: ScriptAssert[];
+  console_log: string[];
+  error?: string;
+};
+
+export type SendResult = {
+  response: ResponseSnapshot;
+  preScript?: ScriptOutcome;
+  postScript?: ScriptOutcome;
+  request: CurrentRequest;
+  env: Record<string, string>;
+};
 
 export function buildHeadersList(req: CurrentRequest, vars: Record<string, string>): Headers {
   const out = new Headers();
@@ -153,15 +168,74 @@ export async function send(
   vars: Record<string, string>,
   defaults: RequestDefaults = defaultRequestDefaults()
 ): Promise<ResponseSnapshot> {
-  const url = buildUrl(req, vars);
+  const result = await sendWithScripts(req, isGraphql, vars, defaults);
+  return result.response;
+}
+
+// Full send pipeline including pre-/post-request scripts. Pre-script
+// can mutate request + env before the HTTP call; post-script reads
+// the response + can mutate env. Both have a 5s/10MB sandbox cap.
+export async function sendWithScripts(
+  req: CurrentRequest,
+  isGraphql: boolean,
+  vars: Record<string, string>,
+  defaults: RequestDefaults = defaultRequestDefaults()
+): Promise<SendResult> {
+  let activeRequest: CurrentRequest = req;
+  let activeEnv: Record<string, string> = { ...vars };
+  let preOutcome: ScriptOutcome | undefined;
+
+  if (req.preScript && req.preScript.trim()) {
+    const result = await runScript(req.preScript, {
+      request: req,
+      env: activeEnv,
+    });
+    activeRequest = { ...req, ...result.request };
+    activeEnv = result.env;
+    preOutcome = {
+      asserts: result.asserts,
+      console_log: result.console_log,
+      error: result.error,
+    };
+    // If pre-script errored, we still proceed with the HTTP call —
+    // mirrors Postman behavior. The error is surfaced in the outcome.
+  }
+
+  const url = buildUrl(activeRequest, activeEnv);
   if (!url) throw new Error("URL boş");
-  const method = isGraphql ? "POST" : req.method;
-  const headers = buildHeadersList(req, vars);
-  effectiveContentType(req, isGraphql, headers);
-  const body = method === "GET" || method === "HEAD" ? undefined : buildBody(req, isGraphql, vars);
+  const method = isGraphql ? "POST" : activeRequest.method;
+  const headers = buildHeadersList(activeRequest, activeEnv);
+  effectiveContentType(activeRequest, isGraphql, headers);
+  const body =
+    method === "GET" || method === "HEAD"
+      ? undefined
+      : buildBody(activeRequest, isGraphql, activeEnv);
 
   const t0 = performance.now();
-  return bridge.available
-    ? viaNative(url, method, headers, body, defaults)
-    : viaFetch(url, method, headers, body, t0);
+  const response = bridge.available
+    ? await viaNative(url, method, headers, body, defaults)
+    : await viaFetch(url, method, headers, body, t0);
+
+  let postOutcome: ScriptOutcome | undefined;
+  if (req.postScript && req.postScript.trim()) {
+    const result = await runScript(req.postScript, {
+      request: activeRequest,
+      env: activeEnv,
+      response,
+    });
+    activeEnv = result.env;
+    postOutcome = {
+      asserts: result.asserts,
+      console_log: result.console_log,
+      error: result.error,
+    };
+  }
+
+  return {
+    response,
+    preScript: preOutcome,
+    postScript: postOutcome,
+    request: activeRequest,
+    env: activeEnv,
+  };
 }

@@ -70,6 +70,19 @@ export const tr = {
   "composer.tab.auth": "Auth",
   "composer.tab.body": "Body",
   "composer.tab.graphql": "GraphQL",
+  "composer.tab.scripts": "Scripts",
+
+  "scripts.preLabel": "Pre-request Script",
+  "scripts.preHelp": "İstekten önce çalışır — request + env değiştirilebilir",
+  "scripts.postLabel": "Test / Post-response Script",
+  "scripts.postHelp": "Yanıt geldikten sonra çalışır — pm.test, pm.expect kullanılabilir",
+  "scripts.sandboxNote":
+    "QuickJS sandbox'ında izole çalışır (5s CPU, 10 MB bellek, fetch/XHR yok).",
+  "scripts.testsHeader": "Testler",
+  "scripts.consoleHeader": "Konsol",
+  "scripts.passed": "geçti",
+  "scripts.failed": "başarısız",
+  "scripts.runtimeError": "Script hatası",
 
   "tabs.new": "Yeni sekme",
   "tabs.close": "Sekmeyi kapat",
