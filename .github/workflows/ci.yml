@@ -107,5 +107,9 @@ jobs:
         run: npm run build
         env:
           NODE_ENV: production
-        # Bundle-size guardrail is added in a follow-up slice
-        # (scripts/check-bundle-size.sh).
+
+      - name: Bundle-size guardrail
+        # Fails the job if dist/assets/*.js or *.css exceed the thresholds
+        # in scripts/check-bundle-size.sh. Bump those constants deliberately
+        # — Phase F's whole point is to make regressions visible.
+        run: bash ../scripts/check-bundle-size.sh
