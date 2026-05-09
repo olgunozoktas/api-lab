@@ -57,9 +57,15 @@ export type QuickSwitcherProps = {
 
 export function QuickSwitcher({ open, onOpenChange }: QuickSwitcherProps) {
   const tabs = useStore((s) => s.tabs);
-  // Only requests appear in the switcher — folders aren't openable.
-  const collections = useStore((s) =>
-    s.collectionItems.filter((c) => c.kind === "request" && c.request)
+  // Read the raw items array (reference stable until store mutates), then
+  // filter via useMemo. Filtering INSIDE the selector returns a new array
+  // every render → Object.is comparison in useSyncExternalStore sees a
+  // different snapshot every time → infinite re-render loop → React
+  // crashes with #185 "Maximum update depth exceeded". Trapped 2026-05-09.
+  const allCollectionItems = useStore((s) => s.collectionItems);
+  const collections = useMemo(
+    () => allCollectionItems.filter((c) => c.kind === "request" && !!c.request),
+    [allCollectionItems]
   );
   const history = useStore((s) => s.history);
   const setActiveTab = useStore((s) => s.setActiveTab);
