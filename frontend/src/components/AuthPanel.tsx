@@ -1,5 +1,8 @@
 import { useStore } from "../store";
 import { useT } from "../lib/i18n/useT";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "./ui/select";
 import type { AuthType } from "../lib/types";
 import type { TKey } from "../lib/i18n";
 
@@ -19,16 +22,17 @@ export function AuthPanel() {
   return (
     <div>
       <Row labelKey="auth.type">
-        <select
-          value={auth.type}
-          onChange={(e) => setType(e.target.value as AuthType)}
-          className={inputCls}
-        >
-          <option value="none">{t("auth.none")}</option>
-          <option value="bearer">{t("auth.bearer")}</option>
-          <option value="basic">{t("auth.basic")}</option>
-          <option value="apikey">{t("auth.apikey")}</option>
-        </select>
+        <Select value={auth.type} onValueChange={(v) => setType(v as AuthType)}>
+          <SelectTrigger aria-label={t("auth.type")}>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="none">{t("auth.none")}</SelectItem>
+            <SelectItem value="bearer">{t("auth.bearer")}</SelectItem>
+            <SelectItem value="basic">{t("auth.basic")}</SelectItem>
+            <SelectItem value="apikey">{t("auth.apikey")}</SelectItem>
+          </SelectContent>
+        </Select>
       </Row>
       {auth.type === "bearer" && (
         <Row labelKey="auth.token">

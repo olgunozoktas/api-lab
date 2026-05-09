@@ -1,5 +1,10 @@
 import { useStore } from "../store";
 import { useT } from "../lib/i18n/useT";
+import { Button } from "./ui/button";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "./ui/select";
+import { Wand2 } from "lucide-react";
 import type { BodyMode } from "../lib/types";
 
 export function BodyPanel() {
@@ -23,22 +28,21 @@ export function BodyPanel() {
   return (
     <div>
       <div className="flex gap-1.5 mb-2 flex-wrap">
-        <select
-          value={body.mode}
-          onChange={(e) => setMode(e.target.value as BodyMode)}
-          className="bg-[var(--color-bg-elev)] border border-[var(--color-border)] rounded px-2 py-1 text-xs"
-        >
-          <option value="none">{t("body.mode.none")}</option>
-          <option value="json">{t("body.mode.json")}</option>
-          <option value="form">{t("body.mode.form")}</option>
-          <option value="raw">{t("body.mode.raw")}</option>
-        </select>
-        <button
-          onClick={prettify}
-          className="bg-[var(--color-bg-elev)] border border-[var(--color-border)] rounded px-2 py-1 text-xs hover:bg-[var(--color-bg-elev-2)]"
-        >
+        <Select value={body.mode} onValueChange={(v) => setMode(v as BodyMode)}>
+          <SelectTrigger aria-label="Body mode" className="w-auto">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="none">{t("body.mode.none")}</SelectItem>
+            <SelectItem value="json">{t("body.mode.json")}</SelectItem>
+            <SelectItem value="form">{t("body.mode.form")}</SelectItem>
+            <SelectItem value="raw">{t("body.mode.raw")}</SelectItem>
+          </SelectContent>
+        </Select>
+        <Button variant="secondary" size="sm" onClick={prettify}>
+          <Wand2 className="w-3 h-3" />
           {t("body.prettyFormat")}
-        </button>
+        </Button>
       </div>
       <textarea
         value={body.text}

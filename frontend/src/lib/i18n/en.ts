@@ -10,6 +10,7 @@ export const en: Dict = {
   "topbar.theme": "Theme",
   "topbar.theme.toast": "Theme: {name}",
   "topbar.envEdit": "Env...",
+  "topbar.envSelect": "Select environment",
 
   "sidebar.tab.collections": "Collections",
   "sidebar.tab.history": "History",
@@ -76,6 +77,7 @@ export const en: Dict = {
   "env.placeholderText": "key=value\nbase_url=https://api.example.com\ntoken=abc123",
   "env.saved": "Environments saved",
   "env.deleteEnv": "Delete",
+  "env.namePlaceholder": "Environment name",
 
   "toast.saved": "Saved",
   "toast.urlEmpty": "URL is empty",

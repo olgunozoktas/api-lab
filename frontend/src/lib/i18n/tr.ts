@@ -1,6 +1,5 @@
-// Turkish translations. This file is the SOURCE OF TRUTH for translation
-// keys — every other locale must mirror its key set. TypeScript will fail
-// the build if a translation file is missing keys defined here.
+// Turkish translations. SOURCE OF TRUTH for translation keys — every other
+// locale must mirror its key set (TypeScript fails the build on missing keys).
 
 export const tr = {
   "lang.label": "Dil",
@@ -10,6 +9,7 @@ export const tr = {
   "topbar.theme": "Tema",
   "topbar.theme.toast": "Tema: {name}",
   "topbar.envEdit": "Env...",
+  "topbar.envSelect": "Environment seç",
 
   "sidebar.tab.collections": "Koleksiyon",
   "sidebar.tab.history": "Geçmiş",
@@ -76,6 +76,7 @@ export const tr = {
   "env.placeholderText": "key=value\nbase_url=https://api.example.com\ntoken=abc123",
   "env.saved": "Environments kaydedildi",
   "env.deleteEnv": "Sil",
+  "env.namePlaceholder": "Environment adı",
 
   "toast.saved": "Kaydedildi",
   "toast.urlEmpty": "URL boş",

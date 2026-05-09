@@ -2,6 +2,7 @@ import { useStore } from "../store";
 import { ResponseHead } from "./ResponseHead";
 import { ResponseBody } from "./ResponseBody";
 import { useT } from "../lib/i18n/useT";
+import { Tabs, TabsList, TabsTrigger } from "./ui/tabs";
 import type { ResponseTab } from "../lib/types";
 import type { TKey } from "../lib/i18n";
 
@@ -21,25 +22,11 @@ export function ResponseViewer() {
     <section className="bg-[var(--color-bg)] flex flex-col overflow-hidden">
       <ResponseHead />
       {lastResponse && (
-        <div className="flex border-b border-[var(--color-border)] bg-[var(--color-bg-elev)] px-2 gap-0.5">
-          {TABS.map((rt) => {
-            const active = tab === rt.id;
-            return (
-              <button
-                key={rt.id}
-                onClick={() => setUi({ responseTab: rt.id })}
-                className={
-                  "border-0 bg-transparent px-3.5 py-2 text-xs font-medium border-b-2 -mb-px " +
-                  (active
-                    ? "text-[var(--color-fg)] border-[var(--color-accent)]"
-                    : "text-[var(--color-fg-muted)] border-transparent hover:text-[var(--color-fg)]")
-                }
-              >
-                {t(rt.key)}
-              </button>
-            );
-          })}
-        </div>
+        <Tabs value={tab} onValueChange={(v) => setUi({ responseTab: v as ResponseTab })}>
+          <TabsList>
+            {TABS.map((rt) => <TabsTrigger key={rt.id} value={rt.id}>{t(rt.key)}</TabsTrigger>)}
+          </TabsList>
+        </Tabs>
       )}
       <ResponseBody />
     </section>

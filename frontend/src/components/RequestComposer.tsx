@@ -5,6 +5,8 @@ import { AuthPanel } from "./AuthPanel";
 import { BodyPanel } from "./BodyPanel";
 import { GraphqlPanel } from "./GraphqlPanel";
 import { useT } from "../lib/i18n/useT";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
+import { Button } from "./ui/button";
 import type { ComposerTab } from "../lib/types";
 import type { TKey } from "../lib/i18n";
 
@@ -24,7 +26,7 @@ export function RequestComposer({ busy, onSend }: Props) {
   const headers = useStore((s) => s.current.headers);
   const setCurrent = useStore((s) => s.setCurrent);
   const saveCurrent = useStore((s) => s.saveCurrent);
-  const ui = useStore((s) => s.ui);
+  const composerTab = useStore((s) => s.ui.composerTab);
   const setUi = useStore((s) => s.setUi);
   const t = useT();
 
@@ -40,45 +42,35 @@ export function RequestComposer({ busy, onSend }: Props) {
           placeholder={t("composer.requestName")}
           className="flex-1 bg-transparent border-0 outline-none text-sm font-medium"
         />
-        <button
-          onClick={saveCurrent}
-          className="bg-[var(--color-bg-elev-2)] hover:bg-[var(--color-accent)] hover:text-white text-[var(--color-fg)] px-3 py-1 rounded-md text-xs"
-        >
-          {t("composer.save")}
-        </button>
+        <Button variant="secondary" size="sm" onClick={saveCurrent}>{t("composer.save")}</Button>
       </div>
 
       <UrlBar busy={busy} onSend={onSend} />
 
-      <div className="flex border-b border-[var(--color-border)] bg-[var(--color-bg-elev)] px-2 gap-0.5">
-        {TABS.map((tab) => {
-          const active = ui.composerTab === tab.id;
-          return (
-            <button
-              key={tab.id}
-              onClick={() => setUi({ composerTab: tab.id })}
-              className={
-                "border-0 bg-transparent px-3.5 py-2 text-xs font-medium border-b-2 -mb-px " +
-                (active
-                  ? "text-[var(--color-fg)] border-[var(--color-accent)]"
-                  : "text-[var(--color-fg-muted)] border-transparent hover:text-[var(--color-fg)]")
-              }
-            >
+      <Tabs
+        value={composerTab}
+        onValueChange={(v) => setUi({ composerTab: v as ComposerTab })}
+        className="flex-1 flex flex-col overflow-hidden"
+      >
+        <TabsList>
+          {TABS.map((tab) => (
+            <TabsTrigger key={tab.id} value={tab.id}>
               {t(tab.key)}
               {tab.id === "params" && pCount > 0 && <Badge n={pCount} />}
               {tab.id === "headers" && hCount > 0 && <Badge n={hCount} />}
-            </button>
-          );
-        })}
-      </div>
-
-      <div className="flex-1 overflow-y-auto p-3 bg-[var(--color-bg)]">
-        {ui.composerTab === "params"   && <KvTable rows={params}  onChange={(rows) => setCurrent({ params:  rows })} addLabelKey="kv.addParam" />}
-        {ui.composerTab === "headers"  && <KvTable rows={headers} onChange={(rows) => setCurrent({ headers: rows })} addLabelKey="kv.addHeader" />}
-        {ui.composerTab === "auth"     && <AuthPanel />}
-        {ui.composerTab === "body"     && <BodyPanel />}
-        {ui.composerTab === "graphql"  && <GraphqlPanel />}
-      </div>
+            </TabsTrigger>
+          ))}
+        </TabsList>
+        <TabsContent value="params"  className="p-3 bg-[var(--color-bg)]">
+          <KvTable rows={params}  onChange={(rows) => setCurrent({ params:  rows })} addLabelKey="kv.addParam" />
+        </TabsContent>
+        <TabsContent value="headers" className="p-3 bg-[var(--color-bg)]">
+          <KvTable rows={headers} onChange={(rows) => setCurrent({ headers: rows })} addLabelKey="kv.addHeader" />
+        </TabsContent>
+        <TabsContent value="auth"    className="p-3 bg-[var(--color-bg)]"><AuthPanel /></TabsContent>
+        <TabsContent value="body"    className="p-3 bg-[var(--color-bg)]"><BodyPanel /></TabsContent>
+        <TabsContent value="graphql" className="p-3 bg-[var(--color-bg)]"><GraphqlPanel /></TabsContent>
+      </Tabs>
     </section>
   );
 }

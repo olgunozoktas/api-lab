@@ -1,6 +1,8 @@
 import type { KvRow } from "../lib/types";
 import { useT } from "../lib/i18n/useT";
 import type { TKey } from "../lib/i18n";
+import { Button } from "./ui/button";
+import { Trash2 } from "lucide-react";
 
 type Props = {
   rows: KvRow[];
@@ -29,7 +31,7 @@ export function KvTable({ rows, onChange, addLabelKey }: Props) {
           <div
             key={i}
             className="grid gap-1.5 mb-1 items-center"
-            style={{ gridTemplateColumns: "24px 1fr 1fr 24px" }}
+            style={{ gridTemplateColumns: "24px 1fr 1fr 28px" }}
           >
             <input
               type="checkbox"
@@ -51,26 +53,15 @@ export function KvTable({ rows, onChange, addLabelKey }: Props) {
               onChange={(e) => update(i, { v: e.target.value })}
               className={inputCls}
             />
-            <button
-              onClick={() => remove(i)}
-              aria-label={t("kv.delete")}
-              className="text-[var(--color-fg-muted)] hover:text-[var(--color-danger)] text-sm"
-            >
-              ✕
-            </button>
+            <Button variant="ghost" size="icon" onClick={() => remove(i)} aria-label={t("kv.delete")}>
+              <Trash2 className="w-3 h-3" />
+            </Button>
           </div>
         ))}
       </div>
-      <button
-        onClick={add}
-        className={
-          "w-full text-xs py-1.5 mt-1 rounded-md border border-dashed " +
-          "border-[var(--color-border)] text-[var(--color-fg-muted)] " +
-          "hover:border-[var(--color-accent)] hover:text-[var(--color-accent)]"
-        }
-      >
+      <Button variant="dashed" size="md" className="w-full mt-1" onClick={add}>
         {t(addLabelKey)}
-      </button>
+      </Button>
     </>
   );
 }

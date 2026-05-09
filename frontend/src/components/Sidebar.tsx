@@ -2,6 +2,8 @@ import { useStore } from "../store";
 import { CollectionList } from "./CollectionList";
 import { HistoryList } from "./HistoryList";
 import { useT } from "../lib/i18n/useT";
+import { Tabs, TabsList, TabsTrigger } from "./ui/tabs";
+import { Button } from "./ui/button";
 
 export function Sidebar() {
   const ui = useStore((s) => s.ui);
@@ -11,33 +13,28 @@ export function Sidebar() {
 
   return (
     <aside className="bg-[var(--color-bg-elev)] border-r border-[var(--color-border)] flex flex-col overflow-hidden">
-      <div className="flex border-b border-[var(--color-border)] p-1 gap-0.5">
-        {(["collections", "history"] as const).map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setUi({ sidebarTab: tab })}
-            className={
-              "flex-1 px-1 py-1.5 rounded-[5px] text-[11px] font-medium " +
-              (ui.sidebarTab === tab
-                ? "bg-[var(--color-bg-elev-2)] text-[var(--color-fg)]"
-                : "text-[var(--color-fg-muted)] hover:text-[var(--color-fg)]")
-            }
-          >
-            {t(tab === "collections" ? "sidebar.tab.collections" : "sidebar.tab.history")}
-          </button>
-        ))}
-      </div>
+      <Tabs
+        value={ui.sidebarTab}
+        onValueChange={(v) => setUi({ sidebarTab: v as "collections" | "history" })}
+        className="flex flex-col flex-1 overflow-hidden"
+      >
+        <TabsList className="px-1 py-1 gap-0.5">
+          <TabsTrigger value="collections" className="flex-1 px-1 py-1 border-b-0 rounded-md text-[11px] data-[state=active]:bg-[var(--color-bg-elev-2)]">
+            {t("sidebar.tab.collections")}
+          </TabsTrigger>
+          <TabsTrigger value="history" className="flex-1 px-1 py-1 border-b-0 rounded-md text-[11px] data-[state=active]:bg-[var(--color-bg-elev-2)]">
+            {t("sidebar.tab.history")}
+          </TabsTrigger>
+        </TabsList>
+      </Tabs>
       {ui.sidebarTab === "collections" ? (
         <>
           <SectionHeader>{t("sidebar.section.saved")}</SectionHeader>
           <CollectionList />
           <div className="px-2 pb-2">
-            <button
-              onClick={resetCurrent}
-              className="w-full text-xs py-1.5 rounded-md border border-dashed border-[var(--color-border)] text-[var(--color-fg-muted)] hover:border-[var(--color-accent)] hover:text-[var(--color-accent)]"
-            >
+            <Button variant="dashed" size="md" className="w-full" onClick={resetCurrent}>
               {t("sidebar.newRequest")}
-            </button>
+            </Button>
           </div>
         </>
       ) : (
@@ -63,11 +60,13 @@ function ClearHistoryButton() {
   const clearHistory = useStore((s) => s.clearHistory);
   const t = useT();
   return (
-    <button
+    <Button
+      variant="ghost"
+      size="sm"
       onClick={() => { if (confirm(t("sidebar.confirmClearHistory"))) clearHistory(); }}
-      className="text-[11px] px-1.5 py-0.5 rounded text-[var(--color-fg-muted)] hover:bg-[var(--color-bg-elev-2)] hover:text-[var(--color-fg)]"
+      className="text-[11px] h-auto py-0.5 px-1.5"
     >
       {t("sidebar.clearHistory")}
-    </button>
+    </Button>
   );
 }

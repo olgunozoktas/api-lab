@@ -3,6 +3,11 @@ import { useState } from "react";
 import { EnvEditorModal } from "./EnvEditorModal";
 import { useT } from "../lib/i18n/useT";
 import { SUPPORTED_LOCALES, LOCALE_LABEL, type Locale } from "../lib/i18n";
+import { Button } from "./ui/button";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "./ui/select";
+import { Languages, Palette, Settings2 } from "lucide-react";
 
 export function TopBar() {
   const envs = useStore((s) => s.envs);
@@ -24,43 +29,46 @@ export function TopBar() {
     showToast(t("topbar.theme.toast", { name: next }));
   };
 
-  const iconBtn =
-    "text-xs px-2.5 py-1 rounded-md text-[var(--color-fg-muted)] " +
-    "hover:bg-[var(--color-bg-elev-2)] hover:text-[var(--color-fg)]";
-  const select =
-    "bg-[var(--color-bg-elev-2)] border border-[var(--color-border)] " +
-    "rounded-md px-2.5 py-1 text-xs";
-
   return (
     <>
-      <header className="h-11 bg-[var(--color-bg-elev)] border-b border-[var(--color-border)] flex items-center px-3 gap-3 flex-shrink-0">
+      <header className="h-11 bg-[var(--color-bg-elev)] border-b border-[var(--color-border)] flex items-center px-3 gap-2 flex-shrink-0">
         <div className="font-semibold text-sm flex items-center gap-2">
           <span className="w-2.5 h-2.5 rounded-[3px] bg-gradient-to-br from-[var(--color-accent)] to-[var(--color-purple)]" />
           API Lab
         </div>
         <div className="flex-1" />
-        <select
-          aria-label={t("lang.label")}
-          value={locale}
-          onChange={(e) => setLocale(e.target.value as Locale)}
-          className={select}
-        >
-          {SUPPORTED_LOCALES.map((code) => (
-            <option key={code} value={code}>{t(LOCALE_LABEL[code])}</option>
-          ))}
-        </select>
-        <select
-          aria-label="Environment"
-          value={activeEnv}
-          onChange={(e) => setActiveEnv(e.target.value)}
-          className={select}
-        >
-          {envs.map((e) => <option key={e.id} value={e.id}>{e.name}</option>)}
-        </select>
-        <button className={iconBtn} onClick={() => setEditing(true)}>{t("topbar.envEdit")}</button>
-        <button className={iconBtn} onClick={cycleTheme}>{t("topbar.theme")}</button>
+
+        <Select value={locale} onValueChange={(v) => setLocale(v as Locale)}>
+          <SelectTrigger aria-label={t("lang.label")} className="w-auto">
+            <Languages className="w-3 h-3 opacity-60" />
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {SUPPORTED_LOCALES.map((code) => (
+              <SelectItem key={code} value={code}>{t(LOCALE_LABEL[code])}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        <Select value={activeEnv} onValueChange={setActiveEnv}>
+          <SelectTrigger aria-label={t("topbar.envSelect")} className="w-auto">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {envs.map((e) => <SelectItem key={e.id} value={e.id}>{e.name}</SelectItem>)}
+          </SelectContent>
+        </Select>
+
+        <Button variant="ghost" size="sm" onClick={() => setEditing(true)}>
+          <Settings2 className="w-3.5 h-3.5" />
+          {t("topbar.envEdit")}
+        </Button>
+        <Button variant="ghost" size="sm" onClick={cycleTheme}>
+          <Palette className="w-3.5 h-3.5" />
+          {t("topbar.theme")}
+        </Button>
       </header>
-      {editing && <EnvEditorModal onClose={() => setEditing(false)} />}
+      {editing && <EnvEditorModal open onOpenChange={(o) => !o && setEditing(false)} />}
     </>
   );
 }

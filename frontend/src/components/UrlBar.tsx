@@ -1,6 +1,11 @@
 import { useStore } from "../store";
 import { methodClass } from "../lib/utils";
 import { useT } from "../lib/i18n/useT";
+import { Button } from "./ui/button";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "./ui/select";
+import { Send } from "lucide-react";
 
 const METHODS = ["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"] as const;
 
@@ -14,17 +19,21 @@ export function UrlBar({ busy, onSend }: Props) {
 
   return (
     <div className="flex gap-1.5 px-3 py-2.5 bg-[var(--color-bg-elev)] border-b border-[var(--color-border)]">
-      <select
-        value={method}
-        onChange={(e) => setCurrent({ method: e.target.value })}
-        className={
-          "bg-[var(--color-bg-elev-2)] border border-[var(--color-border)] rounded-md " +
-          "px-2 py-1.5 font-mono font-bold text-xs w-22 " + methodClass(method)
-        }
-        aria-label="HTTP method"
-      >
-        {METHODS.map((m) => <option key={m} value={m}>{m}</option>)}
-      </select>
+      <Select value={method} onValueChange={(v) => setCurrent({ method: v })}>
+        <SelectTrigger
+          aria-label="HTTP method"
+          className={"w-22 font-mono font-bold " + methodClass(method)}
+        >
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {METHODS.map((m) => (
+            <SelectItem key={m} value={m}>
+              <span className={"font-mono font-bold " + methodClass(m)}>{m}</span>
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
       <input
         type="text"
         value={url}
@@ -32,20 +41,14 @@ export function UrlBar({ busy, onSend }: Props) {
         placeholder={t("composer.urlPlaceholder", { vars: "{{base_url}}/path" })}
         className={
           "flex-1 bg-[var(--color-bg-elev-2)] border border-[var(--color-border)] " +
-          "rounded-md px-2.5 py-1.5 font-mono text-xs outline-none focus:border-[var(--color-accent)]"
+          "rounded-md px-2.5 py-1.5 font-mono text-xs outline-none " +
+          "focus:border-[var(--color-accent)]"
         }
       />
-      <button
-        onClick={onSend}
-        disabled={busy}
-        className={
-          "bg-[var(--color-accent)] text-white border-0 rounded-md px-4 py-1.5 " +
-          "font-semibold text-xs active:scale-[0.97] transition-transform " +
-          (busy ? "opacity-50 cursor-progress" : "")
-        }
-      >
+      <Button variant="primary" onClick={onSend} disabled={busy}>
+        <Send className="w-3.5 h-3.5" />
         {busy ? t("composer.sending") : t("composer.send")}
-      </button>
+      </Button>
     </div>
   );
 }

@@ -3,10 +3,18 @@ import { useStore } from "../store";
 import { useT } from "../lib/i18n/useT";
 import { uid } from "../lib/utils";
 import type { Environment } from "../lib/types";
+import {
+  Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle,
+} from "./ui/dialog";
+import { Button } from "./ui/button";
+import { Trash2 } from "lucide-react";
 
-type Props = { onClose: () => void };
+type Props = {
+  open: boolean;
+  onOpenChange: (o: boolean) => void;
+};
 
-export function EnvEditorModal({ onClose }: Props) {
+export function EnvEditorModal({ open, onOpenChange }: Props) {
   const initialEnvs = useStore((s) => s.envs);
   const setEnvs = useStore((s) => s.setEnvs);
   const showToast = useStore((s) => s.showToast);
@@ -21,34 +29,23 @@ export function EnvEditorModal({ onClose }: Props) {
     setLocal((ls) => ls.filter((e) => e.id !== id));
   };
   const add = () => setLocal((ls) => [...ls, { id: uid(), name: "new", vars: {} }]);
-  const save = () => { setEnvs(envs); showToast(t("env.saved")); onClose(); };
+  const save = () => { setEnvs(envs); showToast(t("env.saved")); onOpenChange(false); };
 
   return (
-    <div
-      role="dialog"
-      aria-modal
-      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
-      className="fixed inset-0 bg-black/40 flex items-center justify-center z-[1000]"
-    >
-      <div className="bg-[var(--color-bg-elev)] rounded-xl p-5 min-w-[500px] max-h-[80vh] overflow-y-auto shadow-2xl">
-        <h2 className="text-base font-semibold mb-3.5">{t("env.modal.title")}</h2>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{t("env.modal.title")}</DialogTitle>
+        </DialogHeader>
         {envs.map((e) => <EnvRow key={e.id} env={e} onUpdate={update} onRemove={remove} />)}
-        <button
-          onClick={add}
-          className="w-full text-xs py-1.5 mt-1 rounded-md border border-dashed border-[var(--color-border)] text-[var(--color-fg-muted)] hover:border-[var(--color-accent)] hover:text-[var(--color-accent)]"
-        >
+        <Button variant="dashed" size="md" className="w-full" onClick={add}>
           {t("kv.addEnv")}
-        </button>
-        <div className="flex justify-end gap-2 mt-3.5">
-          <button
-            onClick={save}
-            className="bg-[var(--color-accent)] text-white border-0 rounded-md px-4 py-1.5 font-medium text-xs"
-          >
-            {t("composer.save")}
-          </button>
-        </div>
-      </div>
-    </div>
+        </Button>
+        <DialogFooter>
+          <Button variant="primary" onClick={save}>{t("composer.save")}</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -81,22 +78,27 @@ function EnvRow({ env, onUpdate, onRemove }: RowProps) {
         <input
           type="text"
           value={env.name}
+          placeholder={t("env.namePlaceholder")}
           onChange={(e) => onUpdate(env.id, { name: e.target.value })}
-          className="flex-1 bg-[var(--color-bg)] border border-[var(--color-border)] rounded px-2 py-1 text-xs outline-none focus:border-[var(--color-accent)]"
+          className={
+            "flex-1 bg-[var(--color-bg)] border border-[var(--color-border)] rounded " +
+            "px-2 py-1 text-xs outline-none focus:border-[var(--color-accent)]"
+          }
         />
-        <button
-          onClick={() => onRemove(env.id)}
-          className="bg-[var(--color-bg-elev-2)] text-[var(--color-fg)] border-0 rounded px-2.5 py-1 text-xs"
-        >
-          {t("env.deleteEnv")}
-        </button>
+        <Button variant="ghost" size="icon" onClick={() => onRemove(env.id)} aria-label={t("env.deleteEnv")}>
+          <Trash2 className="w-3.5 h-3.5" />
+        </Button>
       </div>
       <textarea
         value={text}
         onChange={(e) => onText(e.target.value)}
         placeholder={t("env.placeholderText")}
         spellCheck={false}
-        className="w-full min-h-[90px] resize-y bg-[var(--color-bg)] border border-[var(--color-border)] rounded px-2 py-1 font-mono text-xs leading-6 outline-none focus:border-[var(--color-accent)]"
+        className={
+          "w-full min-h-[90px] resize-y bg-[var(--color-bg)] border border-[var(--color-border)] " +
+          "rounded px-2 py-1 font-mono text-xs leading-6 outline-none " +
+          "focus:border-[var(--color-accent)]"
+        }
       />
     </div>
   );
