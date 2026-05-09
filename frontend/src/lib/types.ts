@@ -81,6 +81,31 @@ export type UiState = {
   sidebarTab: SidebarTab;
 };
 
+// One open tab in the multi-request workspace. `request` is the editable
+// state; `lastResponse` is the most recent response shown in the response
+// pane; `composerTab` and `responseTab` are the tab's UI memory so each
+// tab remembers which sub-pane the user was looking at. The store keeps
+// `current` / `lastResponse` / `ui.composerTab` / `ui.responseTab` mirrored
+// to the *active* tab's fields so existing leaf components stay
+// store-shape agnostic.
+export type OpenTab = {
+  id: string;
+  name: string;
+  request: CurrentRequest;
+  lastResponse: ResponseSnapshot | null;
+  composerTab: ComposerTab;
+  responseTab: ResponseTab;
+};
+
+export const emptyTab = (id: string): OpenTab => ({
+  id,
+  name: "Yeni istek",
+  request: { ...emptyRequest(), id: null, name: "Yeni istek" },
+  lastResponse: null,
+  composerTab: "params",
+  responseTab: "body",
+});
+
 export const emptyRequest = (): CurrentRequest => ({
   id: null,
   name: "Yeni istek",

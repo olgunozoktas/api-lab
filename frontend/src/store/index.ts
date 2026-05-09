@@ -1,24 +1,36 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import type {
-  Collection, Environment, HistoryItem, CurrentRequest,
-  ResponseSnapshot, UiState, RequestSnapshot,
+  Collection,
+  Environment,
+  HistoryItem,
+  CurrentRequest,
+  ResponseSnapshot,
+  UiState,
+  RequestSnapshot,
+  OpenTab,
+  ComposerTab,
+  ResponseTab,
 } from "../lib/types";
-import { emptyRequest } from "../lib/types";
+import { emptyRequest, emptyTab } from "../lib/types";
 import { uid } from "../lib/utils";
-import { detectLocale, type Locale } from "../lib/i18n";
+import type { Locale } from "../lib/i18n";
+import {
+  clone,
+  buildInitialState,
+  snapshotActiveIntoTab,
+  nextActiveAfterClose,
+  migrateV1toV2,
+  safeLocalStorage,
+  type CoreState,
+} from "./internal";
 
-type State = {
-  collections: Collection[];
-  envs: Environment[];
-  activeEnv: string;
-  history: HistoryItem[];
-  current: CurrentRequest;
-  ui: UiState;
-  locale: Locale;
-  lastResponse: ResponseSnapshot | null;
-  toast: { msg: string; ts: number } | null;
-};
+// Multi-request workspace store. `tabs[]` is the source of truth; each tab
+// carries its own request/lastResponse/composerTab/responseTab. The
+// top-level `current`/`lastResponse`/`ui.composerTab`/`ui.responseTab`
+// fields are MIRRORED to the active tab so leaf components stay shape-
+// agnostic. Mirrors are maintained on every active-tab mutation only.
+type State = CoreState;
 
 type Actions = {
   setCurrent: (patch: Partial<CurrentRequest>) => void;
@@ -31,87 +43,132 @@ type Actions = {
   setUi: (patch: Partial<UiState>) => void;
   setEnvs: (envs: Environment[]) => void;
   setLocale: (l: Locale) => void;
-  pushHistory: (snap: RequestSnapshot, status: number, sizeBytes: number, elapsedMs: number) => void;
+  pushHistory: (
+    snap: RequestSnapshot,
+    status: number,
+    sizeBytes: number,
+    elapsedMs: number
+  ) => void;
   clearHistory: () => void;
   setLastResponse: (r: ResponseSnapshot | null) => void;
   showToast: (msg: string) => void;
+
+  // Tab actions
+  newTab: () => void;
+  closeTab: (id: string) => void;
+  setActiveTab: (id: string) => void;
+  renameTab: (id: string, name: string) => void;
+  reorderTabs: (fromIdx: number, toIdx: number) => void;
+  loadCollectionInNewTab: (c: Collection) => void;
 };
-
-const initial = (): State => ({
-  collections: [
-    {
-      id: uid(),
-      name: "Github user (örnek)",
-      request: {
-        method: "GET",
-        url: "https://api.github.com/users/octocat",
-        params: [{ enabled: true, k: "", v: "" }],
-        headers: [{ enabled: true, k: "Accept", v: "application/vnd.github+json" }],
-        auth: { type: "none" },
-        body: { mode: "none", text: "" },
-        gql: { query: "", vars: "" },
-        isGraphql: false,
-      },
-    },
-  ],
-  envs: [{ id: "default", name: "default", vars: {} }],
-  activeEnv: "default",
-  history: [],
-  current: emptyRequest(),
-  ui: { theme: "auto", composerTab: "params", responseTab: "body", sidebarTab: "collections" },
-  locale: detectLocale("tr"),
-  lastResponse: null,
-  toast: null,
-});
-
-const clone = <T,>(x: T): T => JSON.parse(JSON.stringify(x));
 
 export const useStore = create<State & Actions>()(
   persist(
     (set, get) => ({
-      ...initial(),
+      ...buildInitialState(),
 
-      setCurrent: (patch) => set((s) => ({ current: { ...s.current, ...patch } })),
-      resetCurrent: () => set({ current: emptyRequest(), ui: { ...get().ui, composerTab: "params" } }),
+      // -------------------------------------------------------------------
+      // Active-tab mutations — write to mirrors AND update the tab record
+      // so the persisted snapshot stays consistent after a reload.
+      // -------------------------------------------------------------------
+      setCurrent: (patch) =>
+        set((s) => {
+          const nextCurrent = { ...s.current, ...patch };
+          return {
+            current: nextCurrent,
+            tabs: s.tabs.map((t) =>
+              t.id === s.activeTabId
+                ? {
+                    ...t,
+                    request: clone(nextCurrent),
+                    name: nextCurrent.name?.trim() || t.name,
+                  }
+                : t
+            ),
+          };
+        }),
 
-      loadCollection: (c) => set(() => ({
-        current: {
-          id: c.id,
-          name: c.name,
-          method: c.request.method ?? "GET",
-          url: c.request.url ?? "",
-          params: clone(c.request.params ?? [{ enabled: true, k: "", v: "" }]),
-          headers: clone(c.request.headers ?? [{ enabled: true, k: "", v: "" }]),
-          auth: clone(c.request.auth ?? { type: "none" }),
-          body: clone(c.request.body ?? { mode: "none", text: "" }),
-          gql: clone(c.request.gql ?? { query: "", vars: "" }),
-        },
-        ui: { ...get().ui, composerTab: c.request.isGraphql ? "graphql" : "params" },
-      })),
+      resetCurrent: () =>
+        set((s) => {
+          const fresh = emptyRequest();
+          return {
+            current: fresh,
+            tabs: s.tabs.map((t) =>
+              t.id === s.activeTabId
+                ? {
+                    ...t,
+                    request: clone(fresh),
+                    name: fresh.name,
+                    lastResponse: null,
+                    composerTab: "params",
+                  }
+                : t
+            ),
+            lastResponse: null,
+            ui: { ...s.ui, composerTab: "params" },
+          };
+        }),
 
-      loadHistoryItem: (h) => set(() => ({
-        current: {
-          id: null,
-          name: get().current.name,
-          method: h.request.method,
-          url: h.request.url,
-          params: clone(h.request.params),
-          headers: clone(h.request.headers),
-          auth: clone(h.request.auth),
-          body: clone(h.request.body),
-          gql: clone(h.request.gql),
-        },
-        ui: { ...get().ui, composerTab: h.request.isGraphql ? "graphql" : "params" },
-      })),
+      loadCollection: (c) =>
+        set((s) => {
+          const nextCurrent: CurrentRequest = {
+            id: c.id,
+            name: c.name,
+            method: c.request.method ?? "GET",
+            url: c.request.url ?? "",
+            params: clone(c.request.params ?? [{ enabled: true, k: "", v: "" }]),
+            headers: clone(c.request.headers ?? [{ enabled: true, k: "", v: "" }]),
+            auth: clone(c.request.auth ?? { type: "none" }),
+            body: clone(c.request.body ?? { mode: "none", text: "" }),
+            gql: clone(c.request.gql ?? { query: "", vars: "" }),
+          };
+          const composerTab: ComposerTab = c.request.isGraphql ? "graphql" : "params";
+          return {
+            current: nextCurrent,
+            ui: { ...s.ui, composerTab },
+            tabs: s.tabs.map((t) =>
+              t.id === s.activeTabId
+                ? { ...t, name: c.name, request: clone(nextCurrent), composerTab }
+                : t
+            ),
+          };
+        }),
+
+      loadHistoryItem: (h) =>
+        set((s) => {
+          const nextCurrent: CurrentRequest = {
+            id: null,
+            name: s.current.name,
+            method: h.request.method,
+            url: h.request.url,
+            params: clone(h.request.params),
+            headers: clone(h.request.headers),
+            auth: clone(h.request.auth),
+            body: clone(h.request.body),
+            gql: clone(h.request.gql),
+          };
+          const composerTab: ComposerTab = h.request.isGraphql ? "graphql" : "params";
+          return {
+            current: nextCurrent,
+            ui: { ...s.ui, composerTab },
+            tabs: s.tabs.map((t) =>
+              t.id === s.activeTabId ? { ...t, request: clone(nextCurrent), composerTab } : t
+            ),
+          };
+        }),
 
       saveCurrent: () => {
         const cur = get().current;
         const name = cur.name?.trim() || "(adsız)";
         const isGraphql = get().ui.composerTab === "graphql";
         const snap: RequestSnapshot = {
-          method: cur.method, url: cur.url,
-          params: clone(cur.params), headers: clone(cur.headers),
-          auth: clone(cur.auth), body: clone(cur.body), gql: clone(cur.gql),
+          method: cur.method,
+          url: cur.url,
+          params: clone(cur.params),
+          headers: clone(cur.headers),
+          auth: clone(cur.auth),
+          body: clone(cur.body),
+          gql: clone(cur.gql),
           isGraphql,
         };
         const cols = get().collections.slice();
@@ -121,62 +178,212 @@ export const useStore = create<State & Actions>()(
         } else {
           const id = uid();
           cols.unshift({ id, name, request: snap });
-          set({ current: { ...cur, id, name } });
+          set((s) => ({
+            current: { ...cur, id, name },
+            tabs: s.tabs.map((t) =>
+              t.id === s.activeTabId ? { ...t, name, request: { ...t.request, id, name } } : t
+            ),
+          }));
         }
         set({ collections: cols });
         get().showToast("Kaydedildi");
       },
 
-      deleteCollection: (id) => set((s) => ({
-        collections: s.collections.filter((c) => c.id !== id),
-        current: s.current.id === id ? { ...s.current, id: null } : s.current,
-      })),
+      deleteCollection: (id) =>
+        set((s) => ({
+          collections: s.collections.filter((c) => c.id !== id),
+          current: s.current.id === id ? { ...s.current, id: null } : s.current,
+          tabs: s.tabs.map((t) =>
+            t.request.id === id ? { ...t, request: { ...t.request, id: null } } : t
+          ),
+        })),
 
       setActiveEnv: (id) => set({ activeEnv: id }),
-      setUi: (patch) => set((s) => ({ ui: { ...s.ui, ...patch } })),
+
+      setUi: (patch) =>
+        set((s) => {
+          const nextUi = { ...s.ui, ...patch };
+          const tabPatch: Partial<OpenTab> = {};
+          if (patch.composerTab !== undefined) tabPatch.composerTab = patch.composerTab;
+          if (patch.responseTab !== undefined) tabPatch.responseTab = patch.responseTab;
+          if (Object.keys(tabPatch).length === 0) return { ui: nextUi };
+          return {
+            ui: nextUi,
+            tabs: s.tabs.map((t) => (t.id === s.activeTabId ? { ...t, ...tabPatch } : t)),
+          };
+        }),
+
       setEnvs: (envs) => set({ envs }),
       setLocale: (locale) => set({ locale }),
 
-      pushHistory: (snap, status, sizeBytes, elapsedMs) => set((s) => {
-        const item: HistoryItem = {
-          id: uid(), ts: Date.now(),
-          request: snap, response: { status, sizeBytes, elapsedMs },
-        };
-        const next = [item, ...s.history];
-        if (next.length > 200) next.length = 200;
-        return { history: next };
-      }),
+      pushHistory: (snap, status, sizeBytes, elapsedMs) =>
+        set((s) => {
+          const item: HistoryItem = {
+            id: uid(),
+            ts: Date.now(),
+            request: snap,
+            response: { status, sizeBytes, elapsedMs },
+          };
+          const next = [item, ...s.history];
+          if (next.length > 200) next.length = 200;
+          return { history: next };
+        }),
 
       clearHistory: () => set({ history: [] }),
-      setLastResponse: (r) => set({ lastResponse: r }),
+
+      setLastResponse: (r) =>
+        set((s) => ({
+          lastResponse: r,
+          tabs: s.tabs.map((t) => (t.id === s.activeTabId ? { ...t, lastResponse: r } : t)),
+        })),
+
       showToast: (msg) => set({ toast: { msg, ts: Date.now() } }),
+
+      // -------------------------------------------------------------------
+      // Tab actions
+      // -------------------------------------------------------------------
+      newTab: () =>
+        set((s) => {
+          const tabs = snapshotActiveIntoTab(s);
+          const fresh = emptyTab(uid());
+          return {
+            tabs: [...tabs, fresh],
+            activeTabId: fresh.id,
+            current: clone(fresh.request),
+            lastResponse: fresh.lastResponse,
+            ui: {
+              ...s.ui,
+              composerTab: fresh.composerTab,
+              responseTab: fresh.responseTab,
+            },
+          };
+        }),
+
+      closeTab: (id) =>
+        set((s) => {
+          if (s.tabs.length === 1) {
+            const fresh = emptyTab(uid());
+            return {
+              tabs: [fresh],
+              activeTabId: fresh.id,
+              current: clone(fresh.request),
+              lastResponse: fresh.lastResponse,
+              ui: {
+                ...s.ui,
+                composerTab: fresh.composerTab,
+                responseTab: fresh.responseTab,
+              },
+            };
+          }
+          const filtered = s.tabs.filter((t) => t.id !== id);
+          if (id === s.activeTabId) {
+            const nextId = nextActiveAfterClose(s.tabs, id);
+            const nextTab = filtered.find((t) => t.id === nextId) ?? filtered[0];
+            return {
+              tabs: filtered,
+              activeTabId: nextTab.id,
+              current: clone(nextTab.request),
+              lastResponse: nextTab.lastResponse,
+              ui: {
+                ...s.ui,
+                composerTab: nextTab.composerTab,
+                responseTab: nextTab.responseTab,
+              },
+            };
+          }
+          return { tabs: filtered };
+        }),
+
+      setActiveTab: (id) =>
+        set((s) => {
+          if (id === s.activeTabId) return {};
+          const tabs = snapshotActiveIntoTab(s);
+          const target = tabs.find((t) => t.id === id);
+          if (!target) return {};
+          return {
+            tabs,
+            activeTabId: id,
+            current: clone(target.request),
+            lastResponse: target.lastResponse,
+            ui: {
+              ...s.ui,
+              composerTab: target.composerTab,
+              responseTab: target.responseTab,
+            },
+          };
+        }),
+
+      renameTab: (id, name) =>
+        set((s) => {
+          const trimmed = name.trim() || "Yeni istek";
+          const tabs = s.tabs.map((t) => (t.id === id ? { ...t, name: trimmed } : t));
+          if (id === s.activeTabId) {
+            return { tabs, current: { ...s.current, name: trimmed } };
+          }
+          return { tabs };
+        }),
+
+      reorderTabs: (fromIdx, toIdx) =>
+        set((s) => {
+          if (fromIdx === toIdx || fromIdx < 0 || toIdx < 0) return {};
+          if (fromIdx >= s.tabs.length || toIdx >= s.tabs.length) return {};
+          const next = s.tabs.slice();
+          const [moved] = next.splice(fromIdx, 1);
+          next.splice(toIdx, 0, moved);
+          return { tabs: next };
+        }),
+
+      loadCollectionInNewTab: (c) =>
+        set((s) => {
+          const tabs = snapshotActiveIntoTab(s);
+          const composerTab: ComposerTab = c.request.isGraphql ? "graphql" : "params";
+          const responseTab: ResponseTab = "body";
+          const fresh: OpenTab = {
+            id: uid(),
+            name: c.name,
+            request: {
+              id: c.id,
+              name: c.name,
+              method: c.request.method ?? "GET",
+              url: c.request.url ?? "",
+              params: clone(c.request.params ?? [{ enabled: true, k: "", v: "" }]),
+              headers: clone(c.request.headers ?? [{ enabled: true, k: "", v: "" }]),
+              auth: clone(c.request.auth ?? { type: "none" }),
+              body: clone(c.request.body ?? { mode: "none", text: "" }),
+              gql: clone(c.request.gql ?? { query: "", vars: "" }),
+            },
+            lastResponse: null,
+            composerTab,
+            responseTab,
+          };
+          return {
+            tabs: [...tabs, fresh],
+            activeTabId: fresh.id,
+            current: clone(fresh.request),
+            lastResponse: null,
+            ui: { ...s.ui, composerTab, responseTab },
+          };
+        }),
     }),
     {
       name: "apilab.store.v1",
-      storage: createJSONStorage(() => {
-        try {
-          const _t = "__t"; localStorage.setItem(_t, "1"); localStorage.removeItem(_t);
-          return localStorage;
-        } catch {
-          // SecurityError under null-origin contexts — fall back to a no-op.
-          const mem: Record<string, string> = {};
-          return {
-            getItem: (k: string) => mem[k] ?? null,
-            setItem: (k: string, v: string) => { mem[k] = v; },
-            removeItem: (k: string) => { delete mem[k]; },
-          };
-        }
-      }),
-      partialize: (s) => ({
-        collections: s.collections,
-        envs: s.envs,
-        activeEnv: s.activeEnv,
-        history: s.history,
-        ui: s.ui,
-        locale: s.locale,
-      }) as State,
-    },
-  ),
+      version: 2,
+      migrate: (persisted, fromVersion) =>
+        fromVersion >= 2 ? (persisted as State) : (migrateV1toV2(persisted) as State),
+      storage: createJSONStorage(safeLocalStorage),
+      partialize: (s) =>
+        ({
+          collections: s.collections,
+          envs: s.envs,
+          activeEnv: s.activeEnv,
+          history: s.history,
+          tabs: s.tabs,
+          activeTabId: s.activeTabId,
+          ui: s.ui,
+          locale: s.locale,
+        }) as State,
+    }
+  )
 );
 
 // Helper hook for env vars resolution

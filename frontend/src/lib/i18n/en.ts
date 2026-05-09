@@ -33,6 +33,16 @@ export const en: Dict = {
   "composer.tab.body": "Body",
   "composer.tab.graphql": "GraphQL",
 
+  "tabs.new": "New tab",
+  "tabs.close": "Close tab",
+  "tabs.openInNewTab": "Open in new tab",
+
+  "switcher.placeholder": "Search requests… (Esc cancels, ↑↓ navigate, ↵ open)",
+  "switcher.empty": "No matches",
+  "switcher.section.tabs": "Open tabs",
+  "switcher.section.collections": "Collections",
+  "switcher.section.history": "History",
+
   "kv.addParam": "+ Add param",
   "kv.addHeader": "+ Add header",
   "kv.addEnv": "+ Add environment",
