@@ -201,6 +201,92 @@ export function buildSourceExcerpt(
   return out.join("\n");
 }
 
+// Structured excerpt used by the React overlay — same window as the
+// text-format buildSourceExcerpt but per-line so the renderer can
+// attach gutters, syntax highlighting, and a separate caret row.
+export type ExcerptLine = {
+  lineNo: number;
+  isActive: boolean;
+  code: string;
+  caretCol?: number;
+};
+
+export function buildSourceExcerptLines(
+  sourceContent: string,
+  line: number,
+  column: number | null,
+  context: number = 3
+): ExcerptLine[] {
+  const allLines = sourceContent.split("\n");
+  const start = Math.max(0, line - 1 - context);
+  const end = Math.min(allLines.length, line + context);
+  const out: ExcerptLine[] = [];
+  for (let i = start; i < end; i += 1) {
+    const lineNo = i + 1;
+    const isActive = lineNo === line;
+    out.push({
+      lineNo,
+      isActive,
+      code: allLines[i] ?? "",
+      caretCol: isActive && column != null && column >= 0 ? column : undefined,
+    });
+  }
+  return out;
+}
+
+// Parse a React componentStack string into structured frames. React's
+// componentStack varies — in production builds it surfaces minified
+// names + URL:line:col (e.g. `oq@zero://app/...js:330:49442`); after
+// resolveStack these become `at Foo  src/components/Foo.tsx:50:5`. Some
+// frames are bare HTML element tags (`section@unknown:0:0`) which we
+// keep as-is.
+export type ComponentFrame = {
+  name: string;
+  file: string | null;
+  line: number | null;
+  isHtmlElement: boolean;
+};
+
+export function parseComponentStack(stack: string): ComponentFrame[] {
+  const out: ComponentFrame[] = [];
+  if (!stack) return out;
+  for (const raw of stack.split("\n")) {
+    const line = raw.trim();
+    if (!line) continue;
+    // Resolved-form: `at Foo  src/components/Foo.tsx:50:5  (min: oq)`
+    const resolved = line.match(/^at\s+(\S+)\s+(\S+):(\d+):(\d+)/);
+    if (resolved) {
+      out.push({
+        name: resolved[1],
+        file: resolved[2],
+        line: parseInt(resolved[3], 10),
+        isHtmlElement: false,
+      });
+      continue;
+    }
+    // Raw HTML element: `section@unknown:0:0` or just `section@`
+    const html = line.match(/^([a-z][\w-]*)@/);
+    if (html) {
+      out.push({ name: html[1], file: null, line: null, isHtmlElement: true });
+      continue;
+    }
+    // Raw minified: `oq@zero://...`
+    const min = line.match(/^([\w$]+)@(\S+):(\d+):(\d+)/);
+    if (min) {
+      out.push({
+        name: min[1],
+        file: min[2],
+        line: parseInt(min[3], 10),
+        isHtmlElement: false,
+      });
+      continue;
+    }
+    // Fallback — keep verbatim
+    out.push({ name: line, file: null, line: null, isHtmlElement: false });
+  }
+  return out;
+}
+
 // Map common React minified error codes → human hints.
 const REACT_HINTS: Record<string, string> = {
   "185":
