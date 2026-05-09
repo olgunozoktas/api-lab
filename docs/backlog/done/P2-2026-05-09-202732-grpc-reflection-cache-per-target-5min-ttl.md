@@ -29,20 +29,20 @@ The 5-min number is a UX call:
 
 ## Items
 
-- [ ] Add a `reflectionCache` slice to the Zustand store
+- [x] Add a `reflectionCache` slice to the Zustand store
       (`frontend/src/store/`). Shape:
       `Map<target, { fetchedAt: number, services: GrpcReflectService[] }>`.
-- [ ] Container reads cache before invoking `grpc.reflect.list`. Hit
+- [x] Container reads cache before invoking `grpc.reflect.list`. Hit
       = pass cached services to sidebar state (kind: "ready").
       Miss / stale = fetch + populate cache with `Date.now()`.
-- [ ] "Refresh" button explicitly invalidates the entry for the
+- [x] "Refresh" button explicitly invalidates the entry for the
       current target before re-fetching.
-- [ ] TTL constant: `REFLECTION_CACHE_TTL_MS = 5 * 60 * 1000`
+- [x] TTL constant: `REFLECTION_CACHE_TTL_MS = 5 * 60 * 1000`
       colocated with the cache slice. Easy to tune without code
       rewrite.
-- [ ] Tests: cache hit returns same `services[]`; stale entry
+- [x] Tests: cache hit returns same `services[]`; stale entry
       triggers re-fetch; Refresh invalidates the entry.
-- [ ] Hint surface: when serving from cache, show a tiny "(cached
+- [x] Hint surface: when serving from cache, show a tiny "(cached
       Xm ago)" badge next to the services-count header so the user
       knows whether they're seeing fresh or stale data.
 
@@ -74,3 +74,51 @@ in-memory for now.
    is the right entry point to thread cache reads through.
 3. The "(cached Xm ago)" badge is mechanical — extend
    `GrpcServicesSidebar`'s ready-state header.
+
+## Status — shipped 2026-05-10
+
+Shipped end-to-end on `feat/grpc-reflection-cache`. All 6 items
+checked.
+
+**What landed:**
+
+- New standalone `useReflectionCache` Zustand store at
+  `frontend/src/store/reflectionCache.ts` (kept separate from the
+  643-LOC `store/index.ts` to avoid further bloat). Map<target,
+  {fetchedAt, services}>; actions `getCached`, `setCached`,
+  `invalidate`. Not persisted — cache lives only in memory per the
+  Tradeoffs section.
+- Pure helpers in `frontend/src/lib/reflectionCache.ts`:
+  `REFLECTION_CACHE_TTL_MS = 5 * 60 * 1000`, `isStale`, and
+  `formatCachedAge` (buckets to seconds < 60 then minutes).
+- `GrpcPanelContainer.onReflectLoad` consults the cache before
+  invoking the bridge; hits set ready-state with `cachedAt:
+  entry.fetchedAt` so the badge renders. Misses fetch + populate.
+- New `onReflectRefresh` handler — invalidates + fetches; wired to
+  the ready-state Refresh button via a new `onRefresh` prop on
+  `GrpcServicesSidebar` (defaults to `onLoad` so the API stays
+  drop-in compatible).
+- Sidebar's `ready` variant gains optional `cachedAt?: number`. When
+  set, a tiny "(cached Xs/Xm ago)" badge appears next to the services
+  count via the new `CachedBadge` subcomponent (re-uses `useT()`).
+- New i18n keys: `grpc.reflect.cachedAgo.seconds` /
+  `grpc.reflect.cachedAgo.minutes` in both `tr.ts` and `en.ts`.
+- Tests: 11 new (5 store + 6 lib) → frontend total 256 → 267.
+
+**Acceptance hits:**
+
+- ✅ Browse `grpcb.in:9001` → fetch fires; subsequent click → 0ms
+  cache hit with badge.
+- ✅ Refresh button invalidates → fresh fanout → badge resets (cache
+  hit will re-appear on next implicit browse).
+- ✅ TTL boundary correctly considered stale (test pins
+  `Date.now()` to TTL exactly).
+- ✅ Cache slice not persisted — survives only the session, per
+  Tradeoffs.
+
+**Deferrals (none in scope):**
+
+The two Tradeoffs ideas (auto-invalidate on grpcurl "method not
+found" errors; IDB persistence) stay deferred per the original
+file. Step 8 ultrathink may queue them as P3 follow-ups if they
+earn their keep.

@@ -36,6 +36,7 @@ export type GrpcPanelProps = {
   onProtoFilesChange: (s: string) => void;
   onTlsChange: (patch: Partial<GrpcTls>) => void;
   onReflectLoad: () => void;
+  onReflectRefresh?: () => void;
   onReflectMethodPick: (pick: ServiceMethodPick) => void;
   onSend: () => void;
 };
@@ -154,6 +155,7 @@ export function GrpcPanel(p: GrpcPanelProps) {
               <GrpcServicesSidebar
                 state={p.reflectState}
                 onLoad={p.onReflectLoad}
+                onRefresh={p.onReflectRefresh}
                 onMethodPick={p.onReflectMethodPick}
               />
             </div>
