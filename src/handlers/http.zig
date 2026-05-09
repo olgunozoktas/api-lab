@@ -18,7 +18,7 @@ pub fn handler(ctx: *Context) bridge.Handler {
     };
 }
 
-const HttpRequest = struct {
+pub const HttpRequest = struct {
     method: []const u8 = "GET",
     url: []const u8,
     headers: []const Header = &.{},
@@ -50,37 +50,10 @@ fn runRequest(ctx: *Context, payload: []const u8, output: []u8) ![]const u8 {
     });
     const req = parsed.value;
 
-    var argv: std.ArrayList([]const u8) = .empty;
-    try argv.append(a, "curl");
-    try argv.append(a, "--silent");
-    try argv.append(a, "--show-error");
-    try argv.append(a, "--include"); // include response headers in stdout
-    try argv.append(a, "--no-buffer");
-    if (req.insecure) try argv.append(a, "--insecure");
-    try argv.append(a, "--max-time");
-    try argv.append(a, try std.fmt.allocPrint(a, "{d}", .{@max(req.timeout_ms / 1000, 1)}));
-    if (req.follow_redirects > 0) {
-        try argv.append(a, "--location");
-        try argv.append(a, "--max-redirs");
-        try argv.append(a, try std.fmt.allocPrint(a, "{d}", .{req.follow_redirects}));
-    }
-    try argv.append(a, "--write-out");
-    try argv.append(a, SEPARATOR ++ "%{json}");
-    try argv.append(a, "--request");
-    try argv.append(a, req.method);
-    for (req.headers) |h| {
-        try argv.append(a, "--header");
-        try argv.append(a, try std.fmt.allocPrint(a, "{s}: {s}", .{ h.name, h.value }));
-    }
-    if (req.body) |b| if (b.len > 0) {
-        try argv.append(a, "--data-binary");
-        try argv.append(a, b);
-    };
-    try argv.append(a, "--url");
-    try argv.append(a, req.url);
+    const argv = try buildArgv(a, req);
 
     const result = std.process.run(ctx.gpa, ctx.io, .{
-        .argv = argv.items,
+        .argv = argv,
         .stdout_limit = .limited(8 * 1024 * 1024),
         .stderr_limit = .limited(64 * 1024),
         .environ_map = ctx.env_map,
@@ -150,7 +123,42 @@ fn runRequest(ctx: *Context, payload: []const u8, output: []u8) ![]const u8 {
     return output[0..w.end];
 }
 
-fn findLastHeaderBoundary(data: []const u8) usize {
+/// Build the curl argv slice from a parsed HttpRequest.
+/// Pure: depends only on the input request and the allocator. No I/O.
+/// Extracted from runRequest so the argv shape is unit-testable.
+pub fn buildArgv(a: std.mem.Allocator, req: HttpRequest) ![]const []const u8 {
+    var argv: std.ArrayList([]const u8) = .empty;
+    try argv.append(a, "curl");
+    try argv.append(a, "--silent");
+    try argv.append(a, "--show-error");
+    try argv.append(a, "--include"); // include response headers in stdout
+    try argv.append(a, "--no-buffer");
+    if (req.insecure) try argv.append(a, "--insecure");
+    try argv.append(a, "--max-time");
+    try argv.append(a, try std.fmt.allocPrint(a, "{d}", .{@max(req.timeout_ms / 1000, 1)}));
+    if (req.follow_redirects > 0) {
+        try argv.append(a, "--location");
+        try argv.append(a, "--max-redirs");
+        try argv.append(a, try std.fmt.allocPrint(a, "{d}", .{req.follow_redirects}));
+    }
+    try argv.append(a, "--write-out");
+    try argv.append(a, SEPARATOR ++ "%{json}");
+    try argv.append(a, "--request");
+    try argv.append(a, req.method);
+    for (req.headers) |h| {
+        try argv.append(a, "--header");
+        try argv.append(a, try std.fmt.allocPrint(a, "{s}: {s}", .{ h.name, h.value }));
+    }
+    if (req.body) |b| if (b.len > 0) {
+        try argv.append(a, "--data-binary");
+        try argv.append(a, b);
+    };
+    try argv.append(a, "--url");
+    try argv.append(a, req.url);
+    return argv.items;
+}
+
+pub fn findLastHeaderBoundary(data: []const u8) usize {
     // Walk through, find each \r\n\r\n boundary. The header block ENDS at the
     // boundary AFTER which non-HTTP/* content begins (the actual body).
     // For curl --include --location, redirect chains produce multiple
@@ -172,7 +180,7 @@ fn findLastHeaderBoundary(data: []const u8) usize {
     return last_split;
 }
 
-fn writeHeadersJson(w: *std.Io.Writer, headers_block: []const u8) !void {
+pub fn writeHeadersJson(w: *std.Io.Writer, headers_block: []const u8) !void {
     // Take only LAST HTTP block
     var start: usize = 0;
     var search: usize = 0;
@@ -212,7 +220,7 @@ fn writeHeadersJson(w: *std.Io.Writer, headers_block: []const u8) !void {
     try w.writeAll("]");
 }
 
-fn writeJsonString(w: *std.Io.Writer, s: []const u8) !void {
+pub fn writeJsonString(w: *std.Io.Writer, s: []const u8) !void {
     try w.writeAll("\"");
     for (s) |c| {
         switch (c) {
@@ -228,16 +236,23 @@ fn writeJsonString(w: *std.Io.Writer, s: []const u8) !void {
     try w.writeAll("\"");
 }
 
-fn formatError(output: []u8, msg: []const u8) []const u8 {
+pub fn formatError(output: []u8, msg: []const u8) []const u8 {
     var w = std.Io.Writer.fixed(output);
     w.print("{{\"error\":\"{s}\"}}", .{msg}) catch {};
     return output[0..w.end];
 }
 
-fn formatTransportError(output: []u8, msg: []const u8, exit_code: i32, stderr: []const u8, elapsed_ms: u64) []const u8 {
+pub fn formatTransportError(output: []u8, msg: []const u8, exit_code: i32, stderr: []const u8, elapsed_ms: u64) []const u8 {
     var w = std.Io.Writer.fixed(output);
     w.print("{{\"error\":\"{s}\",\"exit_code\":{d},\"timing_ms\":{d},\"stderr\":", .{ msg, exit_code, elapsed_ms }) catch {};
     writeJsonString(&w, std.mem.trim(u8, stderr, " \t\r\n")) catch {};
     w.writeAll("}") catch {};
     return output[0..w.end];
+}
+
+// Tests live in `http_test.zig` to keep this file under the 400-line cap
+// (CLAUDE.md "Hard rules"). The reference below ensures `zig build test`
+// picks them up via this module's import graph.
+test {
+    _ = @import("http_test.zig");
 }
