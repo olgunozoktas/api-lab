@@ -85,6 +85,20 @@ Every component is a candidate library export. Reviews reject violations.
 
 This is non-negotiable. Reviews reject any file exceeding 400 lines. Legacy files at the time of this rule landing must be refactored before extension.
 
+## Secrets policy (HARD RULE — never violated)
+
+**Never commit secrets, credentials, or anything that grants access to a system.** This applies to every commit, every PR, every workflow file, every test fixture, every code comment, every doc page — no exceptions, in any project context.
+
+Concretely:
+
+- **Files that must stay out of git:** `.env`, `.env.local`, `.env.production`, `.env.*` of any kind, `secrets/`, `credentials*`, `service-account*.json`, `firebase-adminsdk*.json`, `gcp-credentials*`, `aws-credentials*`, `.aws/`, `.npmrc` (when it contains an auth token), `.netrc`, `.pypirc`, `*.pem`, `*.key`, `*.cert`, `*.crt`, `*.p12`, `*.pfx`, `id_rsa*`, `id_ed25519*`, `*.gpg`, `.ssh/`. The `.gitignore` already covers all of these — do **not** remove or weaken those lines, and add new patterns when introducing a new tool that emits credential files.
+- **Sample / template only.** `.env.example` and `.env.sample` are allowed (they're whitelisted in `.gitignore` via `!.env.example`/`!.env.sample`) and **must contain placeholder values only** — `API_KEY=your-key-here`, never a real key.
+- **No inline secrets in source.** No API key, OAuth client secret, JWT signing secret, database password, S3 access key, GitHub PAT, npm token, Slack webhook, Stripe key, OpenAI/Anthropic key, Firebase key, or any other access-granting string may appear in source code, tests, fixtures, comments, commit messages, PR descriptions, issue bodies, or doc files. If a test needs an API key, read it from an environment variable; if a fixture needs a token, mark the fixture body as `"REPLACE_ME_AT_RUNTIME"` and require the test runner to inject the real value.
+- **No secrets in CI workflows.** Use GitHub Actions secrets (`${{ secrets.NAME }}`) — never paste a value into the workflow file. Don't print secrets to logs. Don't pass secrets via `env:` in a way that exposes them in `set -x` output.
+- **If a secret leaks**, rotate it immediately — committing it, then editing it, is not enough; the value is in git history forever. Treat any leaked secret as compromised, rotate the key with the issuing provider, and force-push only after explicit user approval.
+- **Before every commit**, mentally scan staged files for: real-looking tokens (`sk-...`, `ghp_...`, `xoxb-...`, `AKIA...`), `.env` files, anything matching the gitignored patterns above. If anything looks credential-shaped, abort the commit and show the user.
+- **Public surface awareness.** This repo is published at https://github.com/olgunozoktas/api-lab; anything pushed is world-readable instantly and indexed by GitHub's secret-scanning bots within minutes. Treat every push as a publication event.
+
 ## Hard gotchas (read before editing)
 
 **Zig 0.16 std API has been heavily refactored:**
