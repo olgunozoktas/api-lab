@@ -1,0 +1,96 @@
+#!/usr/bin/env bash
+# Pre-commit hook for api-lab.
+#
+# Two checks, both fast:
+#   1. `zig fmt --check` on every staged .zig file
+#   2. `prettier --check` on every staged frontend/src/**/*.{ts,tsx,css,json,md}
+#      via dnpm (Docker isolation, per frontend/CLAUDE.md)
+#
+# Skip with: `git commit --no-verify`. Don't make a habit of it — CI runs
+# the same checks and will reject the push if formatting drifts.
+# `set -u` is intentionally omitted — bash 3.2 (default on macOS) treats
+# `${EMPTY_ARRAY[@]}` as an unbound-variable error, which makes hand-
+# rolling array growth painful. Stick to `-e` + `-o pipefail`.
+set -eo pipefail
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+cd "$REPO_ROOT"
+
+# ---------------------------------------------------------------------------
+# Collect staged files (added / copied / modified — not deleted, renamed, etc).
+# `--cached` reads the index, `--diff-filter=ACM` excludes deletes/renames.
+# Use `\n`-delimited (not `-z`) for portability with `read` in macOS bash 3.
+# This means paths with embedded newlines aren't supported — vanishingly rare.
+# ---------------------------------------------------------------------------
+ZIG_FILES=()
+PRETTIER_FILES=()
+while IFS= read -r f; do
+  [ -n "$f" ] || continue
+  case "$f" in
+    *.zig)
+      ZIG_FILES=("${ZIG_FILES[@]}" "$f")
+      ;;
+    frontend/src/components/ui/*)
+      # shadcn primitives — covered by .prettierignore. Skip.
+      ;;
+    frontend/src/*.ts|frontend/src/*.tsx|frontend/src/*.css|frontend/src/*.json|frontend/src/*.md|frontend/src/**)
+      case "$f" in
+        *.ts|*.tsx|*.css|*.json|*.md)
+          PRETTIER_FILES=("${PRETTIER_FILES[@]}" "$f")
+          ;;
+      esac
+      ;;
+  esac
+done < <(git diff --cached --name-only --diff-filter=ACM)
+
+FAIL=0
+
+# ---------------------------------------------------------------------------
+# 1. zig fmt --check
+# ---------------------------------------------------------------------------
+if [ "${#ZIG_FILES[@]}" -gt 0 ]; then
+  if ! command -v zig >/dev/null 2>&1; then
+    echo "::warning:: zig not on PATH — skipping fmt check on staged .zig files"
+  else
+    echo "[pre-commit] zig fmt --check on ${#ZIG_FILES[@]} file(s)..."
+    if ! zig fmt --check "${ZIG_FILES[@]}"; then
+      echo
+      echo "::error:: zig fmt would change one or more files."
+      echo "Run: zig fmt ${ZIG_FILES[*]}"
+      FAIL=1
+    fi
+  fi
+fi
+
+# ---------------------------------------------------------------------------
+# 2. prettier --check (via dnpm — see frontend/CLAUDE.md)
+# ---------------------------------------------------------------------------
+if [ "${#PRETTIER_FILES[@]}" -gt 0 ]; then
+  if ! command -v dnpm >/dev/null 2>&1; then
+    echo "::warning:: dnpm not on PATH — skipping prettier check"
+    echo "::warning:: Install dnpm or run: cd frontend && npx prettier --check '${PRETTIER_FILES[*]}'"
+  else
+    echo "[pre-commit] prettier --check on ${#PRETTIER_FILES[@]} file(s) via dnpm..."
+    # Strip the "frontend/" prefix because we're cd-ing into frontend/ before
+    # the dnpm call. prettier resolves paths relative to its cwd.
+    REL_PATHS=()
+    for f in "${PRETTIER_FILES[@]}"; do
+      REL_PATHS+=("${f#frontend/}")
+    done
+    (
+      cd frontend
+      if ! dnpm isolated npx prettier --check "${REL_PATHS[@]}"; then
+        echo
+        echo "::error:: prettier would reformat one or more files."
+        echo "Run: cd frontend && dnpm run format"
+        exit 1
+      fi
+    ) || FAIL=1
+  fi
+fi
+
+if [ "$FAIL" -ne 0 ]; then
+  exit 1
+fi
+
+exit 0

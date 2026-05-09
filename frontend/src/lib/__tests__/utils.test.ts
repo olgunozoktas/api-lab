@@ -1,11 +1,5 @@
 import { describe, it, expect } from "vitest";
-import {
-  envSubst,
-  statusText,
-  humanSize,
-  isProbablyJson,
-  methodClass,
-} from "../utils";
+import { envSubst, statusText, humanSize, isProbablyJson, methodClass } from "../utils";
 
 describe("envSubst", () => {
   it("substitutes a single placeholder", () => {
@@ -13,9 +7,7 @@ describe("envSubst", () => {
   });
 
   it("substitutes multiple placeholders in one string", () => {
-    expect(envSubst("{{greet}}, {{name}}!", { greet: "Hi", name: "Bob" })).toBe(
-      "Hi, Bob!"
-    );
+    expect(envSubst("{{greet}}, {{name}}!", { greet: "Hi", name: "Bob" })).toBe("Hi, Bob!");
   });
 
   it("leaves unknown placeholders untouched", () => {
@@ -27,9 +19,7 @@ describe("envSubst", () => {
   });
 
   it("supports keys with dots and dashes", () => {
-    expect(envSubst("{{api.base-url}}", { "api.base-url": "https://x" })).toBe(
-      "https://x"
-    );
+    expect(envSubst("{{api.base-url}}", { "api.base-url": "https://x" })).toBe("https://x");
   });
 
   it("returns empty string for null / undefined input", () => {
