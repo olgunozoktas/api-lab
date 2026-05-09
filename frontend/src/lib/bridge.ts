@@ -72,7 +72,13 @@ export type GrpcResponse = {
   status: string; // "OK" / "NotFound" / "Unavailable" / ... — RFC names
   status_code_num: number; // 0..16, or -1 for unknown
   status_message: string; // populated when status != OK
-  message: string; // response payload as JSON string (or empty on error)
+  // Response messages, each a JSON-string-encoded body. Always present;
+  // length is 1 for unary calls, N for server-streaming. Empty on
+  // transport error. Replaces the legacy single-message `message` field
+  // — server-streaming would have crammed multiple objects into the
+  // same string and lost the boundaries.
+  messages: string[];
+  message_count: number; // length of messages, surfaced for cheap UI checks
   headers: GrpcMetadataEntry[];
   trailers: GrpcMetadataEntry[];
   exit_code: number;

@@ -30,6 +30,9 @@ const std = @import("std");
 const zero_native = @import("zero-native");
 const bridge = zero_native.bridge;
 const http = @import("http.zig");
+const grpc_messages = @import("grpc_messages.zig");
+pub const MessageIter = grpc_messages.MessageIter;
+pub const parseMessages = grpc_messages.parseMessages;
 
 pub const Context = struct {
     gpa: std.mem.Allocator,
@@ -105,14 +108,34 @@ fn runRequest(ctx: *Context, payload: []const u8, output: []u8) ![]const u8 {
     // status so the frontend can render something sensible either way.
     const exit_code: i32 = if (result.term == .exited) @intCast(result.term.exited) else -1;
 
+    // Split stdout into a list of JSON messages. Unary calls produce one
+    // message; server-streaming calls produce N. grpcurl pretty-prints
+    // each message across multiple lines, so we brace-balance instead of
+    // splitting on newlines.
+    const messages = parseMessages(result.stdout);
+    var msg_buf: [128][]const u8 = undefined;
+    var msg_count: usize = 0;
+    {
+        var iter = messages;
+        while (iter.next()) |m| : (msg_count += 1) {
+            if (msg_count >= msg_buf.len) break;
+            msg_buf[msg_count] = m;
+        }
+    }
+
     var w = std.Io.Writer.fixed(output);
     try w.writeAll("{\"status\":");
     try http.writeJsonString(&w, parsed_stderr.status);
     try w.print(",\"status_code_num\":{d}", .{parsed_stderr.status_code_num});
     try w.writeAll(",\"status_message\":");
     try http.writeJsonString(&w, parsed_stderr.status_message);
-    try w.writeAll(",\"message\":");
-    try http.writeJsonString(&w, std.mem.trim(u8, result.stdout, " \t\r\n"));
+    try w.writeAll(",\"messages\":[");
+    for (msg_buf[0..msg_count], 0..) |m, i| {
+        if (i > 0) try w.writeAll(",");
+        try http.writeJsonString(&w, m);
+    }
+    try w.writeAll("]");
+    try w.print(",\"message_count\":{d}", .{msg_count});
     try w.writeAll(",\"headers\":");
     try writeKvJson(&w, parsed_stderr.headers);
     try w.writeAll(",\"trailers\":");
@@ -123,6 +146,9 @@ fn runRequest(ctx: *Context, payload: []const u8, output: []u8) ![]const u8 {
     try w.writeAll("}");
     return output[0..w.end];
 }
+
+// MessageIter + parseMessages live in grpc_messages.zig — re-exported
+// at the top of this file. Split out to honor the 400-LOC cap.
 
 /// Build the grpcurl argv slice from a parsed GrpcRequest. Pure: depends
 /// only on the input request and the allocator. No I/O. Extracted so the

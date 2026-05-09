@@ -237,6 +237,7 @@ export const en: Dict = {
   "grpc.empty.idle": "No call yet — enter the full method above and press Invoke.",
   "grpc.empty.running": "Call in flight...",
   "grpc.empty.message": "(empty response)",
+  "grpc.streaming.received": "{count} messages received",
   "grpc.kv.empty": "(none)",
   "grpc.missing.title": "grpcurl not found",
   "grpc.missing.hint":

@@ -132,27 +132,40 @@ export function GrpcResponseSection({ response, status, tab }: ResponseSectionPr
     );
   }
 
-  // Message tab
+  // Message tab — handles both unary (1 message) and server-streaming
+  // (N messages). The bridge always returns an array; we render a tree
+  // per message with an index header when N > 1.
+  const messages = response.messages ?? [];
   return (
-    <TabsContent value={tab} className="p-3">
+    <TabsContent value={tab} className="p-3 space-y-3">
       {response.error && response.error !== "grpcurl_missing" ? (
         <div className="text-xs text-[var(--color-danger)] font-mono whitespace-pre-wrap">
           {response.error}
           {response.stderr ? `\n\n${response.stderr}` : ""}
         </div>
-      ) : response.message.length === 0 ? (
+      ) : messages.length === 0 ? (
         <div className="text-xs text-[var(--color-fg-muted)] italic">{t("grpc.empty.message")}</div>
       ) : (
-        <MessageTree raw={response.message} />
+        <>
+          {messages.length > 1 && (
+            <div className="text-[10px] uppercase tracking-wider text-[var(--color-fg-muted)] font-semibold">
+              {t("grpc.streaming.received", { count: String(messages.length) })}
+            </div>
+          )}
+          {messages.map((raw, i) => (
+            <MessageTree key={i} raw={raw} index={messages.length > 1 ? i + 1 : null} />
+          ))}
+        </>
       )}
     </TabsContent>
   );
 }
 
-function MessageTree({ raw }: { raw: string }) {
+function MessageTree({ raw, index }: { raw: string; index: number | null }) {
+  let body: React.ReactNode;
   try {
     const parsed = JSON.parse(raw);
-    return (
+    body = (
       <div className="select-text">
         <JsonView
           value={parsed}
@@ -164,10 +177,17 @@ function MessageTree({ raw }: { raw: string }) {
       </div>
     );
   } catch {
-    return (
+    body = (
       <pre className="m-0 font-mono text-xs whitespace-pre-wrap break-words leading-6 select-text">
         {raw}
       </pre>
     );
   }
+  if (index === null) return body;
+  return (
+    <div className="border-l-2 border-[var(--color-border)] pl-3">
+      <div className="text-[10px] font-mono text-[var(--color-fg-muted)] mb-1.5">#{index}</div>
+      {body}
+    </div>
+  );
 }

@@ -238,6 +238,7 @@ export const tr = {
   "grpc.empty.idle": "Çağrılmadı — yukarıdan tam metod adını gir ve Çağır'a bas.",
   "grpc.empty.running": "Çağrı devam ediyor...",
   "grpc.empty.message": "(boş yanıt)",
+  "grpc.streaming.received": "{count} mesaj alındı",
   "grpc.kv.empty": "(yok)",
   "grpc.missing.title": "grpcurl bulunamadı",
   "grpc.missing.hint":
