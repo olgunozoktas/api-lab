@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { useStore } from "../store";
 import { methodClass } from "../lib/utils";
 import { useT } from "../lib/i18n/useT";
+import { useConfirm } from "../lib/dialogs";
 import { cn } from "../lib/cn";
 import { ChevronRight, Folder, FolderOpen } from "lucide-react";
 import type { CollectionItem } from "../lib/types";
@@ -133,6 +134,7 @@ function FolderRow({
   childCount: number;
 }) {
   const t = useT();
+  const confirm = useConfirm();
   const toggleFolder = useStore((s) => s.toggleFolder);
   const deleteCollectionItem = useStore((s) => s.deleteCollectionItem);
   const renameCollectionItem = useStore((s) => s.renameCollectionItem);
@@ -213,10 +215,15 @@ function FolderRow({
       <span className="text-[10px] text-[var(--color-fg-muted)]">{childCount}</span>
       <button
         aria-label={t("kv.delete")}
-        onClick={(e) => {
+        onClick={async (e) => {
           e.stopPropagation();
-          if (confirm(t("collections.confirmDeleteFolder", { name: item.name })))
-            deleteCollectionItem(item.id);
+          const ok = await confirm({
+            title: t("collections.confirmDeleteFolder", { name: item.name }),
+            confirmLabel: t("kv.delete"),
+            cancelLabel: t("dialog.cancel"),
+            danger: true,
+          });
+          if (ok) deleteCollectionItem(item.id);
         }}
         className="opacity-0 group-hover:opacity-100 px-1 text-[var(--color-fg-muted)] hover:bg-[var(--color-danger)] hover:text-white rounded"
       >
@@ -228,6 +235,7 @@ function FolderRow({
 
 function RequestRow({ item, depth }: { item: CollectionItem; depth: number }) {
   const t = useT();
+  const confirm = useConfirm();
   const currentId = useStore((s) => s.current.id);
   const loadCollection = useStore((s) => s.loadCollection);
   const deleteCollectionItem = useStore((s) => s.deleteCollectionItem);
@@ -284,9 +292,15 @@ function RequestRow({ item, depth }: { item: CollectionItem; depth: number }) {
       )}
       <button
         aria-label={t("kv.delete")}
-        onClick={(e) => {
+        onClick={async (e) => {
           e.stopPropagation();
-          if (confirm(t("kv.confirmDelete"))) deleteCollectionItem(item.id);
+          const ok = await confirm({
+            title: t("kv.confirmDelete"),
+            confirmLabel: t("kv.delete"),
+            cancelLabel: t("dialog.cancel"),
+            danger: true,
+          });
+          if (ok) deleteCollectionItem(item.id);
         }}
         className="opacity-0 group-hover:opacity-100 px-1 text-[var(--color-fg-muted)] hover:bg-[var(--color-danger)] hover:text-white rounded"
       >

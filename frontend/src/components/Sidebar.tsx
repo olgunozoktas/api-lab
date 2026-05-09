@@ -2,6 +2,7 @@ import { useStore } from "../store";
 import { CollectionList } from "./CollectionList";
 import { HistoryList } from "./HistoryList";
 import { useT } from "../lib/i18n/useT";
+import { useConfirm } from "../lib/dialogs";
 import { Tabs, TabsList, TabsTrigger } from "./ui/tabs";
 import { Button } from "./ui/button";
 
@@ -78,13 +79,20 @@ function SectionHeader({
 
 function ClearHistoryButton() {
   const clearHistory = useStore((s) => s.clearHistory);
+  const confirm = useConfirm();
   const t = useT();
   return (
     <Button
       variant="ghost"
       size="sm"
-      onClick={() => {
-        if (confirm(t("sidebar.confirmClearHistory"))) clearHistory();
+      onClick={async () => {
+        const ok = await confirm({
+          title: t("sidebar.confirmClearHistory"),
+          confirmLabel: t("sidebar.clearHistory"),
+          cancelLabel: t("dialog.cancel"),
+          danger: true,
+        });
+        if (ok) clearHistory();
       }}
       className="text-[11px] h-auto py-0.5 px-1.5"
     >
