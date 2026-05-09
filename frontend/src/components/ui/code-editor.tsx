@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef } from "react";
-import { EditorState, Compartment } from "@codemirror/state";
+import { EditorState, Compartment, type Extension } from "@codemirror/state";
 import { EditorView, keymap, placeholder as placeholderExt, lineNumbers } from "@codemirror/view";
 import { defaultKeymap, history, historyKeymap, indentWithTab } from "@codemirror/commands";
 import {
@@ -12,7 +12,7 @@ import { closeBrackets, closeBracketsKeymap, autocompletion, completionKeymap } 
 import { searchKeymap, highlightSelectionMatches } from "@codemirror/search";
 import { cn } from "../../lib/cn";
 
-export type CodeLanguage = "json" | "graphql";
+export type CodeLanguage = "json" | "graphql" | "text";
 
 export type CodeEditorProps = {
   value: string;
@@ -54,8 +54,10 @@ const editorTheme = EditorView.theme(
   { dark: false },
 );
 
-function getLangExtension(lang: CodeLanguage) {
-  return lang === "graphql" ? graphql() : json();
+function getLangExtension(lang: CodeLanguage): Extension {
+  if (lang === "graphql") return graphql();
+  if (lang === "text") return [];
+  return json();
 }
 
 export function CodeEditor({

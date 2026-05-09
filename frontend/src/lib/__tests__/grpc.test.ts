@@ -1,5 +1,11 @@
 import { describe, it, expect } from "vitest";
-import { isGrpcUrl, derivePlaintext, extractTarget, isLikelyFullMethod } from "../grpc";
+import {
+  isGrpcUrl,
+  derivePlaintext,
+  extractTarget,
+  isLikelyFullMethod,
+  buildTlsPayload,
+} from "../grpc";
 
 describe("isGrpcUrl", () => {
   it("accepts grpc:// and grpcs:// (case-insensitive)", () => {
@@ -75,5 +81,66 @@ describe("isLikelyFullMethod", () => {
   it("rejects empty / whitespace", () => {
     expect(isLikelyFullMethod("")).toBe(false);
     expect(isLikelyFullMethod("   ")).toBe(false);
+  });
+});
+
+describe("buildTlsPayload", () => {
+  const noop = (s: string) => s;
+
+  it("returns all undefined for an empty/undefined tls input", () => {
+    expect(buildTlsPayload(undefined, noop)).toEqual({
+      ca_cert: undefined,
+      client_cert: undefined,
+      client_key: undefined,
+      server_name: undefined,
+      authority: undefined,
+    });
+    expect(buildTlsPayload({}, noop)).toEqual({
+      ca_cert: undefined,
+      client_cert: undefined,
+      client_key: undefined,
+      server_name: undefined,
+      authority: undefined,
+    });
+  });
+
+  it("maps camelCase UI shape to snake_case bridge fields", () => {
+    const out = buildTlsPayload(
+      {
+        caCert: "CA-PEM",
+        clientCert: "CLIENT-PEM",
+        clientKey: "CLIENT-KEY",
+        serverName: "host.internal",
+        authority: "actual-backend",
+      },
+      noop
+    );
+    expect(out).toEqual({
+      ca_cert: "CA-PEM",
+      client_cert: "CLIENT-PEM",
+      client_key: "CLIENT-KEY",
+      server_name: "host.internal",
+      authority: "actual-backend",
+    });
+  });
+
+  it("strips empty-string fields (treated same as undefined)", () => {
+    const out = buildTlsPayload({ caCert: "X", clientCert: "", clientKey: "" }, noop);
+    expect(out.ca_cert).toBe("X");
+    expect(out.client_cert).toBeUndefined();
+    expect(out.client_key).toBeUndefined();
+  });
+
+  it("applies the substitution function to every set field", () => {
+    const subst = (s: string) => s.replace("{{X}}", "expanded");
+    const out = buildTlsPayload(
+      {
+        caCert: "before-{{X}}-after",
+        serverName: "{{X}}.example.com",
+      },
+      subst
+    );
+    expect(out.ca_cert).toBe("before-expanded-after");
+    expect(out.server_name).toBe("expanded.example.com");
   });
 });

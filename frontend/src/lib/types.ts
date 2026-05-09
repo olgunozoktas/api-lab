@@ -41,6 +41,21 @@ export type Gql = { query: string; vars: string };
 // `plaintext` is optional: when undefined, GrpcPanel auto-derives from the
 // URL scheme (grpc:// → true, grpcs:// → false). Setting it explicitly
 // overrides — useful when the user pastes a bare host:port and wants TLS.
+//
+// `tls` carries optional TLS overrides for grpcs:// targets:
+// custom CA bundle, client cert/key (mTLS), TLS server name override, and
+// HTTP/2 :authority pseudo-header override. PEM contents are pasted into
+// the UI (not file paths) since WKWebView's file picker is constrained.
+// Stored in IDB alongside the rest of GrpcState — the UI surfaces a
+// security caveat for client keys.
+export type GrpcTls = {
+  caCert?: string; // PEM; passed to grpcurl -cacert
+  clientCert?: string; // PEM; passed to grpcurl -cert
+  clientKey?: string; // PEM; passed to grpcurl -key
+  serverName?: string; // grpcurl -servername (TLS SNI override)
+  authority?: string; // grpcurl -authority (HTTP/2 :authority override)
+};
+
 export type GrpcState = {
   fullMethod: string; // "package.Service/Method"
   message: string;
@@ -49,6 +64,7 @@ export type GrpcState = {
   importPaths: string[];
   protoFiles: string[];
   plaintext?: boolean;
+  tls?: GrpcTls;
 };
 
 export const emptyGrpcState = (): GrpcState => ({

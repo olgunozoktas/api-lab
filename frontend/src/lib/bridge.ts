@@ -66,6 +66,15 @@ export type GrpcRequest = {
   import_paths?: string[];
   proto_files?: string[];
   timeout_ms?: number;
+  // PEM contents (NOT paths). The Zig handler writes each one to a
+  // per-request tmp file before invoking grpcurl, then deletes the
+  // tmp dir on exit (success or error). Empty / undefined skips that
+  // flag entirely.
+  ca_cert?: string;
+  client_cert?: string;
+  client_key?: string;
+  server_name?: string;
+  authority?: string;
 };
 
 export type GrpcResponse = {

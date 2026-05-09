@@ -22,7 +22,7 @@ test "buildArgv: minimal request includes core flags + target + method" {
         .target = "grpcb.in:9001",
         .full_method = "hello.HelloService/SayHello",
     };
-    const argv = try grpc.buildArgv(a, req);
+    const argv = try grpc.buildArgv(a, req, .{});
 
     try testing.expectEqualStrings("grpcurl", argv[0]);
     try testing.expectEqualStrings("-format", argv[1]);
@@ -46,7 +46,7 @@ test "buildArgv: plaintext=true includes -plaintext" {
         .full_method = "p.S/M",
         .plaintext = true,
     };
-    const argv = try grpc.buildArgv(a, req);
+    const argv = try grpc.buildArgv(a, req, .{});
 
     var saw_plaintext = false;
     for (argv) |arg| if (std.mem.eql(u8, arg, "-plaintext")) {
@@ -65,7 +65,7 @@ test "buildArgv: plaintext=false omits -plaintext" {
         .full_method = "p.S/M",
         .plaintext = false,
     };
-    const argv = try grpc.buildArgv(a, req);
+    const argv = try grpc.buildArgv(a, req, .{});
 
     for (argv) |arg| try testing.expect(!std.mem.eql(u8, arg, "-plaintext"));
 }
@@ -84,7 +84,7 @@ test "buildArgv: metadata serialized as -rpc-header 'Name: Value'" {
         .full_method = "p.S/M",
         .metadata = &md,
     };
-    const argv = try grpc.buildArgv(a, req);
+    const argv = try grpc.buildArgv(a, req, .{});
 
     var auth_idx: ?usize = null;
     var rid_idx: ?usize = null;
@@ -104,7 +104,7 @@ test "buildArgv: empty metadata array emits no -rpc-header flags" {
     const a = arena.allocator();
 
     const req = grpc.GrpcRequest{ .target = "x", .full_method = "p.S/M" };
-    const argv = try grpc.buildArgv(a, req);
+    const argv = try grpc.buildArgv(a, req, .{});
     for (argv) |arg| try testing.expect(!std.mem.eql(u8, arg, "-rpc-header"));
 }
 
@@ -122,7 +122,7 @@ test "buildArgv: useReflection=false adds -import-path + -proto for each entry" 
         .import_paths = &ips,
         .proto_files = &protos,
     };
-    const argv = try grpc.buildArgv(a, req);
+    const argv = try grpc.buildArgv(a, req, .{});
 
     var ip_count: usize = 0;
     var proto_count: usize = 0;
@@ -146,7 +146,7 @@ test "buildArgv: useReflection=true (default) omits -import-path and -proto even
         .use_reflection = true,
         .import_paths = &ips,
     };
-    const argv = try grpc.buildArgv(a, req);
+    const argv = try grpc.buildArgv(a, req, .{});
 
     for (argv) |arg| {
         try testing.expect(!std.mem.eql(u8, arg, "-import-path"));
@@ -160,7 +160,7 @@ test "buildArgv: empty message becomes -d {}" {
     const a = arena.allocator();
 
     const req = grpc.GrpcRequest{ .target = "x", .full_method = "p.S/M", .message = "" };
-    const argv = try grpc.buildArgv(a, req);
+    const argv = try grpc.buildArgv(a, req, .{});
 
     // -d must precede the empty-message sentinel "{}"
     var saw = false;
@@ -182,7 +182,7 @@ test "buildArgv: non-empty message passed verbatim after -d" {
         .full_method = "p.S/M",
         .message = "{\"greeting\":\"world\"}",
     };
-    const argv = try grpc.buildArgv(a, req);
+    const argv = try grpc.buildArgv(a, req, .{});
 
     var saw = false;
     for (argv, 0..) |arg, i| {
@@ -203,7 +203,7 @@ test "buildArgv: timeout_ms=30000 yields -max-time 30" {
         .full_method = "p.S/M",
         .timeout_ms = 30000,
     };
-    const argv = try grpc.buildArgv(a, req);
+    const argv = try grpc.buildArgv(a, req, .{});
 
     for (argv, 0..) |arg, i| {
         if (std.mem.eql(u8, arg, "-max-time") and i + 1 < argv.len) {
@@ -224,7 +224,7 @@ test "buildArgv: sub-second timeout still emits at least 1 second" {
         .full_method = "p.S/M",
         .timeout_ms = 500,
     };
-    const argv = try grpc.buildArgv(a, req);
+    const argv = try grpc.buildArgv(a, req, .{});
 
     for (argv, 0..) |arg, i| {
         if (std.mem.eql(u8, arg, "-max-time") and i + 1 < argv.len) {

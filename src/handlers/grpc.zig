@@ -31,8 +31,10 @@ const zero_native = @import("zero-native");
 const bridge = zero_native.bridge;
 const http = @import("http.zig");
 const grpc_messages = @import("grpc_messages.zig");
+const grpc_tls = @import("grpc_tls.zig");
 pub const MessageIter = grpc_messages.MessageIter;
 pub const parseMessages = grpc_messages.parseMessages;
+pub const TlsPaths = grpc_tls.TlsPaths;
 
 pub const Context = struct {
     gpa: std.mem.Allocator,
@@ -63,6 +65,17 @@ pub const GrpcRequest = struct {
     import_paths: []const []const u8 = &.{},
     proto_files: []const []const u8 = &.{},
     timeout_ms: u32 = 60000,
+    // TLS overrides for grpcs:// targets. Cert fields are PEM contents,
+    // not paths — the UI surface uses CodeEditor pastes since WKWebView's
+    // file picker is constrained. runRequest writes each non-empty PEM
+    // to a per-request tmp dir (deleted on exit) before invoking grpcurl
+    // with -cacert / -cert / -key flags. server_name + authority go on
+    // argv directly (no tmpfile needed).
+    ca_cert: []const u8 = "",
+    client_cert: []const u8 = "",
+    client_key: []const u8 = "",
+    server_name: []const u8 = "",
+    authority: []const u8 = "",
 };
 
 fn invoke(context: *anyopaque, invocation: bridge.Invocation, output: []u8) anyerror![]const u8 {
@@ -85,7 +98,13 @@ fn runRequest(ctx: *Context, payload: []const u8, output: []u8) ![]const u8 {
     if (req.target.len == 0) return http.formatError(output, "target is empty");
     if (req.full_method.len == 0) return http.formatError(output, "full_method is empty");
 
-    const argv = try buildArgv(a, req);
+    // Write any provided cert PEMs to a per-request tmp dir; the deferred
+    // cleanup fires on every exit path (success, error, panic) so we
+    // never leak PEM-containing dirs into /tmp on long-running sessions.
+    const tls_prep = try grpc_tls.prepareTlsTmpfiles(a, ctx.io, req.ca_cert, req.client_cert, req.client_key);
+    defer grpc_tls.cleanupTlsTmpfiles(ctx.io, tls_prep.tmpdir_path);
+
+    const argv = try buildArgv(a, req, tls_prep.paths);
 
     const result = std.process.run(ctx.gpa, ctx.io, .{
         .argv = argv,
@@ -151,9 +170,11 @@ fn runRequest(ctx: *Context, payload: []const u8, output: []u8) ![]const u8 {
 // at the top of this file. Split out to honor the 400-LOC cap.
 
 /// Build the grpcurl argv slice from a parsed GrpcRequest. Pure: depends
-/// only on the input request and the allocator. No I/O. Extracted so the
-/// argv shape is unit-testable without spinning up a subprocess.
-pub fn buildArgv(a: std.mem.Allocator, req: GrpcRequest) ![]const []const u8 {
+/// only on the inputs and the allocator. No I/O. Extracted so the argv
+/// shape is unit-testable without spinning up a subprocess. `tls` carries
+/// pre-written tmp-file paths (from `grpc_tls.prepareTlsTmpfiles`); pass
+/// `.{}` when none of `-cacert` / `-cert` / `-key` are needed.
+pub fn buildArgv(a: std.mem.Allocator, req: GrpcRequest, tls: TlsPaths) ![]const []const u8 {
     var argv: std.ArrayList([]const u8) = .empty;
     try argv.append(a, "grpcurl");
     try argv.append(a, "-format");
@@ -161,6 +182,26 @@ pub fn buildArgv(a: std.mem.Allocator, req: GrpcRequest) ![]const []const u8 {
     try argv.append(a, "-format-error");
     try argv.append(a, "-vv");
     if (req.plaintext) try argv.append(a, "-plaintext");
+    if (tls.ca_cert_path.len > 0) {
+        try argv.append(a, "-cacert");
+        try argv.append(a, tls.ca_cert_path);
+    }
+    if (tls.client_cert_path.len > 0) {
+        try argv.append(a, "-cert");
+        try argv.append(a, tls.client_cert_path);
+    }
+    if (tls.client_key_path.len > 0) {
+        try argv.append(a, "-key");
+        try argv.append(a, tls.client_key_path);
+    }
+    if (req.server_name.len > 0) {
+        try argv.append(a, "-servername");
+        try argv.append(a, req.server_name);
+    }
+    if (req.authority.len > 0) {
+        try argv.append(a, "-authority");
+        try argv.append(a, req.authority);
+    }
     try argv.append(a, "-max-time");
     try argv.append(a, try std.fmt.allocPrint(a, "{d}", .{@max(req.timeout_ms / 1000, 1)}));
     for (req.metadata) |m| {
@@ -345,9 +386,10 @@ pub fn formatMissingBinaryError(output: []u8) []const u8 {
     return output[0..body.len];
 }
 
-// Tests live in `grpc_test.zig` to keep this file under the 400-line cap
-// (CLAUDE.md "Hard rules"). The reference below ensures `zig build test`
-// picks them up via this module's import graph.
+// Tests live in `grpc_test.zig` + `grpc_tls_test.zig` to keep this file
+// under the 400-line cap (CLAUDE.md "Hard rules"). The references below
+// ensure `zig build test` picks them up via this module's import graph.
 test {
     _ = @import("grpc_test.zig");
+    _ = grpc_tls;
 }
