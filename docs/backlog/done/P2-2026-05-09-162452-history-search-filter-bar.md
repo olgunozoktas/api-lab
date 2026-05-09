@@ -1,6 +1,33 @@
 # History search bar — mirror of the Collections search
 
 Priority: P2
+Status: SHIPPED — 2026-05-09
+
+## Status
+
+History tab now has the same SearchInput as Collections — extracted
+into `frontend/src/components/ui/search-input.tsx` so both tabs render
+the identical UX. Per-tab query state in `Sidebar.tsx`: switching
+between Collections and History preserves each tab's filter (felt
+nicer than wiping when toggling back and forth).
+
+The smart-prefix detection from the v2 bullets in this file shipped
+with v1: `frontend/src/lib/historyFilter.ts` parses the query into
+structured filters before matching. Patterns recognized:
+
+- HTTP verb prefix → method exact match (case-insensitive on user
+  input, canonical UPPER on item — `post users` matches POST requests
+  with "users" in URL).
+- 3-digit number 100-599 → status code exact match.
+- Remainder → URL substring (case-insensitive).
+
+Combined: `GET 401 login` matches GET requests with status 401 whose
+URL contains "login". AND-semantics across all set filters.
+
+Edge cases handled: out-of-range "999" / leading-zero "099" stay
+in URL substring (not parsed as status). Second verb stays in URL
+substring (only the first verb counts as method). Tests: 18 vitest
+specs covering the parser + matcher + filterHistory wrapper.
 
 ## Context
 

@@ -1,6 +1,63 @@
 # Phase J.2 — gRPC streaming (server / client / bidi)
 
 Priority: P1
+Status: SHIPPED (server-streaming) — 2026-05-09
+
+## Status
+
+Server-streaming works end-to-end via a batched-collect approach
+(grpcurl runs to completion, the handler emits all messages as an
+array, the UI renders them as a numbered log). No streaming bridge
+mechanism / polling — the existing single-shot `grpc.invoke` command
+just returns N messages instead of one.
+
+What landed:
+
+- `src/handlers/grpc_messages.zig` — new file with `MessageIter`,
+  a brace-balanced JSON splitter that walks grpcurl's stdout and
+  emits each top-level object/array as a separate slice. String-
+  aware (`{` inside a JSON string doesn't open a level), tolerant
+  of pretty-printed multi-line objects, defensive on truncated
+  output.
+- `src/handlers/grpc.zig` — `runRequest` now uses the iterator and
+  emits `messages: [...]` array + `message_count: N` in the JSON
+  response. The legacy `message` field is dropped (it would have
+  concatenated stream messages into one opaque blob — wrong).
+- `frontend/src/lib/bridge.ts` — `GrpcResponse.messages: string[]`
+  + `message_count: number`. Each entry is a JSON-string-encoded
+  message body.
+- `frontend/src/components/GrpcResponseSection.tsx` — Message tab
+  renders one tree for unary (1 message) or a numbered list for
+  streaming (N messages, `#1` / `#2` headers + a left accent border
+  per item). Smooth visual transition between the two.
+- `frontend/src/components/GrpcPanel.tsx` — synthetic error response
+  in the catch block uses the new shape (`messages: []`).
+- 12 new Zig tests for `parseMessages` (unary / server-streaming /
+  pretty-printed / brace-in-string / escaped-quote / nested-objects
+  / top-level array / unterminated tail / leading garbage).
+
+LOC discipline: `grpc.zig` was at 411 after the inline
+implementation; extracting `MessageIter` to `grpc_messages.zig`
+brought it back to 353 (under the 400 cap).
+
+Two follow-ups deferred to v2 (filed separately):
+
+- **Client-streaming + bidi** — needs grpcurl stdin piping plus a
+  staged-message UI (collect N messages, then send-close). Out of
+  scope for v1 since the bridge runs request/response.
+- **Live incremental streaming** — current pseudo-streaming buffers
+  ALL messages and returns them at end. True live (poll N ms or
+  emit events from native) would need either a polling bridge
+  (grpc.streamPoll) or a zero-native upstream change for streaming
+  invokes. The batched approach is fine for short-lived server
+  streams; long-lived ones (chat, SSE-equivalent, watchers) will
+  feel laggy until live streaming lands.
+
+Acceptance: user points at a server-streaming gRPC method
+(e.g. `grpc.health.v1.Health/Watch` on a server that supports it)
+and sees N response messages stack in the Message tab with `#1`,
+`#2`, `#3`, … headers. Unary calls behave identically to before
+(single message, no header). Status pill + duration unchanged.
 
 ## Context
 
