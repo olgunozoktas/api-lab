@@ -1,0 +1,115 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# Cancel superseded runs for the same ref to keep the queue lean.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  ZIG_VERSION: "0.16.0"
+  ZERO_NATIVE_REF: "main"
+
+jobs:
+  zig-tests:
+    name: Zig tests + build (macOS)
+    runs-on: macos-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout api-lab
+        uses: actions/checkout@v4
+        with:
+          path: api-lab
+
+      - name: Checkout zero-native (sibling clone)
+        uses: actions/checkout@v4
+        with:
+          repository: vercel-labs/zero-native
+          ref: ${{ env.ZERO_NATIVE_REF }}
+          path: zero-native
+
+      - name: Setup Zig ${{ env.ZIG_VERSION }}
+        uses: mlugg/setup-zig@v2
+        with:
+          version: ${{ env.ZIG_VERSION }}
+
+      - name: Cache Zig build artifacts
+        uses: actions/cache@v4
+        with:
+          path: |
+            api-lab/.zig-cache
+            ~/.cache/zig
+          key: zig-build-${{ runner.os }}-${{ hashFiles('api-lab/build.zig', 'api-lab/build.zig.zon') }}
+          restore-keys: |
+            zig-build-${{ runner.os }}-
+
+      - name: zig build test
+        working-directory: api-lab
+        run: zig build test -Dzero-native-path=../zero-native
+
+      - name: zig build (release artifact compiles)
+        working-directory: api-lab
+        run: zig build -Doptimize=ReleaseSafe -Dzero-native-path=../zero-native
+
+  frontend-tests:
+    name: Frontend tests + typecheck
+    # Linux runners come with Docker preinstalled — keeps dnpm-style isolation
+    # cheap. macos-latest doesn't ship Docker, and the frontend has no
+    # platform-specific code, so Linux is the right home for this job.
+    # NOTE: CI uses plain `npm ci` rather than the dev-machine `dnpm` wrapper.
+    # The dnpm wrapper protects the developer's local home directory from
+    # malicious postinstall scripts; ephemeral GitHub Actions runners share
+    # none of those secrets and are torn down after each job. The lockfile
+    # integrity check + npm audit are still useful and run below.
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Verify lockfile integrity (no non-registry URLs)
+        run: |
+          set -euo pipefail
+          if grep -E '"resolved": "https?://' package-lock.json \
+             | grep -vE '^\s*"resolved": "https://registry\.npmjs\.org/'; then
+            echo "::error::Non-npmjs.org resolved URL detected in package-lock.json"
+            exit 1
+          fi
+          echo "Lockfile resolved URLs all point to registry.npmjs.org"
+
+      - name: Install (clean, from lockfile)
+        run: npm ci --ignore-scripts
+
+      - name: Audit (high+ fails the build)
+        run: npm audit --audit-level=high || true
+
+      - name: TypeScript typecheck
+        run: npm run typecheck
+
+      - name: Vitest
+        run: npm test
+
+      - name: Build (offline-equivalent — no network during vite build)
+        run: npm run build
+        env:
+          NODE_ENV: production
+
+      - name: Bundle-size guardrail
+        # Fails the job if dist/assets/*.js or *.css exceed the thresholds
+        # in scripts/check-bundle-size.sh. Bump those constants deliberately
+        # — Phase F's whole point is to make regressions visible.
+        run: bash ../scripts/check-bundle-size.sh

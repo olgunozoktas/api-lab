@@ -93,17 +93,40 @@ $RECYCLE.BIN/
 .zed/
 
 # ─── Local-only files & secrets ───────────────────────────────────────
+# NEVER commit anything in this section. See CLAUDE.md "Secrets policy".
 *.bak
 *.local
 .env
 .env.*
 !.env.example
+!.env.sample
 .envrc
 .direnv/
 secrets/
+credentials*
 *.pem
 *.key
 *.cert
+*.crt
+*.p12
+*.pfx
+# SSH / GPG material
+id_rsa
+id_rsa.pub
+id_ed25519
+id_ed25519.pub
+*.gpg
+.ssh/
+# Cloud-provider credentials
+.aws/
+aws-credentials*
+gcp-credentials*
+service-account*.json
+firebase-adminsdk*.json
+# Tooling that occasionally embeds tokens
+.npmrc
+.netrc
+.pypirc
 
 # ─── Logs ─────────────────────────────────────────────────────────────
 *.log

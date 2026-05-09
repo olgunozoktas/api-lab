@@ -1,0 +1,129 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+# Tag pushes and main pushes never overlap; explicit grouping is purely
+# for hygiene if a re-tag (`git tag -f`) is force-pushed.
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  ZIG_VERSION: "0.16.0"
+  ZERO_NATIVE_REF: "main"
+
+permissions:
+  contents: write # softprops/action-gh-release needs write to publish
+
+jobs:
+  build-macos:
+    name: Build (macOS, ${{ matrix.arch }})
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: arm64
+            runner: macos-latest # Apple Silicon
+          - arch: x86_64
+            runner: macos-13 # Intel
+    steps:
+      - name: Checkout api-lab
+        uses: actions/checkout@v4
+        with:
+          path: api-lab
+
+      - name: Checkout zero-native (sibling clone)
+        uses: actions/checkout@v4
+        with:
+          repository: vercel-labs/zero-native
+          ref: ${{ env.ZERO_NATIVE_REF }}
+          path: zero-native
+
+      - name: Setup Zig ${{ env.ZIG_VERSION }}
+        uses: mlugg/setup-zig@v2
+        with:
+          version: ${{ env.ZIG_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: api-lab/frontend/package-lock.json
+
+      - name: Build frontend (Vite production)
+        working-directory: api-lab/frontend
+        run: |
+          npm ci --ignore-scripts
+          npm run build
+        env:
+          NODE_ENV: production
+
+      - name: Build native (ReleaseSafe)
+        working-directory: api-lab
+        run: zig build -Doptimize=ReleaseSafe -Dzero-native-path=../zero-native
+
+      - name: Stage release tree
+        working-directory: api-lab
+        run: |
+          set -euo pipefail
+          STAGE="dist-stage/api-lab"
+          mkdir -p "$STAGE/frontend"
+          cp zig-out/bin/api-lab "$STAGE/api-lab"
+          cp -R frontend/dist "$STAGE/frontend/dist"
+          cp app.zon "$STAGE/" 2>/dev/null || true
+          cp README.md "$STAGE/" 2>/dev/null || true
+          cp LICENSE "$STAGE/" 2>/dev/null || true
+
+      - name: Tarball
+        working-directory: api-lab
+        run: |
+          set -euo pipefail
+          TAG="${GITHUB_REF_NAME}"
+          ARCHIVE="api-lab-${TAG}-macos-${{ matrix.arch }}.tar.gz"
+          tar -czf "$ARCHIVE" -C dist-stage api-lab
+          shasum -a 256 "$ARCHIVE" > "${ARCHIVE}.sha256"
+          ls -la "$ARCHIVE" "${ARCHIVE}.sha256"
+
+      - name: Upload artifact (per-arch)
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-lab-macos-${{ matrix.arch }}
+          path: |
+            api-lab/api-lab-*-macos-${{ matrix.arch }}.tar.gz
+            api-lab/api-lab-*-macos-${{ matrix.arch }}.tar.gz.sha256
+          retention-days: 7
+          if-no-files-found: error
+
+  publish-release:
+    name: Publish GitHub Release (draft)
+    needs: build-macos
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Flatten artifacts
+        run: |
+          set -euo pipefail
+          mkdir -p release
+          find artifacts -type f \( -name '*.tar.gz' -o -name '*.sha256' \) -exec cp {} release/ \;
+          ls -la release/
+
+      - name: Create draft release
+        uses: softprops/action-gh-release@v2
+        with:
+          draft: true
+          generate_release_notes: true
+          fail_on_unmatched_files: true
+          files: |
+            release/*.tar.gz
+            release/*.sha256
