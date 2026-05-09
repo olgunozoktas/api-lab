@@ -1,5 +1,5 @@
 import { Component, type ReactNode } from "react";
-import { resolveStackSafe } from "../lib/resolveStack";
+import { resolveStackSafe, type ResolveResult } from "../lib/resolveStack";
 
 // ErrorBoundary — last-line-of-defense for runtime crashes. Without it
 // a thrown error during render leaves the user with a white screen and
@@ -24,6 +24,7 @@ type State = {
   info: string | null;
   copied: boolean;
   resolvedStack: string | null;
+  resolveStats: ResolveResult | null;
   resolving: boolean;
 };
 
@@ -33,11 +34,19 @@ export class ErrorBoundary extends Component<Props, State> {
     info: null,
     copied: false,
     resolvedStack: null,
+    resolveStats: null,
     resolving: false,
   };
 
   static getDerivedStateFromError(error: Error): State {
-    return { error, info: null, copied: false, resolvedStack: null, resolving: false };
+    return {
+      error,
+      info: null,
+      copied: false,
+      resolvedStack: null,
+      resolveStats: null,
+      resolving: false,
+    };
   }
 
   componentDidCatch(error: Error, info: { componentStack?: string | null }) {
@@ -47,6 +56,7 @@ export class ErrorBoundary extends Component<Props, State> {
       copied: false,
       resolving: !!error.stack,
       resolvedStack: null,
+      resolveStats: null,
     });
     // eslint-disable-next-line no-console
     console.error("[api-lab] React error boundary caught:", error, info);
@@ -54,12 +64,21 @@ export class ErrorBoundary extends Component<Props, State> {
       // Fire async source-map resolution. Render keeps showing the raw
       // stack until this completes; UI swaps to resolved version when
       // setState fires below. Errors swallowed by resolveStackSafe.
-      void resolveStackSafe(error.stack).then((resolved) => {
-        if (resolved && resolved !== error.stack) {
-          this.setState({ resolvedStack: resolved, resolving: false });
-        } else {
-          this.setState({ resolving: false });
-        }
+      // ALWAYS commit the result to state, even when 0/N frames mapped —
+      // the stats tell the user what happened (previously we hid no-op
+      // resolutions, which made "Source-map resolved: no" ambiguous
+      // between "fetch failed", "all frames unmappable", and "never ran").
+      void resolveStackSafe(error.stack).then((stats) => {
+        // eslint-disable-next-line no-console
+        console.info(
+          `[resolveStack] ${stats.mappedCount}/${stats.totalFrames} frames mapped` +
+            (stats.fetchFailures.length > 0 ? ` — failed: ${stats.fetchFailures.join(", ")}` : "")
+        );
+        this.setState({
+          resolvedStack: stats.resolved,
+          resolveStats: stats,
+          resolving: false,
+        });
       });
     }
   }
@@ -82,14 +101,26 @@ export class ErrorBoundary extends Component<Props, State> {
     lines.push(
       `User-Agent: ${typeof navigator !== "undefined" ? navigator.userAgent : "(no nav)"}`
     );
-    lines.push(`Source-map resolved: ${this.state.resolvedStack ? "yes" : "no"}`);
+    const stats = this.state.resolveStats;
+    if (stats) {
+      lines.push(
+        `Source-map resolution: ${stats.mappedCount}/${stats.totalFrames} frames mapped` +
+          (stats.fetchFailures.length > 0
+            ? ` (fetch failed: ${stats.fetchFailures.join(", ")})`
+            : "")
+      );
+    } else {
+      lines.push("Source-map resolution: not yet completed");
+    }
     lines.push("");
     lines.push("## Message");
     lines.push("```");
     lines.push(`${errorName}: ${errorMsg}`);
     lines.push("```");
     lines.push("");
-    lines.push(this.state.resolvedStack ? "## Stack (source-map resolved)" : "## Stack (raw)");
+    lines.push(
+      stats && stats.mappedCount > 0 ? "## Stack (source-map resolved)" : "## Stack (raw)"
+    );
     lines.push("```");
     lines.push(stack);
     lines.push("```");

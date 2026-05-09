@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useStore } from "../store";
 import { useT } from "../lib/i18n/useT";
 import {
@@ -114,14 +114,25 @@ function SaveAsVariableDialog({
   const [targetEnvId, setTargetEnvId] = useState("");
 
   // Re-prime fields whenever the dialog opens — initialValue and the
-  // selection-driven name suggestion change per right-click.
-  if (open && targetEnvId === "" && envs.length > 0) {
-    setTargetEnvId(activeEnv || envs[0].id);
-  }
-  if (open && name === "") {
+  // selection-driven name suggestion change per right-click. Effect-driven
+  // (NOT render-phase setState) so React's reconciler never sees mid-render
+  // mutations of state that depend on store reads (envs, activeEnv) — that
+  // pattern triggered React #185 on first dialog open.
+  useEffect(() => {
+    if (!open) return;
+    if (envs.length > 0) {
+      setTargetEnvId((curr) => curr || activeEnv || envs[0].id);
+    }
     const suggested = suggestVariableName(initialValue);
-    if (suggested) setName(suggested);
-  }
+    if (suggested) {
+      setName((curr) => curr || suggested);
+    }
+    // The dependency list intentionally excludes envs / activeEnv:
+    // we only want to re-prime when the dialog OPENS or the user
+    // right-clicks a NEW selection. Subsequent env mutations during
+    // an open dialog shouldn't reset the user's typed name.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, initialValue]);
 
   const reset = () => {
     setName("");

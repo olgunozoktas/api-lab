@@ -34,10 +34,16 @@ async function getConsumer(jsUrl: string): Promise<SourceMapConsumer | null> {
   cached = (async () => {
     try {
       const res = await fetch(mapUrl);
-      if (!res.ok) return null;
+      if (!res.ok) {
+        // eslint-disable-next-line no-console
+        console.warn(`[resolveStack] map fetch failed (${res.status}):`, mapUrl);
+        return null;
+      }
       const json = (await res.json()) as RawSourceMap;
       return new SourceMapConsumer(json);
-    } catch {
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.warn("[resolveStack] map fetch threw:", mapUrl, err);
       return null;
     }
   })();
@@ -63,22 +69,37 @@ function parseFrame(line: string): {
   return { raw: line, fn, url, line: lineNo, column: colNo };
 }
 
-// Public entry. Returns the original stack string with each resolvable
-// frame replaced by `<originalFile>:<line>:<col>  in  <fn>` and a
-// trailing `(min: <minified-name>)` so the diagnostician can still see
-// what the minifier output was.
-export async function resolveStack(rawStack: string): Promise<string> {
-  if (!rawStack) return rawStack;
+export type ResolveResult = {
+  resolved: string; // either rewritten stack OR rawStack on full failure
+  mappedCount: number; // # of frames that got original-position substitution
+  totalFrames: number; // # of frames the parser recognized in the input
+  fetchFailures: string[]; // map URLs that failed to fetch
+};
+
+// Public entry. Walks the stack frame-by-frame and rewrites each
+// minified `fn@url:line:col` into the original `at fn  src:line:col`
+// using the matching `.js.map` sidecar. Returns counts so callers can
+// distinguish "resolution worked, mapping was identical" from
+// "resolution never ran" — both used to look the same.
+export async function resolveStack(rawStack: string): Promise<ResolveResult> {
+  if (!rawStack) {
+    return { resolved: rawStack, mappedCount: 0, totalFrames: 0, fetchFailures: [] };
+  }
   const lines = rawStack.split("\n");
   const out: string[] = [];
+  let mappedCount = 0;
+  let totalFrames = 0;
+  const fetchFailures = new Set<string>();
   for (const line of lines) {
     const parsed = parseFrame(line);
     if (!parsed) {
       out.push(line);
       continue;
     }
+    totalFrames += 1;
     const consumer = await getConsumer(parsed.url);
     if (!consumer) {
+      fetchFailures.add(parsed.url + ".map");
       out.push(line);
       continue;
     }
@@ -90,11 +111,17 @@ export async function resolveStack(rawStack: string): Promise<string> {
       out.push(line);
       continue;
     }
+    mappedCount += 1;
     const fnName = orig.name || parsed.fn || "<anonymous>";
     const min = parsed.fn ? `(min: ${parsed.fn})` : "";
     out.push(`  at ${fnName}  ${orig.source}:${orig.line}:${orig.column}  ${min}`.trim());
   }
-  return out.join("\n");
+  return {
+    resolved: out.join("\n"),
+    mappedCount,
+    totalFrames,
+    fetchFailures: Array.from(fetchFailures),
+  };
 }
 
 // Best-effort: if the resolver is missing or fetch fails, return the
@@ -107,15 +134,22 @@ export async function resolveStackSafe(
   // on first launch (cold cache) the resolver lost the race against
   // the user clicking "Copy report" before resolution landed.
   timeoutMs: number = 30000
-): Promise<string> {
+): Promise<ResolveResult> {
   try {
     return await Promise.race([
       resolveStack(rawStack),
-      new Promise<string>((_, reject) =>
+      new Promise<ResolveResult>((_, reject) =>
         setTimeout(() => reject(new Error("resolveStack timeout")), timeoutMs)
       ),
     ]);
-  } catch {
-    return rawStack;
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    console.warn("[resolveStack] safe wrapper caught:", err);
+    return {
+      resolved: rawStack,
+      mappedCount: 0,
+      totalFrames: 0,
+      fetchFailures: [],
+    };
   }
 }
