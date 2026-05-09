@@ -1,50 +1,49 @@
 import { Component, type ReactNode } from "react";
-import { resolveStackSafe, type ResolveResult } from "../lib/resolveStack";
+import {
+  resolveStackSafe,
+  pickUserFrame,
+  buildSourceExcerpt,
+  findReactErrorHint,
+  type ResolveResult,
+  type ResolvedFrame,
+} from "../lib/resolveStack";
 
-// ErrorBoundary — last-line-of-defense for runtime crashes. Without it
-// a thrown error during render leaves the user with a white screen and
-// no clue what broke. With it, the UI swaps to a recovery panel that
-// shows the error + a "Copy" button (one-shot to clipboard for pasting
-// into AI agents / bug reports) + a "Reset state" escape hatch (clears
-// localStorage so a wedged store doesn't trap the user).
+// ErrorBoundary — last-line-of-defense for runtime crashes. Surfaces a
+// rich diagnostic panel mirroring Astro/Vite's "blame frame" UX:
+// human-friendly hint for known React minified errors, the user-code
+// source location pinpointed, ±3 lines of code with `>` arrow + `^`
+// caret marking the offending column, resolved component stack, and a
+// one-shot "Copy report" button that bundles all of it for paste-into-AI.
 //
-// On catch we also kick off async source-map resolution against the
-// `.js.map` sidecar Vite emits — by the time the render commits, the
-// stack frames in this.state.resolvedStack carry real function + file
-// names instead of minifier output. Falls back to the raw stack if the
-// fetch / parse fails.
-//
-// Pair with the global onerror / onunhandledrejection listeners wired
-// in main.tsx — those catch async errors that React doesn't see (event
-// handlers fired by the bridge, unhandled Promise rejections, etc.).
+// The hint catalogue + source-map plumbing live in lib/resolveStack.ts.
 
 type Props = { children: ReactNode };
 type State = {
   error: Error | null;
-  info: string | null;
+  componentStack: string | null;
   copied: boolean;
-  resolvedStack: string | null;
-  resolveStats: ResolveResult | null;
+  errorStackResult: ResolveResult | null;
+  componentStackResult: ResolveResult | null;
   resolving: boolean;
 };
 
 export class ErrorBoundary extends Component<Props, State> {
   state: State = {
     error: null,
-    info: null,
+    componentStack: null,
     copied: false,
-    resolvedStack: null,
-    resolveStats: null,
+    errorStackResult: null,
+    componentStackResult: null,
     resolving: false,
   };
 
   static getDerivedStateFromError(error: Error): State {
     return {
       error,
-      info: null,
+      componentStack: null,
       copied: false,
-      resolvedStack: null,
-      resolveStats: null,
+      errorStackResult: null,
+      componentStackResult: null,
       resolving: false,
     };
   }
@@ -52,47 +51,55 @@ export class ErrorBoundary extends Component<Props, State> {
   componentDidCatch(error: Error, info: { componentStack?: string | null }) {
     this.setState({
       error,
-      info: info.componentStack ?? null,
+      componentStack: info.componentStack ?? null,
       copied: false,
-      resolving: !!error.stack,
-      resolvedStack: null,
-      resolveStats: null,
+      resolving: !!error.stack || !!info.componentStack,
+      errorStackResult: null,
+      componentStackResult: null,
     });
     // eslint-disable-next-line no-console
     console.error("[api-lab] React error boundary caught:", error, info);
-    if (error.stack) {
-      // Fire async source-map resolution. Render keeps showing the raw
-      // stack until this completes; UI swaps to resolved version when
-      // setState fires below. Errors swallowed by resolveStackSafe.
-      // ALWAYS commit the result to state, even when 0/N frames mapped —
-      // the stats tell the user what happened (previously we hid no-op
-      // resolutions, which made "Source-map resolved: no" ambiguous
-      // between "fetch failed", "all frames unmappable", and "never ran").
-      void resolveStackSafe(error.stack).then((stats) => {
-        // eslint-disable-next-line no-console
-        console.info(
-          `[resolveStack] ${stats.mappedCount}/${stats.totalFrames} frames mapped` +
-            (stats.fetchFailures.length > 0 ? ` — failed: ${stats.fetchFailures.join(", ")}` : "")
-        );
-        this.setState({
-          resolvedStack: stats.resolved,
-          resolveStats: stats,
-          resolving: false,
-        });
-      });
-    }
+    void this.runResolution(error.stack ?? "", info.componentStack ?? "");
   }
 
-  // Build a multi-section payload that's useful both for the user
-  // copy-pasting into a chat AND for an LLM trying to diagnose. Includes
-  // location, user agent, the error MESSAGE (the most diagnostic single
-  // field — WebKit's `error.stack` is just frames without the message),
-  // the resolved-or-raw stack, and the component stack.
+  private async runResolution(stack: string, componentStack: string) {
+    const [errorStackResult, componentStackResult] = await Promise.all([
+      stack
+        ? resolveStackSafe(stack)
+        : Promise.resolve({
+            resolved: "",
+            frames: [],
+            mappedCount: 0,
+            totalFrames: 0,
+            fetchFailures: [],
+          } satisfies ResolveResult),
+      componentStack
+        ? resolveStackSafe(componentStack)
+        : Promise.resolve({
+            resolved: "",
+            frames: [],
+            mappedCount: 0,
+            totalFrames: 0,
+            fetchFailures: [],
+          } satisfies ResolveResult),
+    ]);
+    // eslint-disable-next-line no-console
+    console.info(
+      `[resolveStack] error=${errorStackResult.mappedCount}/${errorStackResult.totalFrames}, ` +
+        `componentStack=${componentStackResult.mappedCount}/${componentStackResult.totalFrames}`
+    );
+    this.setState({ errorStackResult, componentStackResult, resolving: false });
+  }
+
   private buildReport(): string {
     const e = this.state.error;
     const errorName = e?.name || "Error";
     const errorMsg = e?.message || "(no message)";
-    const stack = this.state.resolvedStack || e?.stack || "(no stack)";
+    const hint = e ? findReactErrorHint(errorMsg) : null;
+    const errResult = this.state.errorStackResult;
+    const compResult = this.state.componentStackResult;
+    const userFrame = errResult ? pickUserFrame(errResult.frames) : null;
+
     const lines: string[] = [];
     lines.push("# API Lab runtime error");
     lines.push("");
@@ -101,12 +108,14 @@ export class ErrorBoundary extends Component<Props, State> {
     lines.push(
       `User-Agent: ${typeof navigator !== "undefined" ? navigator.userAgent : "(no nav)"}`
     );
-    const stats = this.state.resolveStats;
-    if (stats) {
+    if (errResult) {
       lines.push(
-        `Source-map resolution: ${stats.mappedCount}/${stats.totalFrames} frames mapped` +
-          (stats.fetchFailures.length > 0
-            ? ` (fetch failed: ${stats.fetchFailures.join(", ")})`
+        `Source-map resolution: ${errResult.mappedCount}/${errResult.totalFrames} error frames` +
+          (compResult
+            ? `, ${compResult.mappedCount}/${compResult.totalFrames} component frames`
+            : "") +
+          (errResult.fetchFailures.length > 0
+            ? ` (fetch failed: ${errResult.fetchFailures.join(", ")})`
             : "")
       );
     } else {
@@ -117,18 +126,42 @@ export class ErrorBoundary extends Component<Props, State> {
     lines.push("```");
     lines.push(`${errorName}: ${errorMsg}`);
     lines.push("```");
+    if (hint) {
+      lines.push("");
+      lines.push(`## React error #${hint.code} — likely cause`);
+      lines.push(hint.hint);
+      lines.push(`Reference: https://react.dev/errors/${hint.code}`);
+    }
+    if (userFrame && userFrame.file) {
+      lines.push("");
+      lines.push("## Source location (first user-code frame)");
+      lines.push(
+        `${userFrame.file}:${userFrame.line ?? "?"}:${userFrame.column ?? "?"}` +
+          (userFrame.fn ? ` in ${userFrame.fn}` : "")
+      );
+      if (userFrame.sourceContent && userFrame.line) {
+        lines.push("");
+        lines.push("```");
+        lines.push(buildSourceExcerpt(userFrame.sourceContent, userFrame.line, userFrame.column));
+        lines.push("```");
+      }
+    }
     lines.push("");
     lines.push(
-      stats && stats.mappedCount > 0 ? "## Stack (source-map resolved)" : "## Stack (raw)"
+      errResult && errResult.mappedCount > 0 ? "## Stack (source-map resolved)" : "## Stack (raw)"
     );
     lines.push("```");
-    lines.push(stack);
+    lines.push(errResult?.resolved || e?.stack || "(no stack)");
     lines.push("```");
-    if (this.state.info) {
+    if (this.state.componentStack) {
       lines.push("");
-      lines.push("## Component stack");
+      lines.push(
+        compResult && compResult.mappedCount > 0
+          ? "## Component stack (source-map resolved)"
+          : "## Component stack (raw)"
+      );
       lines.push("```");
-      lines.push(this.state.info);
+      lines.push(compResult?.resolved || this.state.componentStack);
       lines.push("```");
     }
     return lines.join("\n");
@@ -140,8 +173,6 @@ export class ErrorBoundary extends Component<Props, State> {
       if (navigator?.clipboard?.writeText) {
         await navigator.clipboard.writeText(text);
       } else {
-        // Fallback for permission-denied clipboard contexts: temporary
-        // textarea + execCommand. Deprecated but still works in WebKit.
         const ta = document.createElement("textarea");
         ta.value = text;
         ta.style.position = "fixed";
@@ -154,7 +185,6 @@ export class ErrorBoundary extends Component<Props, State> {
       this.setState({ copied: true });
       window.setTimeout(() => this.setState({ copied: false }), 1500);
     } catch {
-      // Last resort: dump to console so the user can copy from there.
       // eslint-disable-next-line no-console
       console.error("[api-lab] clipboard copy failed; report below:\n" + text);
       alert("Clipboard write failed — report dumped to console (open devtools).");
@@ -165,146 +195,217 @@ export class ErrorBoundary extends Component<Props, State> {
     try {
       localStorage.removeItem("apilab.store.v1");
     } catch {
-      // null-origin / privacy mode — nothing to clear
+      /* null-origin */
     }
     location.reload();
   };
 
   render() {
     if (!this.state.error) return this.props.children;
-    const btnBase: React.CSSProperties = {
-      padding: "8px 14px",
-      fontSize: "13px",
-      fontWeight: 600,
-      borderRadius: "4px",
-      cursor: "pointer",
-      marginRight: "8px",
-      border: "none",
-    };
-    return (
-      <div
-        style={{
-          padding: "24px",
-          margin: "24px",
-          fontFamily: "system-ui, -apple-system, sans-serif",
-          background: "#fff5f5",
-          color: "#1a1a1a",
-          border: "2px solid #c53030",
-          borderRadius: "8px",
-          maxWidth: "920px",
-          fontSize: "13px",
-          lineHeight: "1.5",
-        }}
-      >
-        <h1 style={{ fontSize: "18px", margin: "0 0 12px", color: "#c53030" }}>
-          API Lab — runtime error
-        </h1>
-        <div
-          style={{
-            background: "#fee",
-            color: "#7a1010",
-            padding: "10px 12px",
-            margin: "0 0 12px",
-            borderRadius: "4px",
-            border: "1px solid #f5b8b8",
-            fontSize: "13px",
-            fontWeight: 600,
-            wordBreak: "break-word",
-          }}
-        >
-          {(this.state.error?.name || "Error") + ": "}
-          <span style={{ fontWeight: 400 }}>{this.state.error?.message || "(no message)"}</span>
-        </div>
-        <p style={{ margin: "0 0 12px", fontSize: "12px" }}>
-          Click <strong>Copy report</strong> to grab a complete bundle (message + stack + component
-          tree + UA) for pasting into a chat or bug report. Wait for source-map resolution to finish
-          so the stack carries real function names. If the error mentions{" "}
-          <code>collectionItems</code>, <code>tabs</code>, or migration, try{" "}
-          <strong>Reset state + reload</strong>.
-        </p>
-        {this.state.resolving && (
-          <p
-            style={{
-              margin: "0 0 8px",
-              fontSize: "12px",
-              fontStyle: "italic",
-              color: "#666",
-            }}
-          >
-            Resolving source maps… (Copy disabled until done — this can take 5-15 s on a 4-5 MB
-            sourcemap)
-          </p>
-        )}
-        <pre
-          style={{
-            whiteSpace: "pre-wrap",
-            wordBreak: "break-word",
-            background: "#1a1a1a",
-            color: "#f7fafc",
-            padding: "12px",
-            borderRadius: "4px",
-            fontSize: "12px",
-            margin: "0 0 12px",
-            maxHeight: "240px",
-            overflow: "auto",
-          }}
-        >
-          {this.state.resolvedStack ||
-            String(this.state.error?.stack || this.state.error?.message || this.state.error)}
-        </pre>
-        {this.state.info && (
-          <details style={{ marginBottom: "12px" }}>
-            <summary style={{ cursor: "pointer", fontWeight: 600 }}>Component stack</summary>
-            <pre
-              style={{
-                whiteSpace: "pre-wrap",
-                fontSize: "11px",
-                background: "#fafafa",
-                padding: "8px",
-                borderRadius: "4px",
-                marginTop: "8px",
-                maxHeight: "200px",
-                overflow: "auto",
-              }}
-            >
-              {this.state.info}
-            </pre>
-          </details>
-        )}
-        <button
-          onClick={this.copy}
-          disabled={this.state.resolving}
-          style={{
-            ...btnBase,
-            background: this.state.resolving ? "#999" : this.state.copied ? "#22863a" : "#1a1a1a",
-            color: "#fff",
-            cursor: this.state.resolving ? "not-allowed" : "pointer",
-          }}
-        >
-          {this.state.resolving ? "Resolving…" : this.state.copied ? "✓ Copied" : "Copy report"}
-        </button>
-        <button
-          onClick={this.reset}
-          style={{
-            ...btnBase,
-            background: "#c53030",
-            color: "#fff",
-          }}
-        >
-          Reset state + reload
-        </button>
-        <button
-          onClick={() => location.reload()}
-          style={{
-            ...btnBase,
-            background: "transparent",
-            color: "#1a1a1a",
-            border: "1px solid #1a1a1a",
-          }}
-        >
-          Reload (keep state)
-        </button>
-      </div>
-    );
+    return <ErrorScreen state={this.state} onCopy={this.copy} onReset={this.reset} />;
   }
 }
+
+// Presenter — split out so JSX is easier to read. State-shape access
+// only (no setState wiring); callbacks injected by the boundary class.
+function ErrorScreen({
+  state,
+  onCopy,
+  onReset,
+}: {
+  state: State;
+  onCopy: () => void;
+  onReset: () => void;
+}) {
+  const e = state.error;
+  const errorMsg = e?.message || "(no message)";
+  const errorName = e?.name || "Error";
+  const hint = e ? findReactErrorHint(errorMsg) : null;
+  const errResult = state.errorStackResult;
+  const compResult = state.componentStackResult;
+  const userFrame = errResult ? pickUserFrame(errResult.frames) : null;
+
+  const card: React.CSSProperties = {
+    background: "#fff",
+    border: "1px solid #e5e7eb",
+    borderRadius: "8px",
+    padding: "14px 16px",
+    margin: "0 0 12px",
+  };
+  const codeBlock: React.CSSProperties = {
+    background: "#0f172a",
+    color: "#f1f5f9",
+    padding: "12px 14px",
+    borderRadius: "6px",
+    fontSize: "11.5px",
+    fontFamily: "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace",
+    lineHeight: 1.55,
+    margin: "8px 0 0",
+    whiteSpace: "pre",
+    overflow: "auto",
+    maxHeight: "260px",
+  };
+  const sectionTitle: React.CSSProperties = {
+    fontSize: "11px",
+    textTransform: "uppercase",
+    letterSpacing: "0.06em",
+    color: "#6b7280",
+    margin: "0 0 8px",
+    fontWeight: 700,
+  };
+
+  return (
+    <div
+      style={{
+        padding: "20px",
+        margin: "20px",
+        fontFamily: "system-ui, -apple-system, sans-serif",
+        background: "#fef2f2",
+        color: "#1a1a1a",
+        border: "2px solid #c53030",
+        borderRadius: "10px",
+        maxWidth: "980px",
+        fontSize: "13px",
+        lineHeight: 1.5,
+      }}
+    >
+      <h1 style={{ fontSize: "18px", margin: "0 0 6px", color: "#c53030" }}>
+        API Lab — runtime error
+      </h1>
+      <div
+        style={{
+          background: "#fee2e2",
+          color: "#7a1010",
+          padding: "10px 12px",
+          margin: "0 0 14px",
+          borderRadius: "6px",
+          border: "1px solid #fca5a5",
+          fontWeight: 600,
+          wordBreak: "break-word",
+        }}
+      >
+        <strong>{errorName}:</strong> <span style={{ fontWeight: 400 }}>{errorMsg}</span>
+      </div>
+
+      {hint && (
+        <div style={card}>
+          <div style={sectionTitle}>React #{hint.code} — likely cause</div>
+          <div>{hint.hint}</div>
+          <a
+            href={`https://react.dev/errors/${hint.code}`}
+            target="_blank"
+            rel="noreferrer"
+            style={{
+              display: "inline-block",
+              marginTop: "6px",
+              color: "#2563eb",
+              fontSize: "12px",
+            }}
+          >
+            react.dev/errors/{hint.code} →
+          </a>
+        </div>
+      )}
+
+      {state.resolving && (
+        <p style={{ margin: "0 0 12px", fontSize: "12px", fontStyle: "italic", color: "#666" }}>
+          Resolving source maps… (Copy disabled until done — typically 1-3 s)
+        </p>
+      )}
+
+      {userFrame && userFrame.file && (
+        <div style={card}>
+          <div style={sectionTitle}>Source location · first user-code frame</div>
+          <div style={{ fontFamily: "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" }}>
+            <strong>{userFrame.file}</strong>:{userFrame.line ?? "?"}:{userFrame.column ?? "?"}
+            {userFrame.fn ? (
+              <span style={{ color: "#6b7280" }}> &nbsp;in&nbsp;{userFrame.fn}</span>
+            ) : null}
+          </div>
+          {userFrame.sourceContent && userFrame.line && (
+            <pre style={codeBlock}>
+              {buildSourceExcerpt(userFrame.sourceContent, userFrame.line, userFrame.column)}
+            </pre>
+          )}
+        </div>
+      )}
+
+      {compResult && compResult.resolved && (
+        <details style={card}>
+          <summary style={{ cursor: "pointer", ...sectionTitle, margin: 0 }}>
+            Component stack {compResult.mappedCount > 0 ? "(resolved)" : "(raw)"}
+          </summary>
+          <pre style={codeBlock}>{compResult.resolved}</pre>
+        </details>
+      )}
+
+      {errResult && errResult.resolved && (
+        <details style={card}>
+          <summary style={{ cursor: "pointer", ...sectionTitle, margin: 0 }}>
+            Stack {errResult.mappedCount > 0 ? "(resolved)" : "(raw)"} · {errResult.mappedCount}/
+            {errResult.totalFrames} frames mapped
+          </summary>
+          <pre style={codeBlock}>{errResult.resolved}</pre>
+        </details>
+      )}
+
+      <div style={{ marginTop: "8px" }}>
+        <Btn
+          onClick={onCopy}
+          disabled={state.resolving}
+          bg={state.resolving ? "#9ca3af" : state.copied ? "#16a34a" : "#0f172a"}
+          color="#fff"
+        >
+          {state.resolving ? "Resolving…" : state.copied ? "✓ Copied" : "Copy report"}
+        </Btn>
+        <Btn onClick={onReset} bg="#c53030" color="#fff">
+          Reset state + reload
+        </Btn>
+        <Btn onClick={() => location.reload()} bg="transparent" color="#1a1a1a" border="#1a1a1a">
+          Reload (keep state)
+        </Btn>
+      </div>
+    </div>
+  );
+}
+
+function Btn({
+  children,
+  onClick,
+  disabled,
+  bg,
+  color,
+  border,
+}: {
+  children: ReactNode;
+  onClick: () => void;
+  disabled?: boolean;
+  bg: string;
+  color: string;
+  border?: string;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      style={{
+        padding: "8px 14px",
+        fontSize: "13px",
+        fontWeight: 600,
+        borderRadius: "6px",
+        cursor: disabled ? "not-allowed" : "pointer",
+        marginRight: "8px",
+        border: border ? `1px solid ${border}` : "none",
+        background: bg,
+        color,
+      }}
+    >
+      {children}
+    </button>
+  );
+}
+
+// Re-export so the (unused) ResolvedFrame type doesn't trigger
+// "import not used" warnings at the boundary call sites that may
+// destructure result.frames in the future.
+export type { ResolvedFrame };
