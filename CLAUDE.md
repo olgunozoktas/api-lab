@@ -16,31 +16,58 @@ The frontend is **transitioning from vanilla HTML/JS to React + Tailwind**. The 
 ## Common commands
 
 ```bash
+# Build the whole app (frontend + Zig) — preferred entry point:
+./build.sh                          # debug build  (auto-detects dnpm | docker | npm)
+./build.sh --release                # ReleaseSafe optimize
+./build.sh --run                    # build then launch ./zig-out/bin/api-lab
+./build.sh --frontend-only          # skip the Zig step
+./build.sh --zig-only               # skip the frontend (uses existing dist/)
+./build.sh --use=npm                # force host npm fallback (downgrades hardening)
+./build.sh -Dzero-native-path=...   # passthrough Zig flags
+
 # Frontend (NEVER run npm/npx/node directly — see frontend/CLAUDE.md):
 cd frontend && dnpm install         # add or sync deps
 cd frontend && dnpm run dev         # Vite dev server at 127.0.0.1:5173
-cd frontend && dnpm run build       # produces frontend/dist/  (REQUIRED before zig build run)
+cd frontend && dnpm run build       # produces frontend/dist/
 cd frontend && dnpm run test        # vitest unit tests
 cd frontend && dnpm run typecheck   # tsc --noEmit
 cd frontend && dnpm run format:check  # prettier check (--write blocked by RO mount)
 
+# Frontend without dnpm (clone-and-run convenience — uses docker-compose.yml):
+docker compose run --rm frontend-build      # one-shot production build
+docker compose run --rm frontend-test       # vitest run
+docker compose run --rm frontend-typecheck  # tsc --noEmit
+docker compose up frontend-dev              # Vite dev server on 127.0.0.1:5173
+
 # Zig native shell:
 zig build                           # compile zig-out/bin/api-lab (~3 MB)
 zig build test                      # run handler unit tests
-zig build run                       # launch the app — needs frontend/dist/ from `dnpm run build`
+zig build run                       # launch the app — needs frontend/dist/ first
 zig build run -Dzero-native-path=/path/to/zero-native   # override default ../zero-native
 
-# Verify the binary is small + the web source loaded:
+# Verify the binary + tail logs:
 ./zig-out/bin/api-lab               # tail ~/Library/Logs/dev.olgun.api-lab/zero-native.jsonl in another shell
 
 # Pre-commit hooks (zig fmt + prettier --check):
 bash scripts/install-hooks.sh       # one-time per clone (idempotent; sets core.hooksPath)
 ```
 
-The frontend build is a separate step — `zig build run` no longer
-shells out to host `npm` (that violated frontend/CLAUDE.md's dnpm-only
-policy). Always run `dnpm run build` in `frontend/` first; missing
-`frontend/dist/` surfaces as a `WebViewSource.assets` runtime error.
+`./build.sh` is the canonical build entry point — sequences the
+frontend + Zig build in the right order and handles missing
+`frontend/dist/`, missing `dnpm`, and platform-specific Zig flags
+without you needing to remember each step. The script picks its
+frontend builder in this order: `dnpm` → `docker compose run
+frontend-build` → host `npm` (with a warning).
+
+When iterating on just one tier, prefer `./build.sh --frontend-only`
+or `./build.sh --zig-only` instead of running the underlying tools by
+hand — keeps the dnpm-only policy intact when dnpm is available.
+
+If you skip the script and run Zig directly, remember: `zig build run`
+no longer shells out to host `npm` (that violated frontend/CLAUDE.md's
+dnpm-only policy). You must populate `frontend/dist/` first via one
+of the frontend commands above; missing `frontend/dist/` surfaces as
+a `WebViewSource.assets` runtime error.
 
 ## Architecture
 

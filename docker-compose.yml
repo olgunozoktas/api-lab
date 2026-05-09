@@ -1,0 +1,110 @@
+# docker-compose.yml — project-rooted Compose file for api-lab.
+#
+# This is a SIMPLER alternative to dnpm (frontend/CLAUDE.md) for users
+# without dnpm installed: clone the repo, run `docker compose run --rm
+# frontend-build`, get a working dist/. The dnpm wrapper remains the
+# preferred path for daily local development on a personal machine — it
+# adds two-phase install, signature verification, npm audit, and trivy
+# scanning. This file is the lighter "just clone + build" path.
+#
+# Hardening kept inline (matches dnpm's posture as closely as compose lets us):
+#   - non-root UID 1000
+#   - cap_drop: ALL
+#   - no-new-privileges
+#   - read-only rootfs + tmpfs scratch space
+#   - --ignore-scripts on install (no postinstall on the host's behalf)
+#   - pinned npm registry
+#
+# Usage:
+#   docker compose run --rm frontend-build    # one-shot production build
+#   docker compose run --rm frontend-test     # vitest run
+#   docker compose run --rm frontend-typecheck # tsc --noEmit
+#   docker compose up frontend-dev            # Vite dev server on 127.0.0.1:5173
+#   docker compose down -v                    # purge node_modules volume
+#
+# build.sh auto-detects this file and uses `frontend-build` when dnpm is
+# not on PATH but docker is.
+
+x-frontend-base: &frontend-base
+  image: node:22-alpine
+  user: "1000:1000"
+  init: true
+  cap_drop: [ALL]
+  security_opt:
+    - no-new-privileges:true
+  read_only: true
+  tmpfs:
+    - /tmp:noexec,nosuid,nodev,size=64m
+    - /home/node/.npm:noexec,nosuid,nodev,size=128m
+  working_dir: /app
+  environment:
+    NPM_CONFIG_REGISTRY: https://registry.npmjs.org/
+    NPM_CONFIG_FUND: "false"
+    NPM_CONFIG_AUDIT: "false"
+    HOME: /home/node
+  volumes:
+    # Bind mount → Vite writes dist/ straight onto the host's frontend/dist/
+    # so `zig build run` (or `./build.sh --zig-only`) picks it up.
+    - ./frontend:/app
+    # node_modules in a Docker volume keeps the host filesystem clean and
+    # avoids platform-binding issues (npm/cli#4828) when the host is macOS
+    # but the container is Linux.
+    - frontend_node_modules:/app/node_modules
+
+services:
+  # One-shot production build → ./frontend/dist/ on the host (via bind mount).
+  frontend-build:
+    <<: *frontend-base
+    command:
+      - sh
+      - -c
+      - |
+        set -e
+        if [ ! -d node_modules/.bin ]; then
+          npm install --no-audit --no-fund --ignore-scripts
+        fi
+        npm run build
+
+  # Vitest one-shot.
+  frontend-test:
+    <<: *frontend-base
+    command:
+      - sh
+      - -c
+      - |
+        set -e
+        if [ ! -d node_modules/.bin ]; then
+          npm install --no-audit --no-fund --ignore-scripts
+        fi
+        npm test
+
+  # TypeScript typecheck (read-only, no emit).
+  frontend-typecheck:
+    <<: *frontend-base
+    command:
+      - sh
+      - -c
+      - |
+        set -e
+        if [ ! -d node_modules/.bin ]; then
+          npm install --no-audit --no-fund --ignore-scripts
+        fi
+        npm run typecheck
+
+  # Vite dev server. Bound to 127.0.0.1 only — never exposed to the LAN.
+  frontend-dev:
+    <<: *frontend-base
+    command:
+      - sh
+      - -c
+      - |
+        set -e
+        if [ ! -d node_modules/.bin ]; then
+          npm install --no-audit --no-fund --ignore-scripts
+        fi
+        npm run dev -- --host 0.0.0.0
+    ports:
+      - "127.0.0.1:5173:5173"
+
+volumes:
+  frontend_node_modules:

@@ -2,28 +2,28 @@
 # build.sh — one-shot build for api-lab.
 #
 # Two-tier project: web frontend (Vite + React + TS) and native Zig shell.
-# This script builds both in the right order:
-#   1. cd frontend && dnpm run build      → frontend/dist/
+# Builds both in the right order:
+#   1. frontend → frontend/dist/  (dnpm | docker compose | host npm fallback)
 #   2. zig build [-Doptimize=ReleaseSafe] → zig-out/bin/api-lab
 #
-# The frontend build runs in dnpm's hardened container per the project's
-# dnpm-only policy (frontend/CLAUDE.md). Never `npm`/`npx`/`node` on the
-# host.
+# Frontend builder priority (auto-detected):
+#   1. dnpm     — preferred; hardened container per frontend/CLAUDE.md
+#   2. docker   — uses ./docker-compose.yml (frontend-build service)
+#   3. npm      — last resort, runs on host (downgrades dnpm hardening)
+#
+# Override with --use=<dnpm|docker|npm>.
 #
 # Usage:
-#   ./build.sh                  # debug build (default)
-#   ./build.sh --release        # ReleaseSafe build (smaller, optimized)
+#   ./build.sh                  # debug build (auto-detect frontend builder)
+#   ./build.sh --release        # ReleaseSafe build
 #   ./build.sh --run            # build then launch the app
-#   ./build.sh --release --run  # combine
 #   ./build.sh --frontend-only  # skip the Zig step
 #   ./build.sh --zig-only       # skip the frontend build (uses existing dist/)
+#   ./build.sh --use=npm        # force host npm even if dnpm is available
 #   ./build.sh -h | --help
 
 set -eo pipefail
 
-# Resolve the script's own directory so the script works regardless of
-# the user's cwd (handy when invoked from a worktree, an editor, or a
-# parent shell that's elsewhere).
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 cd "$SCRIPT_DIR"
 
@@ -31,10 +31,11 @@ OPTIMIZE=""
 RUN=0
 FRONTEND_ONLY=0
 ZIG_ONLY=0
+USE=""
 EXTRA_ZIG_ARGS=()
 
 usage() {
-  sed -n 's/^# \?//; 2,/^$/p' "$0" | head -16
+  sed -n 's/^# \?//; 2,/^$/p' "$0" | head -22
   exit "${1:-0}"
 }
 
@@ -44,6 +45,7 @@ for arg in "$@"; do
     --run)            RUN=1 ;;
     --frontend-only)  FRONTEND_ONLY=1 ;;
     --zig-only)       ZIG_ONLY=1 ;;
+    --use=*)          USE="${arg#--use=}" ;;
     -h|--help)        usage 0 ;;
     -D*)              EXTRA_ZIG_ARGS+=("$arg") ;;  # passthrough -Dkey=value flags
     *)                echo "Unknown arg: $arg" >&2; usage 1 ;;
@@ -55,29 +57,73 @@ if [ "$FRONTEND_ONLY" = "1" ] && [ "$ZIG_ONLY" = "1" ]; then
   exit 1
 fi
 
-# Sanity: required tools.
-require() {
-  command -v "$1" >/dev/null 2>&1 || {
-    echo "::error:: $1 not on PATH. $2" >&2
-    exit 1
-  }
+have() { command -v "$1" >/dev/null 2>&1; }
+
+# Pick the docker compose CLI invocation form.
+docker_compose() {
+  if docker compose version >/dev/null 2>&1; then
+    docker compose "$@"
+  elif have docker-compose; then
+    docker-compose "$@"
+  else
+    return 1
+  fi
 }
 
-if [ "$ZIG_ONLY" != "1" ]; then
-  require dnpm "Install: see CLAUDE.md (dnpm policy)"
-fi
-if [ "$FRONTEND_ONLY" != "1" ]; then
-  require zig "Install Zig 0.16.0 — see https://ziglang.org/download/"
-fi
+# Auto-detect the frontend builder if --use= wasn't given.
+detect_builder() {
+  if [ -n "$USE" ]; then echo "$USE"; return; fi
+  if have dnpm; then echo "dnpm"; return; fi
+  if have docker && [ -f docker-compose.yml ] && docker_compose config >/dev/null 2>&1; then
+    echo "docker"; return
+  fi
+  if have npm; then echo "npm"; return; fi
+  echo "none"
+}
+
+build_frontend() {
+  local builder
+  builder=$(detect_builder)
+  case "$builder" in
+    dnpm)
+      echo "→ frontend: dnpm run build (hardened container)"
+      ( cd frontend && dnpm run build )
+      ;;
+    docker)
+      echo "→ frontend: docker compose run --rm frontend-build"
+      docker_compose run --rm frontend-build
+      ;;
+    npm)
+      echo "::warning:: dnpm not found — falling back to host npm. This bypasses the hardening described in frontend/CLAUDE.md (no seccomp, no cap-drop, postinstall scripts run on the host). Prefer dnpm for daily local dev." >&2
+      ( cd frontend
+        if [ ! -d node_modules ]; then
+          npm install --no-audit --no-fund
+        fi
+        npm run build
+      )
+      ;;
+    none)
+      echo "::error:: no frontend builder available. Install one of: dnpm (preferred), docker (uses docker-compose.yml), or npm (host fallback)." >&2
+      exit 1
+      ;;
+    *)
+      echo "::error:: --use=$USE invalid. Choose dnpm, docker, or npm." >&2
+      exit 1
+      ;;
+  esac
+}
 
 # 1. Frontend build (unless --zig-only).
 if [ "$ZIG_ONLY" != "1" ]; then
-  echo "→ frontend: dnpm run build"
-  ( cd frontend && dnpm run build )
+  build_frontend
 fi
 
 # 2. Zig build (unless --frontend-only).
 if [ "$FRONTEND_ONLY" != "1" ]; then
+  have zig || {
+    echo "::error:: zig not on PATH — install Zig 0.16.0 from https://ziglang.org/download/" >&2
+    exit 1
+  }
   if [ ! -d frontend/dist ] || [ ! -f frontend/dist/index.html ]; then
     echo "::error:: frontend/dist/ missing — run without --zig-only first, or pass --frontend-only" >&2
     exit 1
