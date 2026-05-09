@@ -46,6 +46,13 @@ export const en: Dict = {
   "sidebar.clearHistory": "Clear",
   "sidebar.confirmClearHistory": "Clear history?",
 
+  "import.button": "Import",
+  "import.title": "Import a Postman collection (.json)",
+  "import.empty": "No requests to import",
+  "import.success": 'Imported "{name}" — {folders} folders, {requests} requests',
+  "import.warnings": "{count} warnings (see developer console)",
+  "import.failed": "Import failed: {error}",
+
   "collections.newFolder": "+ Folder",
   "collections.newFolderPrompt": "Folder name:",
   "collections.newFolderDefault": "New folder",

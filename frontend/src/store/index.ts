@@ -50,6 +50,11 @@ type Actions = {
   setActiveEnv: (id: string) => void;
   setUi: (patch: Partial<UiState>) => void;
   setEnvs: (envs: Environment[]) => void;
+  importItems: (
+    items: CollectionItem[],
+    envVars: Record<string, string>,
+    wrapperName: string
+  ) => void;
   setLocale: (l: Locale) => void;
   setDefaults: (patch: Partial<RequestDefaults>) => void;
   pushHistory: (
@@ -313,6 +318,58 @@ export const useStore = create<State & Actions>()(
         }),
 
       setEnvs: (envs) => set({ envs }),
+
+      // Bulk-add a tree of items + merge env vars from an importer.
+      // Items keep the IDs the importer assigned (importers must use a
+      // namespace prefix like `pm_` to avoid collisions with the
+      // existing local IDs). Top-level imported nodes (parentId === null)
+      // get re-rooted under a fresh wrapper folder named after the
+      // collection so multiple imports don't pollute the root.
+      importItems: (
+        items: CollectionItem[],
+        envVars: Record<string, string>,
+        wrapperName: string
+      ) =>
+        set((s) => {
+          if (items.length === 0) return {};
+          const wrapperId = uid();
+          const root: CollectionItem = {
+            id: wrapperId,
+            parentId: null,
+            kind: "folder",
+            order: nextOrder(s.collectionItems, null),
+            name: wrapperName,
+          };
+          const reparented = items.map((it) =>
+            it.parentId === null ? { ...it, parentId: wrapperId } : it
+          );
+          // Merge env vars into the active environment (or create one
+          // if the user has none).
+          let envs = s.envs;
+          let activeEnv = s.activeEnv;
+          if (Object.keys(envVars).length > 0) {
+            if (envs.length === 0) {
+              const newEnv: Environment = {
+                id: uid(),
+                name: wrapperName,
+                vars: { ...envVars },
+              };
+              envs = [newEnv];
+              activeEnv = newEnv.id;
+            } else {
+              envs = envs.map((e) =>
+                e.id === activeEnv ? { ...e, vars: { ...e.vars, ...envVars } } : e
+              );
+            }
+          }
+          return {
+            collectionItems: [...s.collectionItems, root, ...reparented],
+            collectionsExpanded: { ...s.collectionsExpanded, [wrapperId]: true },
+            envs,
+            activeEnv,
+          };
+        }),
+
       setLocale: (locale) => set({ locale }),
       setDefaults: (patch) =>
         set((s) => ({

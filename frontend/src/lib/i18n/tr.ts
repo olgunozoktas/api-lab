@@ -45,6 +45,13 @@ export const tr = {
   "sidebar.clearHistory": "Temizle",
   "sidebar.confirmClearHistory": "Geçmiş silinsin mi?",
 
+  "import.button": "Import",
+  "import.title": "Postman koleksiyonu içe aktar (.json)",
+  "import.empty": "İçe aktarılacak istek yok",
+  "import.success": '"{name}" içe aktarıldı — {folders} klasör, {requests} istek',
+  "import.warnings": "{count} uyarı (geliştirici konsoluna bak)",
+  "import.failed": "İçe aktarma başarısız: {error}",
+
   "collections.newFolder": "+ Klasör",
   "collections.newFolderPrompt": "Klasör adı:",
   "collections.newFolderDefault": "Yeni klasör",

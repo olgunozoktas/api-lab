@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import { useStore } from "../store";
 import { CollectionList } from "./CollectionList";
 import { HistoryList } from "./HistoryList";
@@ -5,6 +6,7 @@ import { useT } from "../lib/i18n/useT";
 import { useConfirm } from "../lib/dialogs";
 import { Tabs, TabsList, TabsTrigger } from "./ui/tabs";
 import { Button } from "./ui/button";
+import { parsePostmanV2 } from "../lib/importers/postmanV2";
 
 export function Sidebar() {
   const ui = useStore((s) => s.ui);
@@ -36,7 +38,14 @@ export function Sidebar() {
       </Tabs>
       {ui.sidebarTab === "collections" ? (
         <>
-          <SectionHeader rightSlot={<NewFolderButton />}>
+          <SectionHeader
+            rightSlot={
+              <div className="flex gap-1">
+                <ImportPostmanButton />
+                <NewFolderButton />
+              </div>
+            }
+          >
             {t("sidebar.section.saved")}
           </SectionHeader>
           <div className="flex-1 min-h-0 overflow-y-auto">
@@ -98,6 +107,67 @@ function ClearHistoryButton() {
     >
       {t("sidebar.clearHistory")}
     </Button>
+  );
+}
+
+function ImportPostmanButton() {
+  const importItems = useStore((s) => s.importItems);
+  const showToast = useStore((s) => s.showToast);
+  const t = useT();
+  const fileRef = useRef<HTMLInputElement | null>(null);
+
+  const onFile = async (file: File) => {
+    try {
+      const text = await file.text();
+      const result = parsePostmanV2(text);
+      if (result.items.length === 0) {
+        showToast(t("import.empty"));
+        return;
+      }
+      importItems(result.items, result.envVars, result.collectionName);
+      const summary = t("import.success", {
+        name: result.collectionName,
+        folders: String(result.folderCount),
+        requests: String(result.requestCount),
+      });
+      showToast(summary);
+      if (result.warnings.length > 0) {
+        // Surface the first warning as a follow-up toast — the rest
+        // are visible in console for power users.
+        showToast(t("import.warnings", { count: String(result.warnings.length) }));
+        // eslint-disable-next-line no-console
+        console.warn("Postman import warnings:", result.warnings);
+      }
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      showToast(t("import.failed", { error: msg }));
+    }
+  };
+
+  return (
+    <>
+      <input
+        ref={fileRef}
+        type="file"
+        accept=".json,application/json"
+        className="hidden"
+        onChange={(e) => {
+          const f = e.target.files?.[0];
+          if (f) onFile(f);
+          // Reset so re-importing the same file re-fires onChange.
+          e.target.value = "";
+        }}
+      />
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={() => fileRef.current?.click()}
+        className="text-[11px] h-auto py-0.5 px-1.5"
+        title={t("import.title")}
+      >
+        {t("import.button")}
+      </Button>
+    </>
   );
 }
 
