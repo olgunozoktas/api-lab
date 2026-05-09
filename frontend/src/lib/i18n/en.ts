@@ -65,6 +65,7 @@ export const en: Dict = {
   "collections.search.placeholder": "Search...",
   "collections.search.empty": "No matches",
   "collections.search.clear": "Clear",
+  "history.search.placeholder": "Search... (e.g. GET 401 login)",
 
   "chain.saveAs": "Save as variable...",
   "chain.dialog.title": "Save value as variable",

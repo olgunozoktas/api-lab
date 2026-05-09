@@ -65,6 +65,7 @@ export const tr = {
   "collections.search.placeholder": "Ara...",
   "collections.search.empty": "Eşleşme yok",
   "collections.search.clear": "Temizle",
+  "history.search.placeholder": "Ara... (örn: GET 401 login)",
 
   "chain.saveAs": "Değişken olarak kaydet...",
   "chain.dialog.title": "Yanıttan değişken kaydet",
