@@ -9,9 +9,11 @@ declare global {
 
 export const bridge = {
   get available() {
-    return typeof window !== "undefined"
-      && typeof window.zero !== "undefined"
-      && typeof window.zero.invoke === "function";
+    return (
+      typeof window !== "undefined" &&
+      typeof window.zero !== "undefined" &&
+      typeof window.zero.invoke === "function"
+    );
   },
   async invoke<T = unknown>(command: string, payload: unknown): Promise<T> {
     if (!this.available) throw new Error("zero-native bridge unavailable");
@@ -47,4 +49,38 @@ export type HttpResponse = {
   error?: string;
   exit_code?: number;
   stderr?: string;
+};
+
+// gRPC unary bridge command. Backed by `src/handlers/grpc.zig` which
+// shells out to `grpcurl`. Field names are snake_case to match the Zig
+// struct's parseFromSlice expectations.
+export type GrpcMetadataEntry = { name: string; value: string };
+
+export type GrpcRequest = {
+  target: string; // "host:port" — caller has already stripped the scheme
+  full_method: string; // "package.Service/Method"
+  message: string; // JSON string for the request body; empty → grpcurl gets {}
+  metadata?: GrpcMetadataEntry[];
+  plaintext?: boolean;
+  use_reflection?: boolean;
+  import_paths?: string[];
+  proto_files?: string[];
+  timeout_ms?: number;
+};
+
+export type GrpcResponse = {
+  status: string; // "OK" / "NotFound" / "Unavailable" / ... — RFC names
+  status_code_num: number; // 0..16, or -1 for unknown
+  status_message: string; // populated when status != OK
+  message: string; // response payload as JSON string (or empty on error)
+  headers: GrpcMetadataEntry[];
+  trailers: GrpcMetadataEntry[];
+  exit_code: number;
+  stderr: string;
+  // Bridge-level error (binary missing / parse failure / etc) — distinct
+  // from gRPC application status. The `grpcurl_missing` value triggers a
+  // dedicated install-hint card in the UI.
+  error?: string;
+  install_hint?: string;
+  docs?: string;
 };

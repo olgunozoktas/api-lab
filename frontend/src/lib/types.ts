@@ -31,6 +31,35 @@ export type Body = { mode: BodyMode; text: string };
 
 export type Gql = { query: string; vars: string };
 
+// gRPC composer state — surfaced when current.url starts with grpc:// or
+// grpcs://. The bridge call (src/handlers/grpc.zig) consumes a snake_case
+// version of this; conversion happens in sendRequest's gRPC path.
+//
+// `metadata` uses KvRow (not a flat {name,value}[]) so users can toggle a
+// metadata entry on/off without deleting it — same UX as request headers.
+//
+// `plaintext` is optional: when undefined, GrpcPanel auto-derives from the
+// URL scheme (grpc:// → true, grpcs:// → false). Setting it explicitly
+// overrides — useful when the user pastes a bare host:port and wants TLS.
+export type GrpcState = {
+  fullMethod: string; // "package.Service/Method"
+  message: string;
+  metadata: KvRow[];
+  useReflection: boolean;
+  importPaths: string[];
+  protoFiles: string[];
+  plaintext?: boolean;
+};
+
+export const emptyGrpcState = (): GrpcState => ({
+  fullMethod: "",
+  message: "{}",
+  metadata: [{ enabled: true, k: "", v: "" }],
+  useReflection: true,
+  importPaths: [],
+  protoFiles: [],
+});
+
 // One saved response example. Captured via the "Save as example"
 // button on the response viewer; consumed by the (forthcoming Zig
 // sidecar) mock server. Stored on the request itself so importing /
@@ -70,6 +99,10 @@ export type RequestSnapshot = {
   postScript?: string;
   // Saved-response examples for the local mock server (Phase L.1).
   examples?: Example[];
+  // gRPC composer state. Optional so persisted state from before this
+  // landed hydrates cleanly — readers should fall back to
+  // `emptyGrpcState()` when undefined.
+  grpc?: GrpcState;
 };
 
 export type CurrentRequest = RequestSnapshot & {
@@ -198,4 +231,5 @@ export const emptyRequest = (): CurrentRequest => ({
   auth: { type: "none" },
   body: { mode: "none", text: "" },
   gql: { query: "", vars: "" },
+  grpc: emptyGrpcState(),
 });

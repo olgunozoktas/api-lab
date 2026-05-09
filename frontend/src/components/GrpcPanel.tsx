@@ -1,0 +1,278 @@
+import { useState } from "react";
+import { useStore, useActiveVars } from "../store";
+import { useT } from "../lib/i18n/useT";
+import { envSubst } from "../lib/utils";
+import { emptyGrpcState, type GrpcState, type KvRow } from "../lib/types";
+import { bridge } from "../lib/bridge";
+import type { GrpcMetadataEntry, GrpcRequest, GrpcResponse } from "../lib/bridge";
+import { derivePlaintext, extractTarget, isLikelyFullMethod } from "../lib/grpc";
+import { Button } from "./ui/button";
+import { CodeEditor } from "./ui/code-editor";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
+import { KvTable } from "./KvTable";
+import { cn } from "../lib/cn";
+import { Send, Plug, Info } from "lucide-react";
+import { GrpcResponseSection, GrpcStatusPill, type GrpcStatus } from "./GrpcResponseSection";
+
+export type { GrpcStatus };
+
+export type GrpcPanelProps = {
+  url: string;
+  fullMethod: string;
+  grpc: GrpcState;
+  status: GrpcStatus;
+  response: GrpcResponse | null;
+  durationMs: number;
+  onFullMethodChange: (s: string) => void;
+  onMessageChange: (s: string) => void;
+  onMetadataChange: (rows: KvRow[]) => void;
+  onUseReflectionChange: (b: boolean) => void;
+  onImportPathsChange: (s: string) => void;
+  onProtoFilesChange: (s: string) => void;
+  onSend: () => void;
+};
+
+export function GrpcPanel(p: GrpcPanelProps) {
+  const t = useT();
+  const [reqTab, setReqTab] = useState<"message" | "metadata" | "proto">("message");
+  const [resTab, setResTab] = useState<"message" | "headers" | "trailers" | "raw">("message");
+  const target = extractTarget(p.url);
+  const canSend = target.length > 0 && p.fullMethod.trim().length > 0 && p.status !== "running";
+  const fullMethodHint = p.fullMethod.length > 0 && !isLikelyFullMethod(p.fullMethod);
+
+  return (
+    <section className="bg-[var(--color-bg)] flex flex-col overflow-hidden">
+      <div className="px-3 py-2.5 bg-[var(--color-bg-elev)] border-b border-[var(--color-border)] flex items-center gap-3 flex-wrap">
+        <GrpcStatusPill status={p.status} statusCode={p.response?.status} />
+        <input
+          type="text"
+          placeholder={t("grpc.fullMethod.placeholder")}
+          value={p.fullMethod}
+          onChange={(e) => p.onFullMethodChange(e.target.value)}
+          aria-label={t("grpc.fullMethod.label")}
+          className={cn(
+            "bg-[var(--color-bg)] border rounded-md px-2 py-1 font-mono text-xs flex-1 min-w-[280px] outline-none",
+            fullMethodHint
+              ? "border-[var(--color-warning)]"
+              : "border-[var(--color-border)] focus:border-[var(--color-accent)]"
+          )}
+        />
+        <span
+          className="text-xs font-mono text-[var(--color-fg-muted)] tabular-nums"
+          title={t("grpc.duration.title")}
+        >
+          {p.durationMs > 0 ? `${p.durationMs} ms` : "—"}
+        </span>
+        <Button variant="primary" size="md" onClick={p.onSend} disabled={!canSend}>
+          {p.status === "running" ? (
+            <>
+              <Plug className="w-3.5 h-3.5" />
+              {t("grpc.sending")}
+            </>
+          ) : (
+            <>
+              <Send className="w-3.5 h-3.5" />
+              {t("grpc.send")}
+            </>
+          )}
+        </Button>
+      </div>
+
+      <div className="grid grid-rows-2 flex-1 min-h-0 divide-y divide-[var(--color-border)]">
+        <Tabs
+          value={reqTab}
+          onValueChange={(v) => setReqTab(v as typeof reqTab)}
+          className="flex flex-col min-h-0"
+        >
+          <TabsList>
+            <TabsTrigger value="message">{t("grpc.tab.message")}</TabsTrigger>
+            <TabsTrigger value="metadata">{t("grpc.tab.metadata")}</TabsTrigger>
+            <TabsTrigger value="proto">{t("grpc.tab.proto")}</TabsTrigger>
+          </TabsList>
+          <TabsContent value="message" className="p-3">
+            <CodeEditor
+              value={p.grpc.message}
+              onChange={p.onMessageChange}
+              language="json"
+              placeholder={t("grpc.message.placeholder")}
+              minHeight={160}
+            />
+          </TabsContent>
+          <TabsContent value="metadata" className="p-3">
+            <KvTable
+              rows={p.grpc.metadata}
+              onChange={p.onMetadataChange}
+              addLabelKey="grpc.addMetadata"
+            />
+          </TabsContent>
+          <TabsContent value="proto" className="p-3 space-y-3">
+            <label className="flex items-center gap-2 text-xs">
+              <input
+                type="checkbox"
+                checked={p.grpc.useReflection}
+                onChange={(e) => p.onUseReflectionChange(e.target.checked)}
+                className="accent-[var(--color-accent)]"
+              />
+              <span>{t("grpc.useReflection.label")}</span>
+            </label>
+            <label className="block text-xs space-y-1">
+              <span className="text-[var(--color-fg-muted)]">{t("grpc.importPaths.label")}</span>
+              <input
+                type="text"
+                placeholder={t("grpc.importPaths.placeholder")}
+                value={p.grpc.importPaths.join(",")}
+                disabled={p.grpc.useReflection}
+                onChange={(e) => p.onImportPathsChange(e.target.value)}
+                className="w-full bg-[var(--color-bg-elev)] border border-[var(--color-border)] rounded px-2 py-1 font-mono text-xs outline-none focus:border-[var(--color-accent)] disabled:opacity-50"
+              />
+            </label>
+            <label className="block text-xs space-y-1">
+              <span className="text-[var(--color-fg-muted)]">{t("grpc.protoFiles.label")}</span>
+              <input
+                type="text"
+                placeholder={t("grpc.protoFiles.placeholder")}
+                value={p.grpc.protoFiles.join(",")}
+                disabled={p.grpc.useReflection}
+                onChange={(e) => p.onProtoFilesChange(e.target.value)}
+                className="w-full bg-[var(--color-bg-elev)] border border-[var(--color-border)] rounded px-2 py-1 font-mono text-xs outline-none focus:border-[var(--color-accent)] disabled:opacity-50"
+              />
+            </label>
+            <p className="text-[10px] text-[var(--color-fg-muted)] flex gap-1.5 items-start">
+              <Info className="w-3 h-3 mt-0.5 shrink-0" aria-hidden />
+              {t("grpc.proto.hint")}
+            </p>
+          </TabsContent>
+        </Tabs>
+
+        <Tabs
+          value={resTab}
+          onValueChange={(v) => setResTab(v as typeof resTab)}
+          className="flex flex-col min-h-0"
+        >
+          <TabsList>
+            <TabsTrigger value="message">{t("grpc.response.tab.message")}</TabsTrigger>
+            <TabsTrigger value="headers">
+              {t("grpc.response.tab.headers")}
+              {p.response && p.response.headers.length > 0 && (
+                <span className="ml-1 text-[var(--color-fg-muted)]">
+                  ({p.response.headers.length})
+                </span>
+              )}
+            </TabsTrigger>
+            <TabsTrigger value="trailers">
+              {t("grpc.response.tab.trailers")}
+              {p.response && p.response.trailers.length > 0 && (
+                <span className="ml-1 text-[var(--color-fg-muted)]">
+                  ({p.response.trailers.length})
+                </span>
+              )}
+            </TabsTrigger>
+            <TabsTrigger value="raw">{t("grpc.response.tab.raw")}</TabsTrigger>
+          </TabsList>
+          <GrpcResponseSection response={p.response} status={p.status} tab={resTab} />
+        </Tabs>
+      </div>
+    </section>
+  );
+}
+
+// Container — wires the store + manages running flag + last response.
+export function GrpcPanelContainer() {
+  const url = useStore((s) => s.current.url);
+  const grpcState = useStore((s) => s.current.grpc);
+  const setCurrent = useStore((s) => s.setCurrent);
+  const vars = useActiveVars();
+
+  const grpc: GrpcState = grpcState ?? emptyGrpcState();
+  const fullMethod = grpc.fullMethod;
+
+  const [status, setStatus] = useState<GrpcStatus>("idle");
+  const [response, setResponse] = useState<GrpcResponse | null>(null);
+  const [durationMs, setDurationMs] = useState(0);
+
+  const substitutedUrl = envSubst(url, vars);
+  const target = extractTarget(substitutedUrl);
+
+  const updateGrpc = (patch: Partial<GrpcState>) => {
+    setCurrent({ grpc: { ...grpc, ...patch } });
+  };
+
+  const onSend = async () => {
+    if (status === "running") return;
+    if (!target || !fullMethod.trim()) return;
+    setStatus("running");
+    setResponse(null);
+    const t0 = performance.now();
+    try {
+      const metadata: GrpcMetadataEntry[] = grpc.metadata
+        .filter((m) => m.enabled && m.k.trim().length > 0)
+        .map((m) => ({
+          name: envSubst(m.k, vars),
+          value: envSubst(m.v, vars),
+        }));
+      const payload: GrpcRequest = {
+        target,
+        full_method: envSubst(fullMethod.trim(), vars),
+        message: envSubst(grpc.message, vars),
+        metadata,
+        plaintext: grpc.plaintext ?? derivePlaintext(substitutedUrl),
+        use_reflection: grpc.useReflection,
+        import_paths: grpc.importPaths,
+        proto_files: grpc.protoFiles,
+        timeout_ms: 60000,
+      };
+      const r = await bridge.invoke<GrpcResponse>("grpc.invoke", payload);
+      setResponse(r);
+      setDurationMs(Math.round(performance.now() - t0));
+      if (r.error === "grpcurl_missing") setStatus("missing-binary");
+      else if (r.error || r.exit_code !== 0) setStatus("error");
+      else setStatus("ok");
+    } catch (e) {
+      setResponse({
+        status: "Unknown",
+        status_code_num: -1,
+        status_message: "",
+        message: "",
+        headers: [],
+        trailers: [],
+        exit_code: -1,
+        stderr: "",
+        error: (e as Error).message || String(e),
+      });
+      setDurationMs(Math.round(performance.now() - t0));
+      setStatus("error");
+    }
+  };
+
+  return (
+    <GrpcPanel
+      url={substitutedUrl}
+      fullMethod={fullMethod}
+      grpc={grpc}
+      status={status}
+      response={response}
+      durationMs={durationMs}
+      onFullMethodChange={(fullMethod) => updateGrpc({ fullMethod })}
+      onMessageChange={(message) => updateGrpc({ message })}
+      onMetadataChange={(metadata) => updateGrpc({ metadata })}
+      onUseReflectionChange={(useReflection) => updateGrpc({ useReflection })}
+      onImportPathsChange={(s) =>
+        updateGrpc({
+          importPaths: s
+            .split(",")
+            .map((p) => p.trim())
+            .filter((p) => p.length > 0),
+        })
+      }
+      onProtoFilesChange={(s) =>
+        updateGrpc({
+          protoFiles: s
+            .split(",")
+            .map((p) => p.trim())
+            .filter((p) => p.length > 0),
+        })
+      }
+      onSend={onSend}
+    />
+  );
+}

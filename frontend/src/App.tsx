@@ -6,12 +6,14 @@ import { QuickSwitcher } from "./components/QuickSwitcher";
 import { RequestComposerContainer } from "./components/RequestComposer";
 import { ResponseViewerContainer } from "./components/ResponseViewer";
 import { WsPanelContainer } from "./components/WsPanel";
+import { GrpcPanelContainer } from "./components/GrpcPanel";
 import { UrlBarContainer } from "./components/UrlBar";
 import { Toast } from "./components/Toast";
 import { useStore, useActiveVars } from "./store";
 import { useT } from "./lib/i18n/useT";
 import { send } from "./lib/sendRequest";
 import { isWsUrl } from "./lib/ws";
+import { isGrpcUrl } from "./lib/grpc";
 import { envSubst } from "./lib/utils";
 
 export function App() {
@@ -146,22 +148,29 @@ export function App() {
   }, [onSend, saveCurrent, resetCurrent, newTab, closeTab, setActiveTab]);
 
   const activeTabId = useStore((s) => s.activeTabId);
-  const wsMode = isWsUrl(envSubst(current.url, vars));
+  const substitutedUrl = envSubst(current.url, vars);
+  const wsMode = isWsUrl(substitutedUrl);
+  const grpcMode = !wsMode && isGrpcUrl(substitutedUrl);
+  const singleColumn = wsMode || grpcMode;
 
   return (
     <div className="h-full flex flex-col bg-[var(--color-bg)] text-[var(--color-fg)] text-[13px]">
       <TopBar />
       <main
         className="flex-1 grid min-h-0"
-        style={{ gridTemplateColumns: wsMode ? "240px 1fr" : "240px 1fr 1fr" }}
+        style={{ gridTemplateColumns: singleColumn ? "240px 1fr" : "240px 1fr 1fr" }}
       >
         <Sidebar />
-        {wsMode ? (
+        {singleColumn ? (
           <div className="flex flex-col min-h-0 min-w-0 overflow-hidden">
             <TabStripContainer />
             <UrlBarContainer busy={false} onSend={onSend} hideSend hideMethod />
             <div className="flex-1 min-h-0 overflow-hidden">
-              <WsPanelContainer key={activeTabId} />
+              {wsMode ? (
+                <WsPanelContainer key={activeTabId} />
+              ) : (
+                <GrpcPanelContainer key={activeTabId} />
+              )}
             </div>
           </div>
         ) : (
