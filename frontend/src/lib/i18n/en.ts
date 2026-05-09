@@ -57,6 +57,9 @@ export const en: Dict = {
   "curl.dismiss": "Dismiss",
   "curl.headers": "headers",
 
+  "dialog.cancel": "Cancel",
+  "dialog.ok": "OK",
+
   "composer.requestName": "Request name",
   "composer.save": "Save",
   "composer.send": "Send",

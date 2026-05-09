@@ -57,6 +57,9 @@ export const tr = {
   "curl.dismiss": "Kapat",
   "curl.headers": "header",
 
+  "dialog.cancel": "İptal",
+  "dialog.ok": "Tamam",
+
   "composer.requestName": "İstek adı",
   "composer.save": "Kaydet",
   "composer.send": "Gönder",

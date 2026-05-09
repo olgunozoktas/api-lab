@@ -2,6 +2,7 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { App } from "./App";
 import { ErrorBoundary } from "./components/ErrorBoundary";
+import { DialogsProvider } from "./lib/dialogs";
 import "./main.css";
 
 const root = document.getElementById("root");
@@ -49,7 +50,9 @@ try {
   createRoot(root).render(
     <StrictMode>
       <ErrorBoundary>
-        <App />
+        <DialogsProvider>
+          <App />
+        </DialogsProvider>
       </ErrorBoundary>
     </StrictMode>
   );
