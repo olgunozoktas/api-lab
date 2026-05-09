@@ -6,7 +6,7 @@ import { QuickSwitcher } from "./components/QuickSwitcher";
 import { RequestComposerContainer } from "./components/RequestComposer";
 import { ResponseViewerContainer } from "./components/ResponseViewer";
 import { WsPanelContainer } from "./components/WsPanel";
-import { GrpcPanelContainer } from "./components/GrpcPanel";
+import { GrpcPanelContainer } from "./components/GrpcPanelContainer";
 import { UrlBarContainer } from "./components/UrlBar";
 import { Toast } from "./components/Toast";
 import { ResizableDivider } from "./components/ResizableDivider";

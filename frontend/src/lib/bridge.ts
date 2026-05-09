@@ -77,6 +77,62 @@ export type GrpcRequest = {
   authority?: string;
 };
 
+// gRPC reflection bridge — `grpc.reflect.list` enumerates services +
+// per-service methods via grpcurl's `list` + `describe` subcommands.
+// `grpc.reflect.skeleton` builds a JSON shell from a message-type's
+// proto-descriptor field list. Both are best-effort: servers without
+// reflection enabled get an `error` field instead of a populated
+// `services` / `skeleton` field.
+export type GrpcReflectListRequest = {
+  target: string;
+  plaintext?: boolean;
+  timeout_ms?: number;
+};
+
+export type GrpcReflectMethod = {
+  name: string;
+  request_type: string;
+  response_type: string;
+  client_stream: boolean;
+  server_stream: boolean;
+};
+
+export type GrpcReflectService = {
+  name: string;
+  methods: GrpcReflectMethod[];
+  // Populated when `describe <service>` failed for that specific
+  // service. Other services in the same response can still have
+  // populated `methods`.
+  error?: string;
+};
+
+export type GrpcReflectListResponse = {
+  services?: GrpcReflectService[];
+  // Populated when the initial `grpcurl <target> list` fails (server
+  // doesn't support reflection at all). When set, `services` is missing.
+  error?: string;
+  exit_code?: number;
+  stderr?: string;
+  install_hint?: string;
+  docs?: string;
+};
+
+export type GrpcReflectSkeletonRequest = {
+  target: string;
+  message_type: string;
+  plaintext?: boolean;
+  timeout_ms?: number;
+};
+
+export type GrpcReflectSkeletonResponse = {
+  skeleton?: string;
+  error?: string;
+  exit_code?: number;
+  stderr?: string;
+  install_hint?: string;
+  docs?: string;
+};
+
 export type GrpcResponse = {
   status: string; // "OK" / "NotFound" / "Unavailable" / ... — RFC names
   status_code_num: number; // 0..16, or -1 for unknown
