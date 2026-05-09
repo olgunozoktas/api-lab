@@ -31,6 +31,27 @@ export type Body = { mode: BodyMode; text: string };
 
 export type Gql = { query: string; vars: string };
 
+// One saved response example. Captured via the "Save as example"
+// button on the response viewer; consumed by the (forthcoming Zig
+// sidecar) mock server. Stored on the request itself so importing /
+// exporting a collection round-trips the examples too.
+export type Example = {
+  id: string;
+  name: string;
+  status: number;
+  headers: ResponseHeader[];
+  body: string;
+  contentType: string;
+  // Path + method captured at save time. The mock server uses these
+  // to route incoming requests back to this example. Trimmed to a
+  // server-relative path (no scheme/host) — the live URL changes
+  // between local + staging + prod, only the path matters for
+  // matching.
+  path: string;
+  method: string;
+  savedAt: number;
+};
+
 export type RequestSnapshot = {
   method: string;
   url: string;
@@ -47,6 +68,8 @@ export type RequestSnapshot = {
   // through the host bridge.
   preScript?: string;
   postScript?: string;
+  // Saved-response examples for the local mock server (Phase L.1).
+  examples?: Example[];
 };
 
 export type CurrentRequest = RequestSnapshot & {
@@ -111,7 +134,7 @@ export type HistoryItem = {
 };
 
 export type ComposerTab = "params" | "headers" | "auth" | "body" | "graphql" | "scripts";
-export type ResponseTab = "body" | "headers" | "raw";
+export type ResponseTab = "body" | "headers" | "raw" | "examples";
 export type SidebarTab = "collections" | "history";
 
 export type Theme = "auto" | "light" | "dark" | "tokyo-night" | "github-light";
