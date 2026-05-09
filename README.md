@@ -20,23 +20,45 @@ Built on top of **[vercel-labs/zero-native](https://github.com/vercel-labs/zero-
 
 ## Quick start
 
-Prerequisites: **Zig 0.16+** (`brew install zig`) and `curl` (preinstalled on macOS).
+Prerequisites:
+- **Zig 0.16+** (`brew install zig`)
+- **`curl`** (preinstalled on macOS)
+- **OrbStack** or Docker Desktop (the `dnpm` wrapper builds the frontend in a hardened container; npm never runs on your host — see `frontend/CLAUDE.md` for the threat model)
+- **`dnpm`** wrapper (`~/.local/bin/dnpm`)
 
 ```bash
 # Clone both repos as siblings — build.zig defaults to ../zero-native
 git clone https://github.com/vercel-labs/zero-native.git
 git clone https://github.com/olgunozoktas/api-lab.git
 
-cd api-lab
-zig build run
+# Build the React frontend in the secure dnpm sandbox
+cd api-lab/frontend
+dnpm install                # one-time, then again whenever package.json changes
+dnpm run build              # produces /app/dist inside the volume
+dnpm sync-dist              # copy dist/ + .astro/ from the volume to the host
+
+# Build + run the native shell
+cd ..
+zig build run               # window opens at 1280×800; sample request preloaded
 ```
 
-The window opens with a 1280×800 frame. A sample GitHub user request is preloaded.
-
-If your `zero-native` checkout lives elsewhere, override the path:
+If your `zero-native` checkout lives elsewhere:
 
 ```bash
 zig build run -Dzero-native-path=/path/to/zero-native
+```
+
+### Why two build steps?
+
+- The frontend (Vite + React + Tailwind v4) builds inside a hardened Linux container with no Docker socket, dropped capabilities, network-off rebuild phase, and read-only project mount. Malicious npm packages cannot reach your home directory.
+- `dnpm sync-dist` is required because `frontend/dist/` lives in a Docker named volume by default; the Zig native shell needs the artifacts on the host filesystem to serve them via the `zero://app` asset handler.
+
+For dev (HMR via Vite):
+
+```bash
+cd frontend && dnpm run dev   # starts Vite at 127.0.0.1:5173
+# In another terminal:
+ZERO_NATIVE_FRONTEND_URL=http://127.0.0.1:5173/ zig build run
 ```
 
 ### Build size

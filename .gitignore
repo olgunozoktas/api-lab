@@ -17,3 +17,20 @@ zig-out/
 
 # Logs
 *.log
+
+# Session handoffs — never share, ever (private working notes)
+handoffs/
+docs/sessions/
+docs/handoffs/
+
+# Local backlog session artifacts
+docs/backlog/.profile.jsonl
+
+# Docker setup for dnpm (per-machine, never committed)
+docker-compose.node.yml
+.dnpm/
+
+# Frontend build dirs (managed by dnpm volumes)
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/

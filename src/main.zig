@@ -11,12 +11,12 @@ const App = struct {
             .context = undefined,
             .name = "api-lab",
             // Resolved at runtime from cwd. `zig build run` sets cwd to the
-            // project root, so "src" finds src/index.html portably.
+            // project root, so "frontend/dist" finds the Vite output portably.
             .source = zero_native.WebViewSource.assets(.{
-                .root_path = "src",
+                .root_path = "frontend/dist",
                 .entry = "index.html",
                 .origin = "zero://app",
-                .spa_fallback = false,
+                .spa_fallback = true,
             }),
         };
     }
