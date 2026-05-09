@@ -1,6 +1,35 @@
 # Phase H.1 — QuickJS sandbox + Postman-compatible pm.* API
 
 Priority: P1
+Status: SHIPPED — 2026-05-09
+
+## Status
+
+Sandbox + pm.* surface + UI shipped in 0b9df68. Pre-request + test
+scripts run inside a QuickJS WASM sandbox via dynamic import (~1.5 MB
+chunk lazy-loaded; main bundle +13 KB glue). 21 unit tests cover the
+pm.* surface, isolation guarantees (no fetch/XHR/window/localStorage),
+CPU + memory limits, and error capture.
+
+pm.* surface delivered:
+- pm.environment.{get,set,has,unset}
+- pm.request.headers.{add,upsert,remove} (case-insensitive)
+- pm.request.body.update (string or object), pm.request.url.{get,set}
+- pm.response.{code,status,json(),text(),headers.get,responseTime}
+- pm.variables.replaceIn (Mustache {{var}})
+- pm.test(name, fn) + pm.expect chai-style (to.equal, to.eql,
+  to.be.{ok,true,false,null,undefined}, to.have.{status,property,length},
+  to.include, to.match)
+
+Limits enforced at the QuickJS runtime: 5s CPU, 10 MB memory,
+256 KB stack. JSON state-passing means no host bindings reach into
+the sandbox — the only way out is the bridge layer the host runs
+after the script returns.
+
+UI: new "Scripts" tab in RequestComposer with two textareas (pre +
+post) and Postman-style placeholder examples. Asserts + console
+output land in `SendResult.{preScript,postScript}` but the
+response-pane render is deferred to a follow-up polish slice.
 
 ## Context
 

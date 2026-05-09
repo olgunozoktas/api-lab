@@ -1,6 +1,29 @@
 # Phase I.1 — Richer cURL import + Postman v2.1 collection import
 
 Priority: P1
+Status: SHIPPED (Postman v2.1) — 2026-05-09
+
+## Status
+
+Postman v2.1 importer shipped in 8dcea90 with 19 unit tests:
+
+- Recursive item[] → CollectionItem[] tree (folders + requests)
+- Auth mapping: bearer / basic / apikey-header / oauth2 stub +
+  collection/folder-level inheritance
+- Body modes: raw (json/text), urlencoded → form-encoded, formdata
+  → text + warning, file → omitted, graphql → JSON + warning
+- Script mapping: prerequest/test → preScript/postScript fields
+  (Phase H.1's QuickJS sandbox runs these directly, no extra wiring)
+- Variables → flat envVars merged into the active env (or a new
+  one named after the collection if none exist)
+- Sidebar Import button → file picker → toast confirms summary +
+  warning count
+
+cURL parser extension (multipart `-F`, cookie/cert flags) deferred
+to Phase E.1's multipart upload work — those flags only become
+useful once we can build multipart bodies natively. Not a P1
+blocker; a P2 polish item if multipart imports become a pain point.
+Insomnia + Bruno + HAR importers tracked separately as P2 polish.
 
 ## Context
 
