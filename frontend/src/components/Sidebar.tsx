@@ -101,10 +101,15 @@ function NewFolderButton() {
       variant="ghost"
       size="sm"
       onClick={() => {
-        const name = prompt(t("collections.newFolderPrompt"), t("collections.newFolderDefault"));
-        if (name?.trim()) addFolder(null, name);
+        // WKWebView's default delegate ignores window.prompt() (no panel
+        // implementation in zero-native), so the previous prompt-based
+        // flow silently no-op'd. Add the folder with the default name
+        // synchronously; the user can immediately rename via the inline
+        // double-click handler in CollectionList's FolderRow.
+        addFolder(null, t("collections.newFolderDefault"));
       }}
       className="text-[11px] h-auto py-0.5 px-1.5"
+      title={t("collections.newFolderPrompt")}
     >
       {t("collections.newFolder")}
     </Button>
