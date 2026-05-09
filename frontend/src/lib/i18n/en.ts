@@ -51,6 +51,12 @@ export const en: Dict = {
   "collections.newFolderDefault": "New folder",
   "collections.confirmDeleteFolder": 'Delete folder "{name}" and ALL requests inside it?',
 
+  "curl.detected": "cURL detected",
+  "curl.import": "Import",
+  "curl.imported": "cURL imported",
+  "curl.dismiss": "Dismiss",
+  "curl.headers": "headers",
+
   "composer.requestName": "Request name",
   "composer.save": "Save",
   "composer.send": "Send",
