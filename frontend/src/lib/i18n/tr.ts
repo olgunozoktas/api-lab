@@ -45,6 +45,12 @@ export const tr = {
   "sidebar.clearHistory": "Temizle",
   "sidebar.confirmClearHistory": "Geçmiş silinsin mi?",
 
+  "collections.newFolder": "+ Klasör",
+  "collections.newFolderPrompt": "Klasör adı:",
+  "collections.newFolderDefault": "Yeni klasör",
+  "collections.confirmDeleteFolder":
+    '"{name}" klasörünü ve içindeki TÜM istekleri silmek istediğine emin misin?',
+
   "composer.requestName": "İstek adı",
   "composer.save": "Kaydet",
   "composer.send": "Gönder",

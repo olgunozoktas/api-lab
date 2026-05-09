@@ -5,7 +5,7 @@ import { useStore } from "../store";
 import { useT } from "../lib/i18n/useT";
 import { cn } from "../lib/cn";
 import { methodClass } from "../lib/utils";
-import type { Collection, HistoryItem, OpenTab } from "../lib/types";
+import type { CollectionItem, HistoryItem, OpenTab } from "../lib/types";
 import { History, FolderOpen, LayoutGrid } from "lucide-react";
 
 // =============================================================================
@@ -23,7 +23,7 @@ import { History, FolderOpen, LayoutGrid } from "lucide-react";
 
 type Item =
   | { kind: "tab"; tab: OpenTab }
-  | { kind: "collection"; col: Collection }
+  | { kind: "collection"; col: CollectionItem }
   | { kind: "history"; entry: HistoryItem };
 
 function score(query: string, target: string): number {
@@ -43,7 +43,7 @@ function rankItems(query: string, items: Item[]): Item[] {
       item.kind === "tab"
         ? `${item.tab.name} ${item.tab.request.url} ${item.tab.request.method}`
         : item.kind === "collection"
-          ? `${item.col.name} ${item.col.request.url} ${item.col.request.method}`
+          ? `${item.col.name} ${item.col.request!.url} ${item.col.request!.method}`
           : `${item.entry.request.url} ${item.entry.request.method}`;
     return { item, s: score(query, text) };
   });
@@ -57,7 +57,10 @@ export type QuickSwitcherProps = {
 
 export function QuickSwitcher({ open, onOpenChange }: QuickSwitcherProps) {
   const tabs = useStore((s) => s.tabs);
-  const collections = useStore((s) => s.collections);
+  // Only requests appear in the switcher — folders aren't openable.
+  const collections = useStore((s) =>
+    s.collectionItems.filter((c) => c.kind === "request" && c.request)
+  );
   const history = useStore((s) => s.history);
   const setActiveTab = useStore((s) => s.setActiveTab);
   const loadCollection = useStore((s) => s.loadCollection);
@@ -206,7 +209,7 @@ export function QuickSwitcher({ open, onOpenChange }: QuickSwitcherProps) {
                           item.kind === "tab"
                             ? item.tab.request.method
                             : item.kind === "collection"
-                              ? item.col.request.method
+                              ? item.col.request!.method
                               : item.entry.request.method
                         )
                       )}
@@ -214,7 +217,7 @@ export function QuickSwitcher({ open, onOpenChange }: QuickSwitcherProps) {
                       {item.kind === "tab"
                         ? item.tab.request.method
                         : item.kind === "collection"
-                          ? item.col.request.method
+                          ? item.col.request!.method
                           : item.entry.request.method}
                     </span>
 
@@ -230,7 +233,7 @@ export function QuickSwitcher({ open, onOpenChange }: QuickSwitcherProps) {
                       {item.kind === "tab"
                         ? item.tab.request.url
                         : item.kind === "collection"
-                          ? item.col.request.url
+                          ? item.col.request!.url
                           : `${item.entry.response.status}`}
                     </span>
                   </button>

@@ -1,7 +1,7 @@
 import { useRef, useState, useCallback, useEffect } from "react";
 import { useStore } from "../store";
 import { useT } from "../lib/i18n/useT";
-import type { Collection, OpenTab } from "../lib/types";
+import type { CollectionItem, OpenTab } from "../lib/types";
 import { methodClass } from "../lib/utils";
 import { cn } from "../lib/cn";
 import { Plus, X } from "lucide-react";
@@ -10,7 +10,7 @@ import { Plus, X } from "lucide-react";
 // (matched by request.id). True iff a real divergence exists. For unsaved
 // tabs (id === null), "dirty" means "has any user content" so a fresh
 // empty tab is NOT marked dirty.
-function isTabDirty(tab: OpenTab, collections: Collection[]): boolean {
+function isTabDirty(tab: OpenTab, items: CollectionItem[]): boolean {
   const r = tab.request;
   if (!r.id) {
     // Unsaved — dirty when the user has typed anything substantial
@@ -22,8 +22,8 @@ function isTabDirty(tab: OpenTab, collections: Collection[]): boolean {
     if (r.auth.type !== "none") return true;
     return false;
   }
-  const saved = collections.find((c) => c.id === r.id);
-  if (!saved) return true; // saved-id refers to a collection that was deleted
+  const saved = items.find((c) => c.id === r.id && c.kind === "request" && c.request);
+  if (!saved || !saved.request) return true; // saved-id refers to a deleted/moved item
   const a = saved.request;
   if (a.method !== r.method || a.url !== r.url) return true;
   if (JSON.stringify(a.params) !== JSON.stringify(r.params)) return true;
@@ -230,7 +230,7 @@ export function TabStripPresenter({
 export function TabStripContainer() {
   const tabs = useStore((s) => s.tabs);
   const activeTabId = useStore((s) => s.activeTabId);
-  const collections = useStore((s) => s.collections);
+  const collections = useStore((s) => s.collectionItems);
   const setActiveTab = useStore((s) => s.setActiveTab);
   const closeTab = useStore((s) => s.closeTab);
   const newTab = useStore((s) => s.newTab);
