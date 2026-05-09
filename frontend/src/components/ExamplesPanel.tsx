@@ -143,9 +143,19 @@ function ExampleRow({
   );
 }
 
+// Stable empty array used as the `?? fallback` AFTER the selector
+// returns. Selector itself returns the real reference (or undefined);
+// we coalesce outside so the selector output stays stable across
+// renders. Without this, `(s) => s.current.examples ?? []` returned a
+// fresh [] every render → Zustand's Object.is comparison saw it as a
+// new value → infinite render loop (React #185). See handoff §5
+// gotcha #1 — same Zustand selector instability bug class as the
+// QuickSwitcher fix from 2026-05-09 commit `c23ade6`.
+const EMPTY_EXAMPLES: Example[] = [];
+
 // Container — wires the store.
 export function ExamplesPanelContainer() {
-  const examples = useStore((s) => s.current.examples ?? []);
+  const examples = useStore((s) => s.current.examples) ?? EMPTY_EXAMPLES;
   const url = useStore((s) => s.current.url);
   const renameExample = useStore((s) => s.renameExample);
   const deleteExample = useStore((s) => s.deleteExample);

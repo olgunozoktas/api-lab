@@ -628,7 +628,16 @@ export const useStore = create<State & Actions>()(
   )
 );
 
-// Helper hook for env vars resolution
+// Helper hook for env vars resolution. The selector returns the real
+// vars reference (or undefined when no active env is set); the `??`
+// fallback to a stable module-scope EMPTY_VARS happens AFTER, so the
+// selector output stays stable across renders. The previous form
+// (`?? {}` inside the selector) returned a fresh empty object every
+// render, which Zustand's Object.is comparison saw as a new value
+// every time — same React #185 infinite-render bug class as the
+// ExamplesPanel fix.
+const EMPTY_VARS: Readonly<Record<string, string>> = Object.freeze({});
+
 export function useActiveVars(): Record<string, string> {
-  return useStore((s) => s.envs.find((e) => e.id === s.activeEnv)?.vars ?? {});
+  return useStore((s) => s.envs.find((e) => e.id === s.activeEnv)?.vars) ?? EMPTY_VARS;
 }
