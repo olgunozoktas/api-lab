@@ -32,9 +32,14 @@ const bridge = zero_native.bridge;
 const http = @import("http.zig");
 const grpc_messages = @import("grpc_messages.zig");
 const grpc_tls = @import("grpc_tls.zig");
+const grpc_types = @import("grpc_types.zig");
+const grpc_argv = @import("grpc_argv.zig");
 pub const MessageIter = grpc_messages.MessageIter;
 pub const parseMessages = grpc_messages.parseMessages;
 pub const TlsPaths = grpc_tls.TlsPaths;
+pub const GrpcMetadata = grpc_types.GrpcMetadata;
+pub const GrpcRequest = grpc_types.GrpcRequest;
+pub const buildArgv = grpc_argv.buildArgv;
 
 pub const Context = struct {
     gpa: std.mem.Allocator,
@@ -49,34 +54,6 @@ pub fn handler(ctx: *Context) bridge.Handler {
         .invoke_fn = invoke,
     };
 }
-
-pub const GrpcMetadata = struct {
-    name: []const u8,
-    value: []const u8,
-};
-
-pub const GrpcRequest = struct {
-    target: []const u8,
-    full_method: []const u8,
-    message: []const u8 = "{}",
-    metadata: []const GrpcMetadata = &.{},
-    plaintext: bool = false,
-    use_reflection: bool = true,
-    import_paths: []const []const u8 = &.{},
-    proto_files: []const []const u8 = &.{},
-    timeout_ms: u32 = 60000,
-    // TLS overrides for grpcs:// targets. Cert fields are PEM contents,
-    // not paths — the UI surface uses CodeEditor pastes since WKWebView's
-    // file picker is constrained. runRequest writes each non-empty PEM
-    // to a per-request tmp dir (deleted on exit) before invoking grpcurl
-    // with -cacert / -cert / -key flags. server_name + authority go on
-    // argv directly (no tmpfile needed).
-    ca_cert: []const u8 = "",
-    client_cert: []const u8 = "",
-    client_key: []const u8 = "",
-    server_name: []const u8 = "",
-    authority: []const u8 = "",
-};
 
 fn invoke(context: *anyopaque, invocation: bridge.Invocation, output: []u8) anyerror![]const u8 {
     const ctx: *Context = @ptrCast(@alignCast(context));
@@ -167,63 +144,9 @@ fn runRequest(ctx: *Context, payload: []const u8, output: []u8) ![]const u8 {
 }
 
 // MessageIter + parseMessages live in grpc_messages.zig — re-exported
-// at the top of this file. Split out to honor the 400-LOC cap.
-
-/// Build the grpcurl argv slice from a parsed GrpcRequest. Pure: depends
-/// only on the inputs and the allocator. No I/O. Extracted so the argv
-/// shape is unit-testable without spinning up a subprocess. `tls` carries
-/// pre-written tmp-file paths (from `grpc_tls.prepareTlsTmpfiles`); pass
-/// `.{}` when none of `-cacert` / `-cert` / `-key` are needed.
-pub fn buildArgv(a: std.mem.Allocator, req: GrpcRequest, tls: TlsPaths) ![]const []const u8 {
-    var argv: std.ArrayList([]const u8) = .empty;
-    try argv.append(a, "grpcurl");
-    try argv.append(a, "-format");
-    try argv.append(a, "json");
-    try argv.append(a, "-format-error");
-    try argv.append(a, "-vv");
-    if (req.plaintext) try argv.append(a, "-plaintext");
-    if (tls.ca_cert_path.len > 0) {
-        try argv.append(a, "-cacert");
-        try argv.append(a, tls.ca_cert_path);
-    }
-    if (tls.client_cert_path.len > 0) {
-        try argv.append(a, "-cert");
-        try argv.append(a, tls.client_cert_path);
-    }
-    if (tls.client_key_path.len > 0) {
-        try argv.append(a, "-key");
-        try argv.append(a, tls.client_key_path);
-    }
-    if (req.server_name.len > 0) {
-        try argv.append(a, "-servername");
-        try argv.append(a, req.server_name);
-    }
-    if (req.authority.len > 0) {
-        try argv.append(a, "-authority");
-        try argv.append(a, req.authority);
-    }
-    try argv.append(a, "-max-time");
-    try argv.append(a, try std.fmt.allocPrint(a, "{d}", .{@max(req.timeout_ms / 1000, 1)}));
-    for (req.metadata) |m| {
-        try argv.append(a, "-rpc-header");
-        try argv.append(a, try std.fmt.allocPrint(a, "{s}: {s}", .{ m.name, m.value }));
-    }
-    if (!req.use_reflection) {
-        for (req.import_paths) |p| {
-            try argv.append(a, "-import-path");
-            try argv.append(a, p);
-        }
-        for (req.proto_files) |p| {
-            try argv.append(a, "-proto");
-            try argv.append(a, p);
-        }
-    }
-    try argv.append(a, "-d");
-    try argv.append(a, if (req.message.len == 0) "{}" else req.message);
-    try argv.append(a, req.target);
-    try argv.append(a, req.full_method);
-    return argv.items;
-}
+// at the top of this file. buildArgv lives in grpc_argv.zig (also
+// re-exported at the top). Both splits are LOC-cap carve-outs and
+// keep argv composition pure / testable without `runRequest`.
 
 pub const ParsedStderr = struct {
     status: []const u8,

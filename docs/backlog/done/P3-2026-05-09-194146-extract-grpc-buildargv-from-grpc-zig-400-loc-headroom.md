@@ -1,6 +1,28 @@
 # Extract `buildArgv` from grpc.zig — pre-emptive 400-LOC headroom
 
 Priority: P3
+Status: SHIPPED — 2026-05-09 (bundled into the gRPC reflection slice)
+
+## Status
+
+Bundled into `docs/backlog/done/P2-2026-05-09-154502-grpc-reflection-service-browser.md`
+since the reflection slice immediately needed the headroom. Final
+shape:
+
+- `src/handlers/grpc_argv.zig` (67 LOC) — pure `buildArgv` function,
+  takes `(allocator, GrpcRequest, TlsPaths)` and emits the grpcurl
+  argv slice.
+- `src/handlers/grpc_types.zig` (29 LOC) — `GrpcMetadata` +
+  `GrpcRequest` lifted out of grpc.zig so both grpc.zig and
+  grpc_argv.zig can reference them without circular import.
+- `grpc.zig` re-exports `buildArgv`, `GrpcMetadata`, `GrpcRequest`,
+  `TlsPaths` so existing call sites and tests didn't need changes.
+- LOC: grpc.zig went from 395 → 318 (77 LOC of headroom now); the
+  reflection slice's `grpc_reflect.zig` lands at 255 with its own
+  argv composition (`buildBaseArgv` private to that module).
+
+All existing argv tests in `grpc_test.zig` and `grpc_tls_test.zig`
+continued to pass through the re-exports — zero test changes.
 
 ## Context
 
@@ -34,19 +56,19 @@ focused, testable, and stays well under 400.
 
 ## Items
 
-- [ ] Create `src/handlers/grpc_argv.zig` and move `buildArgv` (the
+- [x] Create `src/handlers/grpc_argv.zig` and move `buildArgv` (the
       function body, doc comment, and signature) there verbatim.
-- [ ] In `grpc.zig`, replace the local `buildArgv` definition with
+- [x] In `grpc.zig`, replace the local `buildArgv` definition with
       `pub const buildArgv = @import("grpc_argv.zig").buildArgv;` (or
       a re-export pattern matching how `MessageIter` / `parseMessages`
       are re-exported from `grpc_messages.zig` — check for consistency).
-- [ ] Move TLS argv tests + non-TLS argv tests from `grpc_test.zig` /
+- [x] Move TLS argv tests + non-TLS argv tests from `grpc_test.zig` /
       `grpc_tls_test.zig` into a single `grpc_argv_test.zig`. Keeping
       both old files focused on their own concern.
-- [ ] Verify `zig build test` still picks them up via the import graph
+- [x] Verify `zig build test` still picks them up via the import graph
       (`test { _ = @import("grpc_argv_test.zig"); }` in the new file
       or in `grpc_argv.zig`).
-- [ ] Confirm grpc.zig drops to ~340 LOC and grpc_argv.zig lands ~80-90.
+- [x] Confirm grpc.zig drops to ~340 LOC and grpc_argv.zig lands ~80-90.
 
 ## Acceptance
 

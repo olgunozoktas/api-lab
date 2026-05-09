@@ -1,11 +1,13 @@
 import { useState } from "react";
-import { useStore, useActiveVars } from "../store";
 import { useT } from "../lib/i18n/useT";
-import { envSubst } from "../lib/utils";
-import { emptyGrpcState, type GrpcState, type GrpcTls, type KvRow } from "../lib/types";
-import { bridge } from "../lib/bridge";
-import type { GrpcMetadataEntry, GrpcRequest, GrpcResponse } from "../lib/bridge";
-import { buildTlsPayload, derivePlaintext, extractTarget, isLikelyFullMethod } from "../lib/grpc";
+import type { GrpcState, GrpcTls, KvRow } from "../lib/types";
+import type { GrpcResponse } from "../lib/bridge";
+import { extractTarget, isLikelyFullMethod } from "../lib/grpc";
+import {
+  GrpcServicesSidebar,
+  type ServiceMethodPick,
+  type SidebarState,
+} from "./GrpcServicesSidebar";
 import { Button } from "./ui/button";
 import { CodeEditor } from "./ui/code-editor";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
@@ -23,6 +25,9 @@ export type GrpcPanelProps = {
   status: GrpcStatus;
   response: GrpcResponse | null;
   durationMs: number;
+  reflectState: SidebarState;
+  reqTab: "message" | "metadata" | "proto" | "tls";
+  onReqTabChange: (tab: "message" | "metadata" | "proto" | "tls") => void;
   onFullMethodChange: (s: string) => void;
   onMessageChange: (s: string) => void;
   onMetadataChange: (rows: KvRow[]) => void;
@@ -30,12 +35,13 @@ export type GrpcPanelProps = {
   onImportPathsChange: (s: string) => void;
   onProtoFilesChange: (s: string) => void;
   onTlsChange: (patch: Partial<GrpcTls>) => void;
+  onReflectLoad: () => void;
+  onReflectMethodPick: (pick: ServiceMethodPick) => void;
   onSend: () => void;
 };
 
 export function GrpcPanel(p: GrpcPanelProps) {
   const t = useT();
-  const [reqTab, setReqTab] = useState<"message" | "metadata" | "proto" | "tls">("message");
   const tls = p.grpc.tls ?? {};
   const [resTab, setResTab] = useState<"message" | "headers" | "trailers" | "raw">("message");
   const target = extractTarget(p.url);
@@ -82,8 +88,8 @@ export function GrpcPanel(p: GrpcPanelProps) {
 
       <div className="grid grid-rows-2 flex-1 min-h-0 divide-y divide-[var(--color-border)]">
         <Tabs
-          value={reqTab}
-          onValueChange={(v) => setReqTab(v as typeof reqTab)}
+          value={p.reqTab}
+          onValueChange={(v) => p.onReqTabChange(v as typeof p.reqTab)}
           className="flex flex-col min-h-0"
         >
           <TabsList>
@@ -144,6 +150,13 @@ export function GrpcPanel(p: GrpcPanelProps) {
               <Info className="w-3 h-3 mt-0.5 shrink-0" aria-hidden />
               {t("grpc.proto.hint")}
             </p>
+            <div className="border-t border-[var(--color-border)] pt-3 mt-2">
+              <GrpcServicesSidebar
+                state={p.reflectState}
+                onLoad={p.onReflectLoad}
+                onMethodPick={p.onReflectMethodPick}
+              />
+            </div>
           </TabsContent>
           <TabsContent value="tls" className="p-3 space-y-3 overflow-auto">
             <p className="text-[10px] text-[var(--color-fg-muted)] flex gap-1.5 items-start">
@@ -239,106 +252,7 @@ export function GrpcPanel(p: GrpcPanelProps) {
   );
 }
 
-// Container — wires the store + manages running flag + last response.
-export function GrpcPanelContainer() {
-  const url = useStore((s) => s.current.url);
-  const grpcState = useStore((s) => s.current.grpc);
-  const setCurrent = useStore((s) => s.setCurrent);
-  const vars = useActiveVars();
-
-  const grpc: GrpcState = grpcState ?? emptyGrpcState();
-  const fullMethod = grpc.fullMethod;
-
-  const [status, setStatus] = useState<GrpcStatus>("idle");
-  const [response, setResponse] = useState<GrpcResponse | null>(null);
-  const [durationMs, setDurationMs] = useState(0);
-
-  const substitutedUrl = envSubst(url, vars);
-  const target = extractTarget(substitutedUrl);
-
-  const updateGrpc = (patch: Partial<GrpcState>) => {
-    setCurrent({ grpc: { ...grpc, ...patch } });
-  };
-
-  const onSend = async () => {
-    if (status === "running") return;
-    if (!target || !fullMethod.trim()) return;
-    setStatus("running");
-    setResponse(null);
-    const t0 = performance.now();
-    try {
-      const metadata: GrpcMetadataEntry[] = grpc.metadata
-        .filter((m) => m.enabled && m.k.trim().length > 0)
-        .map((m) => ({
-          name: envSubst(m.k, vars),
-          value: envSubst(m.v, vars),
-        }));
-      const payload: GrpcRequest = {
-        target,
-        full_method: envSubst(fullMethod.trim(), vars),
-        message: envSubst(grpc.message, vars),
-        metadata,
-        plaintext: grpc.plaintext ?? derivePlaintext(substitutedUrl),
-        use_reflection: grpc.useReflection,
-        import_paths: grpc.importPaths,
-        proto_files: grpc.protoFiles,
-        timeout_ms: 60000,
-        ...buildTlsPayload(grpc.tls, (s) => envSubst(s, vars)),
-      };
-      const r = await bridge.invoke<GrpcResponse>("grpc.invoke", payload);
-      setResponse(r);
-      setDurationMs(Math.round(performance.now() - t0));
-      if (r.error === "grpcurl_missing") setStatus("missing-binary");
-      else if (r.error || r.exit_code !== 0) setStatus("error");
-      else setStatus("ok");
-    } catch (e) {
-      setResponse({
-        status: "Unknown",
-        status_code_num: -1,
-        status_message: "",
-        messages: [],
-        message_count: 0,
-        headers: [],
-        trailers: [],
-        exit_code: -1,
-        stderr: "",
-        error: (e as Error).message || String(e),
-      });
-      setDurationMs(Math.round(performance.now() - t0));
-      setStatus("error");
-    }
-  };
-
-  return (
-    <GrpcPanel
-      url={substitutedUrl}
-      fullMethod={fullMethod}
-      grpc={grpc}
-      status={status}
-      response={response}
-      durationMs={durationMs}
-      onFullMethodChange={(fullMethod) => updateGrpc({ fullMethod })}
-      onMessageChange={(message) => updateGrpc({ message })}
-      onMetadataChange={(metadata) => updateGrpc({ metadata })}
-      onUseReflectionChange={(useReflection) => updateGrpc({ useReflection })}
-      onImportPathsChange={(s) =>
-        updateGrpc({
-          importPaths: s
-            .split(",")
-            .map((p) => p.trim())
-            .filter((p) => p.length > 0),
-        })
-      }
-      onProtoFilesChange={(s) =>
-        updateGrpc({
-          protoFiles: s
-            .split(",")
-            .map((p) => p.trim())
-            .filter((p) => p.length > 0),
-        })
-      }
-      onTlsChange={(patch) => updateGrpc({ tls: { ...(grpc.tls ?? {}), ...patch } })}
-      onSend={onSend}
-    />
-  );
-}
+// GrpcPanelContainer lives in `./GrpcPanelContainer.tsx` (wires this
+// presenter to the store + bridge). Re-exported there so callers
+// continue importing `GrpcPanel` and `GrpcPanelContainer` from this
+// module's siblings without churn.

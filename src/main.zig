@@ -3,6 +3,7 @@ const runner = @import("runner");
 const zero_native = @import("zero-native");
 const http_handler = @import("handlers/http.zig");
 const grpc_handler = @import("handlers/grpc.zig");
+const grpc_reflect_handler = @import("handlers/grpc_reflect.zig");
 
 pub const panic = std.debug.FullPanic(zero_native.debug.capturePanic);
 
@@ -28,6 +29,8 @@ const allowed_origins = [_][]const u8{ "zero://app", "zero://inline" };
 const command_policies = [_]zero_native.BridgeCommandPolicy{
     .{ .name = "http.request", .permissions = &.{"network"}, .origins = &allowed_origins },
     .{ .name = "grpc.invoke", .permissions = &.{"network"}, .origins = &allowed_origins },
+    .{ .name = "grpc.reflect.list", .permissions = &.{"network"}, .origins = &allowed_origins },
+    .{ .name = "grpc.reflect.skeleton", .permissions = &.{"network"}, .origins = &allowed_origins },
 };
 
 const policy_permissions = [_][]const u8{ "network", "filesystem" };
@@ -45,10 +48,17 @@ pub fn main(init: std.process.Init) !void {
         .io = init.io,
         .env_map = init.environ_map,
     };
+    var grpc_reflect_ctx = grpc_reflect_handler.Context{
+        .gpa = gpa,
+        .io = init.io,
+        .env_map = init.environ_map,
+    };
 
     var handler_list = [_]zero_native.BridgeHandler{
         http_handler.handler(&http_ctx),
         grpc_handler.handler(&grpc_ctx),
+        grpc_reflect_handler.listHandler(&grpc_reflect_ctx),
+        grpc_reflect_handler.skeletonHandler(&grpc_reflect_ctx),
     };
     const registry = zero_native.BridgeRegistry{ .handlers = &handler_list };
 
