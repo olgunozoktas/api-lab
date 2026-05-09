@@ -247,6 +247,7 @@ function ThemeSwatch({
     dark: ["#1c1c1e", "#2c2c2e", "#f5f5f7", "#007aff"],
     "tokyo-night": ["#1a1b26", "#24283b", "#c0caf5", "#7aa2f7"],
     "github-light": ["#ffffff", "#f6f8fa", "#1f2328", "#0969da"],
+    "high-contrast": ["#000000", "#0a0a0a", "#ffffff", "#ffff00"],
   };
   const [bg, elev, fg, accent] = palette[theme];
 

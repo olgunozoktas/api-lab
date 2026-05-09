@@ -186,9 +186,16 @@ export type ComposerTab = "params" | "headers" | "auth" | "body" | "graphql" | "
 export type ResponseTab = "body" | "headers" | "raw" | "examples";
 export type SidebarTab = "collections" | "history";
 
-export type Theme = "auto" | "light" | "dark" | "tokyo-night" | "github-light";
+export type Theme = "auto" | "light" | "dark" | "tokyo-night" | "github-light" | "high-contrast";
 
-export const THEMES: Theme[] = ["auto", "light", "dark", "tokyo-night", "github-light"];
+export const THEMES: Theme[] = [
+  "auto",
+  "light",
+  "dark",
+  "tokyo-night",
+  "github-light",
+  "high-contrast",
+];
 
 // Pixel widths persisted across reloads via the IDB Zustand middleware.
 // `composerPx` is the request composer's width when the 3-pane layout

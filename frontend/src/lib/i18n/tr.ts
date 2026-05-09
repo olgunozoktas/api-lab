@@ -20,6 +20,7 @@ export const tr = {
   "settings.theme.dark": "Koyu",
   "settings.theme.tokyo-night": "Tokyo Night",
   "settings.theme.github-light": "GitHub Light",
+  "settings.theme.high-contrast": "Yüksek Kontrast",
   "settings.language": "Dil",
   "settings.section.defaults": "Varsayılan istek davranışı",
   "settings.timeoutMs": "Zaman aşımı (ms)",
@@ -167,6 +168,7 @@ export const tr = {
   "graphql.query": "Query",
   "graphql.vars": "Variables (JSON)",
 
+  "response.statusAriaLabel": "Yanıt durumu {status} {text}",
   "response.empty.title": "İstek atmaya hazır.",
   "response.empty.shortcuts": "Gönder · Kaydet · Yeni",
   "response.copy.body": "Body Kopyala",
