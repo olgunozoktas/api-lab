@@ -5,10 +5,14 @@ import { TabStripContainer } from "./components/TabStrip";
 import { QuickSwitcher } from "./components/QuickSwitcher";
 import { RequestComposerContainer } from "./components/RequestComposer";
 import { ResponseViewerContainer } from "./components/ResponseViewer";
+import { WsPanelContainer } from "./components/WsPanel";
+import { UrlBarContainer } from "./components/UrlBar";
 import { Toast } from "./components/Toast";
 import { useStore, useActiveVars } from "./store";
 import { useT } from "./lib/i18n/useT";
 import { send } from "./lib/sendRequest";
+import { isWsUrl } from "./lib/ws";
+import { envSubst } from "./lib/utils";
 
 export function App() {
   const current = useStore((s) => s.current);
@@ -141,18 +145,36 @@ export function App() {
     return () => document.removeEventListener("keydown", onKey);
   }, [onSend, saveCurrent, resetCurrent, newTab, closeTab, setActiveTab]);
 
+  const activeTabId = useStore((s) => s.activeTabId);
+  const wsMode = isWsUrl(envSubst(current.url, vars));
+
   return (
     <div className="h-full flex flex-col bg-[var(--color-bg)] text-[var(--color-fg)] text-[13px]">
       <TopBar />
-      <main className="flex-1 grid min-h-0" style={{ gridTemplateColumns: "240px 1fr 1fr" }}>
+      <main
+        className="flex-1 grid min-h-0"
+        style={{ gridTemplateColumns: wsMode ? "240px 1fr" : "240px 1fr 1fr" }}
+      >
         <Sidebar />
-        <div className="flex flex-col min-h-0 min-w-0 border-r border-[var(--color-border)]">
-          <TabStripContainer />
-          <div className="flex-1 min-h-0 overflow-hidden">
-            <RequestComposerContainer busy={busy} onSend={onSend} />
+        {wsMode ? (
+          <div className="flex flex-col min-h-0 min-w-0 overflow-hidden">
+            <TabStripContainer />
+            <UrlBarContainer busy={false} onSend={onSend} hideSend hideMethod />
+            <div className="flex-1 min-h-0 overflow-hidden">
+              <WsPanelContainer key={activeTabId} />
+            </div>
           </div>
-        </div>
-        <ResponseViewerContainer />
+        ) : (
+          <>
+            <div className="flex flex-col min-h-0 min-w-0 border-r border-[var(--color-border)]">
+              <TabStripContainer />
+              <div className="flex-1 min-h-0 overflow-hidden">
+                <RequestComposerContainer busy={busy} onSend={onSend} />
+              </div>
+            </div>
+            <ResponseViewerContainer />
+          </>
+        )}
       </main>
       <Toast />
       <QuickSwitcher open={switcherOpen} onOpenChange={setSwitcherOpen} />
