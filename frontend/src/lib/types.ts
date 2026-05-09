@@ -1,13 +1,29 @@
 export type KvRow = { enabled: boolean; k: string; v: string };
 
-export type AuthType = "none" | "bearer" | "basic" | "apikey";
+export type AuthType = "none" | "bearer" | "basic" | "apikey" | "oauth2";
 export type Auth = {
   type: AuthType;
+  // bearer
   token?: string;
+  // basic
   user?: string;
   pass?: string;
+  // apikey
   header?: string;
   value?: string;
+  // oauth2 — manual helper variant. Full popup + redirect flow needs
+  // zero-native upstream changes (popup WKWebView + redirect interception
+  // + Keychain bridge); see backlog P2 follow-ups. v1 lets the user paste
+  // tokens acquired from any external OAuth tool and refresh them via the
+  // existing curl bridge.
+  oauth2?: {
+    access_token?: string;
+    refresh_token?: string;
+    expires_at?: number; // epoch ms; auto-set on refresh
+    token_url?: string; // for refresh
+    client_id?: string;
+    client_secret?: string; // optional — public clients (PKCE) skip this
+  };
 };
 
 export type BodyMode = "none" | "json" | "form" | "raw";

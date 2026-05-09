@@ -24,6 +24,12 @@ export function buildHeadersList(req: CurrentRequest, vars: Record<string, strin
     );
   } else if (a.type === "apikey" && a.header && a.value) {
     out.set(envSubst(a.header, vars), envSubst(a.value, vars));
+  } else if (a.type === "oauth2" && a.oauth2?.access_token) {
+    // OAuth 2.0 (helper variant) — inject Bearer + access_token. Token
+    // refresh is a separate user-driven action via the AuthPanel; if the
+    // token is expired we still send it (server returns 401 → user clicks
+    // Refresh → resends). The full popup flow is a backlog follow-up.
+    out.set("Authorization", "Bearer " + envSubst(a.oauth2.access_token, vars));
   }
   return out;
 }
