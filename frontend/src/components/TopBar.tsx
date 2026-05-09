@@ -25,7 +25,7 @@ export function TopBar() {
     const order = ["auto", "light", "dark"] as const;
     const next = order[(order.indexOf(ui.theme) + 1) % 3];
     setUi({ theme: next });
-    document.documentElement.style.colorScheme = next === "auto" ? "light dark" : next;
+    // App.tsx's useEffect handles the data-theme attribute + colorScheme.
     showToast(t("topbar.theme.toast", { name: next }));
   };
 

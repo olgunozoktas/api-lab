@@ -3,7 +3,7 @@ import { useT } from "../lib/i18n/useT";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "./ui/select";
-import type { AuthType } from "../lib/types";
+import type { Auth, AuthType } from "../lib/types";
 import type { TKey } from "../lib/i18n";
 
 const inputCls =
@@ -11,18 +11,22 @@ const inputCls =
   "rounded px-2 py-1 font-mono text-xs outline-none " +
   "focus:border-[var(--color-accent)] text-[var(--color-fg)]";
 
-export function AuthPanel() {
-  const auth = useStore((s) => s.current.auth);
-  const setCurrent = useStore((s) => s.setCurrent);
+// Presenter — pure props in / events out.
+export type AuthPanelProps = {
+  value: Auth;
+  onChange: (auth: Auth) => void;
+};
+
+export function AuthPanel({ value, onChange }: AuthPanelProps) {
   const t = useT();
 
-  const setType = (type: AuthType) => setCurrent({ auth: { type } });
-  const setField = (k: string, v: string) => setCurrent({ auth: { ...auth, [k]: v } });
+  const setType = (type: AuthType) => onChange({ type });
+  const setField = (k: keyof Auth, v: string) => onChange({ ...value, [k]: v });
 
   return (
     <div>
       <Row labelKey="auth.type">
-        <Select value={auth.type} onValueChange={(v) => setType(v as AuthType)}>
+        <Select value={value.type} onValueChange={(v) => setType(v as AuthType)}>
           <SelectTrigger aria-label={t("auth.type")}>
             <SelectValue />
           </SelectTrigger>
@@ -34,23 +38,23 @@ export function AuthPanel() {
           </SelectContent>
         </Select>
       </Row>
-      {auth.type === "bearer" && (
+      {value.type === "bearer" && (
         <Row labelKey="auth.token">
           <input
             type="text"
-            value={auth.token ?? ""}
+            value={value.token ?? ""}
             placeholder="eyJhbGc..."
             onChange={(e) => setField("token", e.target.value)}
             className={inputCls}
           />
         </Row>
       )}
-      {auth.type === "basic" && (
+      {value.type === "basic" && (
         <>
           <Row labelKey="auth.user">
             <input
               type="text"
-              value={auth.user ?? ""}
+              value={value.user ?? ""}
               onChange={(e) => setField("user", e.target.value)}
               className={inputCls}
             />
@@ -58,19 +62,19 @@ export function AuthPanel() {
           <Row labelKey="auth.pass">
             <input
               type="password"
-              value={auth.pass ?? ""}
+              value={value.pass ?? ""}
               onChange={(e) => setField("pass", e.target.value)}
               className={inputCls}
             />
           </Row>
         </>
       )}
-      {auth.type === "apikey" && (
+      {value.type === "apikey" && (
         <>
           <Row labelKey="auth.header">
             <input
               type="text"
-              value={auth.header ?? ""}
+              value={value.header ?? ""}
               placeholder="X-API-Key"
               onChange={(e) => setField("header", e.target.value)}
               className={inputCls}
@@ -79,7 +83,7 @@ export function AuthPanel() {
           <Row labelKey="auth.value">
             <input
               type="text"
-              value={auth.value ?? ""}
+              value={value.value ?? ""}
               onChange={(e) => setField("value", e.target.value)}
               className={inputCls}
             />
@@ -101,4 +105,11 @@ function Row({ labelKey, children }: { labelKey: TKey; children: React.ReactNode
       {children}
     </div>
   );
+}
+
+// Container — wires the store.
+export function AuthPanelContainer() {
+  const value = useStore((s) => s.current.auth);
+  const setCurrent = useStore((s) => s.setCurrent);
+  return <AuthPanel value={value} onChange={(auth) => setCurrent({ auth })} />;
 }

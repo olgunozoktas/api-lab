@@ -1,37 +1,49 @@
 import { useStore } from "../store";
 import { useT } from "../lib/i18n/useT";
+import { CodeEditor } from "./ui/code-editor";
+import type { Gql } from "../lib/types";
 
-const taCls =
-  "w-full resize-y bg-[var(--color-bg-elev)] border border-[var(--color-border)] " +
-  "rounded-md p-2.5 font-mono text-xs leading-6 outline-none " +
-  "focus:border-[var(--color-accent)] text-[var(--color-fg)]";
+// Presenter — pure props in / events out.
+export type GraphqlPanelProps = {
+  value: Gql;
+  onChange: (gql: Gql) => void;
+};
 
-export function GraphqlPanel() {
-  const gql = useStore((s) => s.current.gql);
-  const setCurrent = useStore((s) => s.setCurrent);
+export function GraphqlPanel({ value, onChange }: GraphqlPanelProps) {
   const t = useT();
-
   return (
     <div>
       <div className="mb-2 text-[11px] text-[var(--color-fg-muted)]">
         {t("graphql.note")}
       </div>
-      <label className="text-[11px] text-[var(--color-fg-muted)]">{t("graphql.query")}</label>
-      <textarea
-        value={gql.query}
-        onChange={(e) => setCurrent({ gql: { ...gql, query: e.target.value } })}
+      <label className="text-[11px] text-[var(--color-fg-muted)]">
+        {t("graphql.query")}
+      </label>
+      <CodeEditor
+        value={value.query}
+        onChange={(query) => onChange({ ...value, query })}
+        language="graphql"
         placeholder="query { users { id name } }"
-        spellCheck={false}
-        className={taCls + " min-h-[140px]"}
+        minHeight={180}
+        className="mb-3"
       />
-      <label className="text-[11px] text-[var(--color-fg-muted)] block mt-2">{t("graphql.vars")}</label>
-      <textarea
-        value={gql.vars}
-        onChange={(e) => setCurrent({ gql: { ...gql, vars: e.target.value } })}
+      <label className="text-[11px] text-[var(--color-fg-muted)] block mt-2">
+        {t("graphql.vars")}
+      </label>
+      <CodeEditor
+        value={value.vars}
+        onChange={(vars) => onChange({ ...value, vars })}
+        language="json"
         placeholder='{ "id": 1 }'
-        spellCheck={false}
-        className={taCls + " min-h-[80px]"}
+        minHeight={120}
       />
     </div>
   );
+}
+
+// Container — wires the store.
+export function GraphqlPanelContainer() {
+  const value = useStore((s) => s.current.gql);
+  const setCurrent = useStore((s) => s.setCurrent);
+  return <GraphqlPanel value={value} onChange={(gql) => setCurrent({ gql })} />;
 }

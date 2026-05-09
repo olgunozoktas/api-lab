@@ -1,5 +1,7 @@
 # Phase C — WebSocket + Code generation
 
+GitHub Issue: [#2](https://github.com/olgunozoktas/api-lab/issues/2)
+
 Priority: P2
 
 ## Context

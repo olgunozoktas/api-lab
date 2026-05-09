@@ -30,43 +30,6 @@ export function isProbablyJson(s: string): boolean {
   return t.startsWith("{") || t.startsWith("[");
 }
 
-function escapeHtml(s: string): string {
-  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-}
-
-// Token-based JSON syntax highlight. Avoids the regex-chain pitfall where
-// the second regex matches "json-string" inside an already-injected span.
-export function highlightJson(json: string): string {
-  const out: string[] = [];
-  let i = 0;
-  const n = json.length;
-  while (i < n) {
-    const c = json[i];
-    if (c === '"') {
-      const start = i++;
-      while (i < n && json[i] !== '"') {
-        if (json[i] === "\\" && i + 1 < n) i++;
-        i++;
-      }
-      i++;
-      const str = json.slice(start, i);
-      let j = i;
-      while (j < n && /\s/.test(json[j])) j++;
-      const isKey = json[j] === ":";
-      const cls = isKey ? "json-key" : "json-string";
-      out.push(`<span class="${cls}">${escapeHtml(str)}</span>`);
-    } else if (c === "-" || (c >= "0" && c <= "9")) {
-      const start = i++;
-      while (i < n && /[\d.eE+\-]/.test(json[i])) i++;
-      out.push(`<span class="json-number">${json.slice(start, i)}</span>`);
-    } else if (json.startsWith("true", i))  { out.push('<span class="json-bool">true</span>');  i += 4; }
-    else   if (json.startsWith("false", i)) { out.push('<span class="json-bool">false</span>'); i += 5; }
-    else   if (json.startsWith("null", i))  { out.push('<span class="json-null">null</span>');  i += 4; }
-    else { out.push(escapeHtml(c)); i++; }
-  }
-  return out.join("");
-}
-
 export function statusPillClass(code: number): string {
   if (code >= 500) return "bg-red-500/15 text-[var(--color-danger)]";
   if (code >= 400) return "bg-orange-500/15 text-[var(--color-warning)]";

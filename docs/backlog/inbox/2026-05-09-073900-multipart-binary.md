@@ -1,5 +1,7 @@
 # Multipart + binary body support
 
+GitHub Issue: [#17](https://github.com/olgunozoktas/api-lab/issues/17)
+
 Native HTTP handler currently sends body as JSON-encoded UTF-8 string. Doesn't handle:
 - multipart/form-data (file uploads)
 - Binary payloads (protobuf, images, etc.)

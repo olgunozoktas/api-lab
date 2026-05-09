@@ -9,17 +9,23 @@ import { Send } from "lucide-react";
 
 const METHODS = ["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"] as const;
 
-type Props = { busy: boolean; onSend: () => void };
+// Presenter.
+export type UrlBarProps = {
+  method: string;
+  url: string;
+  busy: boolean;
+  onMethodChange: (m: string) => void;
+  onUrlChange: (u: string) => void;
+  onSend: () => void;
+};
 
-export function UrlBar({ busy, onSend }: Props) {
-  const method = useStore((s) => s.current.method);
-  const url = useStore((s) => s.current.url);
-  const setCurrent = useStore((s) => s.setCurrent);
+export function UrlBar({
+  method, url, busy, onMethodChange, onUrlChange, onSend,
+}: UrlBarProps) {
   const t = useT();
-
   return (
     <div className="flex gap-1.5 px-3 py-2.5 bg-[var(--color-bg-elev)] border-b border-[var(--color-border)]">
-      <Select value={method} onValueChange={(v) => setCurrent({ method: v })}>
+      <Select value={method} onValueChange={onMethodChange}>
         <SelectTrigger
           aria-label="HTTP method"
           className={"w-22 font-mono font-bold " + methodClass(method)}
@@ -37,7 +43,7 @@ export function UrlBar({ busy, onSend }: Props) {
       <input
         type="text"
         value={url}
-        onChange={(e) => setCurrent({ url: e.target.value })}
+        onChange={(e) => onUrlChange(e.target.value)}
         placeholder={t("composer.urlPlaceholder", { vars: "{{base_url}}/path" })}
         className={
           "flex-1 bg-[var(--color-bg-elev-2)] border border-[var(--color-border)] " +
@@ -50,5 +56,24 @@ export function UrlBar({ busy, onSend }: Props) {
         {busy ? t("composer.sending") : t("composer.send")}
       </Button>
     </div>
+  );
+}
+
+// Container — wires the store + send action.
+export type UrlBarContainerProps = { busy: boolean; onSend: () => void };
+
+export function UrlBarContainer({ busy, onSend }: UrlBarContainerProps) {
+  const method = useStore((s) => s.current.method);
+  const url = useStore((s) => s.current.url);
+  const setCurrent = useStore((s) => s.setCurrent);
+  return (
+    <UrlBar
+      method={method}
+      url={url}
+      busy={busy}
+      onMethodChange={(method) => setCurrent({ method })}
+      onUrlChange={(url) => setCurrent({ url })}
+      onSend={onSend}
+    />
   );
 }

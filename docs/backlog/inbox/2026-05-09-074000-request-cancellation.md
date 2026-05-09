@@ -1,5 +1,7 @@
 # Request cancellation + progress
 
+GitHub Issue: [#18](https://github.com/olgunozoktas/api-lab/issues/18)
+
 For long requests, allow user to cancel mid-flight. Show progress for streaming responses.
 
 - Frontend: AbortController on fetch path; for native bridge, send `http.cancel({id})` command

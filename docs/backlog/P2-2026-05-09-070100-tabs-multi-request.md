@@ -1,5 +1,7 @@
 # Phase B — Tabs UI + multi-request workspace
 
+GitHub Issue: [#1](https://github.com/olgunozoktas/api-lab/issues/1)
+
 Priority: P2
 
 ## Context

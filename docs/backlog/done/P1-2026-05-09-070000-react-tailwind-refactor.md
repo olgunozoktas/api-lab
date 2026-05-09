@@ -1,7 +1,8 @@
 # Phase A — React + Tailwind v4 refactor
 
+GitHub Issue: [#22](https://github.com/olgunozoktas/api-lab/issues/22)
+
 Priority: P1
-GitHub Issue: —
 
 ## Context
 

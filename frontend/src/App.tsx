@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
 import { TopBar } from "./components/TopBar";
 import { Sidebar } from "./components/Sidebar";
-import { RequestComposer } from "./components/RequestComposer";
-import { ResponseViewer } from "./components/ResponseViewer";
+import { RequestComposerContainer } from "./components/RequestComposer";
+import { ResponseViewerContainer } from "./components/ResponseViewer";
 import { Toast } from "./components/Toast";
 import { useStore, useActiveVars } from "./store";
 import { useT } from "./lib/i18n/useT";
@@ -22,8 +22,10 @@ export function App() {
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    document.documentElement.style.colorScheme =
-      ui.theme === "auto" ? "light dark" : ui.theme;
+    const html = document.documentElement;
+    if (ui.theme === "auto") html.removeAttribute("data-theme");
+    else html.setAttribute("data-theme", ui.theme);
+    html.style.colorScheme = ui.theme === "auto" ? "light dark" : ui.theme;
   }, [ui.theme]);
 
   const onSend = useCallback(async () => {
@@ -72,8 +74,8 @@ export function App() {
       <TopBar />
       <main className="flex-1 grid min-h-0" style={{ gridTemplateColumns: "240px 1fr 1fr" }}>
         <Sidebar />
-        <RequestComposer busy={busy} onSend={onSend} />
-        <ResponseViewer />
+        <RequestComposerContainer busy={busy} onSend={onSend} />
+        <ResponseViewerContainer />
       </main>
       <Toast />
     </div>

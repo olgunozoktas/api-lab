@@ -4,31 +4,36 @@ import { Button } from "./ui/button";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "./ui/select";
+import { CodeEditor } from "./ui/code-editor";
 import { Wand2 } from "lucide-react";
-import type { BodyMode } from "../lib/types";
+import type { Body, BodyMode } from "../lib/types";
 
-export function BodyPanel() {
-  const body = useStore((s) => s.current.body);
-  const setCurrent = useStore((s) => s.setCurrent);
-  const showToast = useStore((s) => s.showToast);
+// Presenter — pure props in / events out. No store.
+export type BodyPanelProps = {
+  value: Body;
+  onChange: (body: Body) => void;
+  onInvalidJson?: (err: string) => void;
+};
+
+export function BodyPanel({ value, onChange, onInvalidJson }: BodyPanelProps) {
   const t = useT();
 
-  const setMode = (mode: BodyMode) => setCurrent({ body: { ...body, mode } });
-  const setText = (text: string) => setCurrent({ body: { ...body, text } });
+  const setMode = (mode: BodyMode) => onChange({ ...value, mode });
+  const setText = (text: string) => onChange({ ...value, text });
 
   const prettify = () => {
-    if (body.mode !== "json") return;
+    if (value.mode !== "json") return;
     try {
-      setText(JSON.stringify(JSON.parse(body.text), null, 2));
+      onChange({ ...value, text: JSON.stringify(JSON.parse(value.text), null, 2) });
     } catch (e) {
-      showToast(t("body.invalidJson", { error: (e as Error).message }));
+      onInvalidJson?.((e as Error).message);
     }
   };
 
   return (
     <div>
       <div className="flex gap-1.5 mb-2 flex-wrap">
-        <Select value={body.mode} onValueChange={(v) => setMode(v as BodyMode)}>
+        <Select value={value.mode} onValueChange={(v) => setMode(v as BodyMode)}>
           <SelectTrigger aria-label="Body mode" className="w-auto">
             <SelectValue />
           </SelectTrigger>
@@ -39,23 +44,50 @@ export function BodyPanel() {
             <SelectItem value="raw">{t("body.mode.raw")}</SelectItem>
           </SelectContent>
         </Select>
-        <Button variant="secondary" size="sm" onClick={prettify}>
-          <Wand2 className="w-3 h-3" />
-          {t("body.prettyFormat")}
-        </Button>
+        {value.mode === "json" && (
+          <Button variant="secondary" size="sm" onClick={prettify}>
+            <Wand2 className="w-3 h-3" />
+            {t("body.prettyFormat")}
+          </Button>
+        )}
       </div>
-      <textarea
-        value={body.text}
-        onChange={(e) => setText(e.target.value)}
-        placeholder='{"key": "value"}'
-        spellCheck={false}
-        className={
-          "w-full min-h-[200px] resize-y bg-[var(--color-bg-elev)] " +
-          "border border-[var(--color-border)] rounded-md p-2.5 " +
-          "font-mono text-xs leading-6 outline-none " +
-          "focus:border-[var(--color-accent)] text-[var(--color-fg)]"
-        }
-      />
+      {value.mode === "json" ? (
+        <CodeEditor
+          value={value.text}
+          onChange={setText}
+          language="json"
+          placeholder='{"key": "value"}'
+          minHeight={240}
+        />
+      ) : (
+        <textarea
+          value={value.text}
+          onChange={(e) => setText(e.target.value)}
+          placeholder={value.mode === "form" ? "key1=value1&key2=value2" : "raw body..."}
+          spellCheck={false}
+          className={
+            "w-full min-h-[200px] resize-y bg-[var(--color-bg-elev)] " +
+            "border border-[var(--color-border)] rounded-md p-2.5 " +
+            "font-mono text-xs leading-6 outline-none " +
+            "focus:border-[var(--color-accent)] text-[var(--color-fg)]"
+          }
+        />
+      )}
     </div>
+  );
+}
+
+// Container — wires the store.
+export function BodyPanelContainer() {
+  const value = useStore((s) => s.current.body);
+  const setCurrent = useStore((s) => s.setCurrent);
+  const showToast = useStore((s) => s.showToast);
+  const t = useT();
+  return (
+    <BodyPanel
+      value={value}
+      onChange={(body) => setCurrent({ body })}
+      onInvalidJson={(error) => showToast(t("body.invalidJson", { error }))}
+    />
   );
 }

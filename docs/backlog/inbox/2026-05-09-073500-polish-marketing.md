@@ -1,5 +1,7 @@
 # Phase L — Polish, marketing, launch
 
+GitHub Issue: [#13](https://github.com/olgunozoktas/api-lab/issues/13)
+
 Turning "tool I built" into "tool people use".
 
 - Demo GIF (Charm's vhs or asciinema-to-gif): 30-60 s of typical flow

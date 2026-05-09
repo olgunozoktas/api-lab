@@ -1,6 +1,7 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+/* Light tokens — always defined at :root. Dark tokens are overrides. */
 @theme {
   --color-bg: #f5f5f7;
   --color-bg-elev: #ffffff;
@@ -18,8 +19,23 @@
   --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, sans-serif;
 }
 
+/* Tailwind v4 dark variant — toggled by data-theme="dark" anywhere in the
+   ancestor chain. Lets us write dark:bg-... utility classes if needed. */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+/* Forced dark — explicit user choice */
+:root[data-theme="dark"] {
+  --color-bg: #1c1c1e;
+  --color-bg-elev: #2c2c2e;
+  --color-bg-elev-2: #3a3a3c;
+  --color-fg: #f5f5f7;
+  --color-fg-muted: #98989d;
+  --color-border: #38383a;
+}
+
+/* OS prefers dark + theme is auto/unset (NOT forced light) */
 @media (prefers-color-scheme: dark) {
-  @theme {
+  :root:not([data-theme="light"]) {
     --color-bg: #1c1c1e;
     --color-bg-elev: #2c2c2e;
     --color-bg-elev-2: #3a3a3c;
@@ -47,10 +63,4 @@ input, textarea, [contenteditable="true"] {
 ::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 5px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--color-fg-muted); }
 ::-webkit-scrollbar-track { background: transparent; }
-
-/* JSON syntax highlight tokens */
-.json-key    { color: var(--color-accent); }
-.json-string { color: var(--color-success); }
-.json-number { color: var(--color-warning); }
-.json-bool   { color: var(--color-purple); }
-.json-null   { color: var(--color-fg-muted); }
+</content>

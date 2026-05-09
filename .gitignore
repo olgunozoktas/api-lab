@@ -1,36 +1,129 @@
-# Zig build artifacts
+# ─── Zig build artifacts ──────────────────────────────────────────────
 zig-out/
 .zig-cache/
+zig-cache/
 
-# macOS
-.DS_Store
-
-# IDE
-.vscode/
-.idea/
-*.swp
-
-# Local-only files
-*.bak
-.env
-.env.local
-
-# Logs
-*.log
-
-# Session handoffs — never share, ever (private working notes)
-handoffs/
-docs/sessions/
-docs/handoffs/
-
-# Local backlog session artifacts
-docs/backlog/.profile.jsonl
-
-# Docker setup for dnpm (per-machine, never committed)
-docker-compose.node.yml
-.dnpm/
-
-# Frontend build dirs (managed by dnpm volumes)
+# ─── Frontend (Vite + dnpm) ───────────────────────────────────────────
 frontend/node_modules/
 frontend/dist/
 frontend/.vite/
+frontend/.astro/
+frontend/coverage/
+frontend/.tsbuildinfo
+frontend/*.tsbuildinfo
+
+# dnpm Docker scaffolding (per-machine, never committed)
+docker-compose.node.yml
+.dnpm/
+**/docker-compose.node.yml
+**/.dnpm/
+
+# Frontend lockfiles only when intentional — keep package-lock.json committed when present
+# (uncomment if your team prefers no lockfile)
+# package-lock.json
+# yarn.lock
+# pnpm-lock.yaml
+
+# ─── Session-private content (NEVER share) ────────────────────────────
+handoffs/
+docs/sessions/
+docs/handoffs/
+**/handoffs/
+
+# Local backlog session events (per-machine state)
+docs/backlog/.profile.jsonl
+
+# ─── macOS ────────────────────────────────────────────────────────────
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+
+# ─── Linux ────────────────────────────────────────────────────────────
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# ─── Windows ──────────────────────────────────────────────────────────
+Thumbs.db
+ehthumbs.db
+ehthumbs_vista.db
+*.stackdump
+[Dd]esktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
+
+# ─── Editors / IDEs ───────────────────────────────────────────────────
+.vscode/
+.vscode-test/
+!.vscode/settings.json.example
+.idea/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+*.sublime-project
+.netrwhist
+.history/
+.zed/
+
+# ─── Local-only files & secrets ───────────────────────────────────────
+*.bak
+*.local
+.env
+.env.*
+!.env.example
+.envrc
+.direnv/
+secrets/
+*.pem
+*.key
+*.cert
+
+# ─── Logs ─────────────────────────────────────────────────────────────
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# ─── Test / coverage ──────────────────────────────────────────────────
+.nyc_output/
+coverage/
+*.lcov
+.pytest_cache/
+
+# ─── OS junk ──────────────────────────────────────────────────────────
+*.tmp
+*.temp
+
+# ─── Build outputs in subprojects ─────────────────────────────────────
+target/
+build/
+out/

@@ -1,5 +1,7 @@
 # Adopt shadcn/ui primitives — Button, Dialog, Select, Tabs
 
+GitHub Issue: [#4](https://github.com/olgunozoktas/api-lab/issues/4)
+
 Priority: P2
 
 ## Context
