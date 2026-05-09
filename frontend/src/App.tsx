@@ -7,6 +7,7 @@ import { RequestComposerContainer } from "./components/RequestComposer";
 import { ResponseViewerContainer } from "./components/ResponseViewer";
 import { WsPanelContainer } from "./components/WsPanel";
 import { GrpcPanelContainer } from "./components/GrpcPanelContainer";
+import { SsePanelContainer } from "./components/SsePanel";
 import { UrlBarContainer } from "./components/UrlBar";
 import { Toast } from "./components/Toast";
 import { ResizableDivider } from "./components/ResizableDivider";
@@ -15,6 +16,7 @@ import { useT } from "./lib/i18n/useT";
 import { send } from "./lib/sendRequest";
 import { isWsUrl } from "./lib/ws";
 import { isGrpcUrl } from "./lib/grpc";
+import { isSseUrl } from "./lib/sse";
 import { envSubst } from "./lib/utils";
 import {
   COMPOSER_PX_MAX,
@@ -159,7 +161,8 @@ export function App() {
   const substitutedUrl = envSubst(current.url, vars);
   const wsMode = isWsUrl(substitutedUrl);
   const grpcMode = !wsMode && isGrpcUrl(substitutedUrl);
-  const singleColumn = wsMode || grpcMode;
+  const sseMode = !wsMode && !grpcMode && isSseUrl(substitutedUrl);
+  const singleColumn = wsMode || grpcMode || sseMode;
 
   const layout = ui.layout ?? DEFAULT_LAYOUT;
   const setUi = useStore((s) => s.setUi);
@@ -194,8 +197,10 @@ export function App() {
             <div className="flex-1 min-h-0 overflow-hidden">
               {wsMode ? (
                 <WsPanelContainer key={activeTabId} />
-              ) : (
+              ) : grpcMode ? (
                 <GrpcPanelContainer key={activeTabId} />
+              ) : (
+                <SsePanelContainer key={activeTabId} />
               )}
             </div>
           </div>
