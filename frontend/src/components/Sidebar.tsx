@@ -1,11 +1,13 @@
 import { useStore } from "../store";
 import { CollectionList } from "./CollectionList";
 import { HistoryList } from "./HistoryList";
+import { useT } from "../lib/i18n/useT";
 
 export function Sidebar() {
   const ui = useStore((s) => s.ui);
   const setUi = useStore((s) => s.setUi);
   const resetCurrent = useStore((s) => s.resetCurrent);
+  const t = useT();
 
   return (
     <aside className="bg-[var(--color-bg-elev)] border-r border-[var(--color-border)] flex flex-col overflow-hidden">
@@ -21,26 +23,26 @@ export function Sidebar() {
                 : "text-[var(--color-fg-muted)] hover:text-[var(--color-fg)]")
             }
           >
-            {tab === "collections" ? "Koleksiyon" : "Geçmiş"}
+            {t(tab === "collections" ? "sidebar.tab.collections" : "sidebar.tab.history")}
           </button>
         ))}
       </div>
       {ui.sidebarTab === "collections" ? (
         <>
-          <SectionHeader>Saved</SectionHeader>
+          <SectionHeader>{t("sidebar.section.saved")}</SectionHeader>
           <CollectionList />
           <div className="px-2 pb-2">
             <button
               onClick={resetCurrent}
               className="w-full text-xs py-1.5 rounded-md border border-dashed border-[var(--color-border)] text-[var(--color-fg-muted)] hover:border-[var(--color-accent)] hover:text-[var(--color-accent)]"
             >
-              + Yeni İstek
+              {t("sidebar.newRequest")}
             </button>
           </div>
         </>
       ) : (
         <>
-          <SectionHeader rightSlot={<ClearHistoryButton />}>Son istekler</SectionHeader>
+          <SectionHeader rightSlot={<ClearHistoryButton />}>{t("sidebar.section.recent")}</SectionHeader>
           <HistoryList />
         </>
       )}
@@ -59,12 +61,13 @@ function SectionHeader({ children, rightSlot }: { children: React.ReactNode; rig
 
 function ClearHistoryButton() {
   const clearHistory = useStore((s) => s.clearHistory);
+  const t = useT();
   return (
     <button
-      onClick={() => { if (confirm("Geçmiş silinsin mi?")) clearHistory(); }}
+      onClick={() => { if (confirm(t("sidebar.confirmClearHistory"))) clearHistory(); }}
       className="text-[11px] px-1.5 py-0.5 rounded text-[var(--color-fg-muted)] hover:bg-[var(--color-bg-elev-2)] hover:text-[var(--color-fg)]"
     >
-      Temizle
+      {t("sidebar.clearHistory")}
     </button>
   );
 }

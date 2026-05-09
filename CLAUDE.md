@@ -65,6 +65,8 @@ frontend/
 
 ## Hard rules (project-wide)
 
+**i18n: every user-facing string goes through `t()`.** No hardcoded UI strings in components. Translation keys live in `frontend/src/lib/i18n/tr.ts` (source of truth — TypeScript fails the build if other locales miss any key). Adding a new language = (1) create `frontend/src/lib/i18n/<code>.ts` exporting a `Dict`-typed object, (2) register it in `frontend/src/lib/i18n/index.ts`'s `locales` map and `LOCALE_LABEL`, (3) extend `SUPPORTED_LOCALES`. No code path may call `console`-targeted strings, `confirm()`, `alert()`, placeholders, button text, or labels with literal English/Turkish text — always `t("key")`.
+
 **Max 400 lines per source file.** Applies to every React component (`.tsx` / `.jsx`), every Zig file (`.zig`), and every stand-alone TypeScript module under `frontend/src/`. When a file approaches the limit, decompose:
 
 - React: extract subcomponents (`<Sidebar>` → `<Sidebar>` + `<CollectionList>` + `<HistoryList>`), pull JSX-free helpers into `frontend/src/lib/`.

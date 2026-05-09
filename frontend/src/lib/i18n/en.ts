@@ -1,0 +1,83 @@
+// English translations. Must mirror the key set defined in tr.ts.
+
+import type { Dict } from "./index";
+
+export const en: Dict = {
+  "lang.label": "Language",
+  "lang.tr": "Türkçe",
+  "lang.en": "English",
+
+  "topbar.theme": "Theme",
+  "topbar.theme.toast": "Theme: {name}",
+  "topbar.envEdit": "Env...",
+
+  "sidebar.tab.collections": "Collections",
+  "sidebar.tab.history": "History",
+  "sidebar.section.saved": "Saved",
+  "sidebar.section.recent": "Recent requests",
+  "sidebar.empty.collections": "No saved requests yet",
+  "sidebar.empty.history": "No history yet",
+  "sidebar.newRequest": "+ New request",
+  "sidebar.clearHistory": "Clear",
+  "sidebar.confirmClearHistory": "Clear history?",
+
+  "composer.requestName": "Request name",
+  "composer.save": "Save",
+  "composer.send": "Send",
+  "composer.sending": "Sending...",
+  "composer.urlPlaceholder": "https://api.example.com/path  (env: {{vars}})",
+  "composer.tab.params": "Params",
+  "composer.tab.headers": "Headers",
+  "composer.tab.auth": "Auth",
+  "composer.tab.body": "Body",
+  "composer.tab.graphql": "GraphQL",
+
+  "kv.addParam": "+ Add param",
+  "kv.addHeader": "+ Add header",
+  "kv.addEnv": "+ Add environment",
+  "kv.delete": "Delete",
+  "kv.confirmDelete": "Delete this?",
+
+  "auth.type": "Type",
+  "auth.none": "None",
+  "auth.bearer": "Bearer Token",
+  "auth.basic": "Basic Auth",
+  "auth.apikey": "API Key",
+  "auth.user": "User",
+  "auth.pass": "Password",
+  "auth.token": "Token",
+  "auth.header": "Header",
+  "auth.value": "Value",
+
+  "body.mode.none": "None",
+  "body.mode.json": "JSON",
+  "body.mode.form": "x-www-form-urlencoded",
+  "body.mode.raw": "Raw",
+  "body.prettyFormat": "Pretty format",
+  "body.invalidJson": "Invalid JSON: {error}",
+
+  "graphql.note": "Method is automatically POST; body sent as application/json.",
+  "graphql.query": "Query",
+  "graphql.vars": "Variables (JSON)",
+
+  "response.empty.title": "Ready to send.",
+  "response.empty.shortcuts": "Send · Save · New",
+  "response.copy.body": "Copy body",
+  "response.copy.curl": "Copy as cURL",
+  "response.tab.body": "Body",
+  "response.tab.headers": "Headers",
+  "response.tab.raw": "Raw",
+  "response.bodyCopied": "Body copied",
+  "response.curlCopied": "cURL copied",
+  "response.transport.title": "HTTP transport",
+
+  "env.modal.title": "Environments",
+  "env.minRequired": "At least 1 environment is required",
+  "env.placeholderText": "key=value\nbase_url=https://api.example.com\ntoken=abc123",
+  "env.saved": "Environments saved",
+  "env.deleteEnv": "Delete",
+
+  "toast.saved": "Saved",
+  "toast.urlEmpty": "URL is empty",
+  "toast.networkError": "Error: {msg}",
+};

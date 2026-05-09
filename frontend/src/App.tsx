@@ -5,6 +5,7 @@ import { RequestComposer } from "./components/RequestComposer";
 import { ResponseViewer } from "./components/ResponseViewer";
 import { Toast } from "./components/Toast";
 import { useStore, useActiveVars } from "./store";
+import { useT } from "./lib/i18n/useT";
 import { send } from "./lib/sendRequest";
 
 export function App() {
@@ -17,9 +18,9 @@ export function App() {
   const resetCurrent = useStore((s) => s.resetCurrent);
   const ui = useStore((s) => s.ui);
   const vars = useActiveVars();
+  const t = useT();
   const [busy, setBusy] = useState(false);
 
-  // Apply theme
   useEffect(() => {
     document.documentElement.style.colorScheme =
       ui.theme === "auto" ? "light dark" : ui.theme;
@@ -27,7 +28,7 @@ export function App() {
 
   const onSend = useCallback(async () => {
     if (busy) return;
-    if (!current.url.trim()) { showToast("URL boş"); return; }
+    if (!current.url.trim()) { showToast(t("toast.urlEmpty")); return; }
     setBusy(true);
     try {
       const res = await send(current, isGraphql, vars);
@@ -49,11 +50,11 @@ export function App() {
         sizeBytes: msg.length, elapsedMs: 0,
         url: current.url, transport: "fetch",
       });
-      showToast("Hata: " + msg.slice(0, 80));
+      showToast(t("toast.networkError", { msg: msg.slice(0, 80) }));
     } finally {
       setBusy(false);
     }
-  }, [busy, current, isGraphql, pushHistory, setLastResponse, showToast, vars]);
+  }, [busy, current, isGraphql, pushHistory, setLastResponse, showToast, t, vars]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {

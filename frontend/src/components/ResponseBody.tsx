@@ -1,13 +1,12 @@
 import { useStore } from "../store";
+import { useT } from "../lib/i18n/useT";
 import { highlightJson, isProbablyJson } from "../lib/utils";
 
 export function ResponseBody() {
   const r = useStore((s) => s.lastResponse);
   const tab = useStore((s) => s.ui.responseTab);
 
-  if (!r) {
-    return <EmptyState />;
-  }
+  if (!r) return <EmptyState />;
 
   if (tab === "headers") {
     return (
@@ -60,11 +59,15 @@ export function ResponseBody() {
 }
 
 function EmptyState() {
+  const t = useT();
   return (
     <div className="flex-1 flex items-center justify-center text-center text-[var(--color-fg-muted)] gap-2 flex-col">
-      <div>İstek atmaya hazır.</div>
-      <div className="text-[11px]">
-        <Kbd>⌘</Kbd>+<Kbd>Enter</Kbd> Gönder · <Kbd>⌘</Kbd>+<Kbd>S</Kbd> Kaydet · <Kbd>⌘</Kbd>+<Kbd>N</Kbd> Yeni
+      <div>{t("response.empty.title")}</div>
+      <div className="text-[11px] flex items-center gap-1.5">
+        <Kbd>⌘</Kbd>+<Kbd>Enter</Kbd>
+        <Kbd>⌘</Kbd>+<Kbd>S</Kbd>
+        <Kbd>⌘</Kbd>+<Kbd>N</Kbd>
+        <span>{t("response.empty.shortcuts")}</span>
       </div>
     </div>
   );

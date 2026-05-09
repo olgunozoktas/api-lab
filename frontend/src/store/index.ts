@@ -6,6 +6,7 @@ import type {
 } from "../lib/types";
 import { emptyRequest } from "../lib/types";
 import { uid } from "../lib/utils";
+import { detectLocale, type Locale } from "../lib/i18n";
 
 type State = {
   collections: Collection[];
@@ -14,6 +15,7 @@ type State = {
   history: HistoryItem[];
   current: CurrentRequest;
   ui: UiState;
+  locale: Locale;
   lastResponse: ResponseSnapshot | null;
   toast: { msg: string; ts: number } | null;
 };
@@ -28,6 +30,7 @@ type Actions = {
   setActiveEnv: (id: string) => void;
   setUi: (patch: Partial<UiState>) => void;
   setEnvs: (envs: Environment[]) => void;
+  setLocale: (l: Locale) => void;
   pushHistory: (snap: RequestSnapshot, status: number, sizeBytes: number, elapsedMs: number) => void;
   clearHistory: () => void;
   setLastResponse: (r: ResponseSnapshot | null) => void;
@@ -56,6 +59,7 @@ const initial = (): State => ({
   history: [],
   current: emptyRequest(),
   ui: { theme: "auto", composerTab: "params", responseTab: "body", sidebarTab: "collections" },
+  locale: detectLocale("tr"),
   lastResponse: null,
   toast: null,
 });
@@ -131,6 +135,7 @@ export const useStore = create<State & Actions>()(
       setActiveEnv: (id) => set({ activeEnv: id }),
       setUi: (patch) => set((s) => ({ ui: { ...s.ui, ...patch } })),
       setEnvs: (envs) => set({ envs }),
+      setLocale: (locale) => set({ locale }),
 
       pushHistory: (snap, status, sizeBytes, elapsedMs) => set((s) => {
         const item: HistoryItem = {
@@ -168,6 +173,7 @@ export const useStore = create<State & Actions>()(
         activeEnv: s.activeEnv,
         history: s.history,
         ui: s.ui,
+        locale: s.locale,
       }) as State,
     },
   ),

@@ -1,12 +1,15 @@
 import type { KvRow } from "../lib/types";
+import { useT } from "../lib/i18n/useT";
+import type { TKey } from "../lib/i18n";
 
 type Props = {
   rows: KvRow[];
   onChange: (rows: KvRow[]) => void;
-  addLabel?: string;
+  addLabelKey: TKey;
 };
 
-export function KvTable({ rows, onChange, addLabel = "+ Ekle" }: Props) {
+export function KvTable({ rows, onChange, addLabelKey }: Props) {
+  const t = useT();
   const update = (i: number, patch: Partial<KvRow>) => {
     const next = rows.slice();
     next[i] = { ...next[i], ...patch };
@@ -14,6 +17,10 @@ export function KvTable({ rows, onChange, addLabel = "+ Ekle" }: Props) {
   };
   const remove = (i: number) => onChange(rows.filter((_, idx) => idx !== i));
   const add = () => onChange([...rows, { enabled: true, k: "", v: "" }]);
+
+  const inputCls =
+    "bg-[var(--color-bg-elev)] border border-[var(--color-border)] rounded " +
+    "px-2 py-1 font-mono text-xs outline-none focus:border-[var(--color-accent)]";
 
   return (
     <>
@@ -35,24 +42,18 @@ export function KvTable({ rows, onChange, addLabel = "+ Ekle" }: Props) {
               placeholder="key"
               value={r.k}
               onChange={(e) => update(i, { k: e.target.value })}
-              className={
-                "bg-[var(--color-bg-elev)] border border-[var(--color-border)] rounded " +
-                "px-2 py-1 font-mono text-xs outline-none focus:border-[var(--color-accent)]"
-              }
+              className={inputCls}
             />
             <input
               type="text"
               placeholder="value"
               value={r.v}
               onChange={(e) => update(i, { v: e.target.value })}
-              className={
-                "bg-[var(--color-bg-elev)] border border-[var(--color-border)] rounded " +
-                "px-2 py-1 font-mono text-xs outline-none focus:border-[var(--color-accent)]"
-              }
+              className={inputCls}
             />
             <button
               onClick={() => remove(i)}
-              aria-label="Sil"
+              aria-label={t("kv.delete")}
               className="text-[var(--color-fg-muted)] hover:text-[var(--color-danger)] text-sm"
             >
               ✕
@@ -68,7 +69,7 @@ export function KvTable({ rows, onChange, addLabel = "+ Ekle" }: Props) {
           "hover:border-[var(--color-accent)] hover:text-[var(--color-accent)]"
         }
       >
-        {addLabel}
+        {t(addLabelKey)}
       </button>
     </>
   );

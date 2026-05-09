@@ -1,5 +1,7 @@
 import { useStore } from "../store";
+import { useT } from "../lib/i18n/useT";
 import type { AuthType } from "../lib/types";
+import type { TKey } from "../lib/i18n";
 
 const inputCls =
   "bg-[var(--color-bg-elev)] border border-[var(--color-border)] " +
@@ -9,27 +11,27 @@ const inputCls =
 export function AuthPanel() {
   const auth = useStore((s) => s.current.auth);
   const setCurrent = useStore((s) => s.setCurrent);
+  const t = useT();
 
-  const setType = (t: AuthType) => setCurrent({ auth: { type: t } });
-  const setField = (k: string, v: string) =>
-    setCurrent({ auth: { ...auth, [k]: v } });
+  const setType = (type: AuthType) => setCurrent({ auth: { type } });
+  const setField = (k: string, v: string) => setCurrent({ auth: { ...auth, [k]: v } });
 
   return (
     <div>
-      <Row label="Tip">
+      <Row labelKey="auth.type">
         <select
           value={auth.type}
           onChange={(e) => setType(e.target.value as AuthType)}
           className={inputCls}
         >
-          <option value="none">Yok</option>
-          <option value="bearer">Bearer Token</option>
-          <option value="basic">Basic Auth</option>
-          <option value="apikey">API Key</option>
+          <option value="none">{t("auth.none")}</option>
+          <option value="bearer">{t("auth.bearer")}</option>
+          <option value="basic">{t("auth.basic")}</option>
+          <option value="apikey">{t("auth.apikey")}</option>
         </select>
       </Row>
       {auth.type === "bearer" && (
-        <Row label="Token">
+        <Row labelKey="auth.token">
           <input
             type="text"
             value={auth.token ?? ""}
@@ -41,7 +43,7 @@ export function AuthPanel() {
       )}
       {auth.type === "basic" && (
         <>
-          <Row label="Kullanıcı">
+          <Row labelKey="auth.user">
             <input
               type="text"
               value={auth.user ?? ""}
@@ -49,7 +51,7 @@ export function AuthPanel() {
               className={inputCls}
             />
           </Row>
-          <Row label="Parola">
+          <Row labelKey="auth.pass">
             <input
               type="password"
               value={auth.pass ?? ""}
@@ -61,7 +63,7 @@ export function AuthPanel() {
       )}
       {auth.type === "apikey" && (
         <>
-          <Row label="Header">
+          <Row labelKey="auth.header">
             <input
               type="text"
               value={auth.header ?? ""}
@@ -70,7 +72,7 @@ export function AuthPanel() {
               className={inputCls}
             />
           </Row>
-          <Row label="Value">
+          <Row labelKey="auth.value">
             <input
               type="text"
               value={auth.value ?? ""}
@@ -84,13 +86,14 @@ export function AuthPanel() {
   );
 }
 
-function Row({ label, children }: { label: string; children: React.ReactNode }) {
+function Row({ labelKey, children }: { labelKey: TKey; children: React.ReactNode }) {
+  const t = useT();
   return (
     <div
       className="grid gap-2 mb-2 items-center"
       style={{ gridTemplateColumns: "120px 1fr" }}
     >
-      <label className="text-xs text-[var(--color-fg-muted)]">{label}</label>
+      <label className="text-xs text-[var(--color-fg-muted)]">{t(labelKey)}</label>
       {children}
     </div>
   );
