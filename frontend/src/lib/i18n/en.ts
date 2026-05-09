@@ -21,6 +21,7 @@ export const en: Dict = {
   "settings.theme.dark": "Dark",
   "settings.theme.tokyo-night": "Tokyo Night",
   "settings.theme.github-light": "GitHub Light",
+  "settings.theme.high-contrast": "High Contrast",
   "settings.language": "Language",
   "settings.section.defaults": "Request defaults",
   "settings.timeoutMs": "Timeout (ms)",
@@ -166,6 +167,7 @@ export const en: Dict = {
   "graphql.query": "Query",
   "graphql.vars": "Variables (JSON)",
 
+  "response.statusAriaLabel": "Response status {status} {text}",
   "response.empty.title": "Ready to send.",
   "response.empty.shortcuts": "Send · Save · New",
   "response.copy.body": "Copy body",

@@ -29,6 +29,12 @@ export function ResponseHead({
         className={
           "font-mono font-bold text-xs px-2.5 py-0.5 rounded-full " + statusPillClass(r.status)
         }
+        aria-live="polite"
+        aria-atomic="true"
+        aria-label={t("response.statusAriaLabel", {
+          status: String(r.status),
+          text: r.statusText || statusText(r.status),
+        })}
       >
         {r.status} {r.statusText || statusText(r.status)}
       </span>

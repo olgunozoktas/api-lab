@@ -33,9 +33,13 @@
   --color-border: #38383a;
 }
 
-/* OS prefers dark + theme is auto/unset (NOT forced light) */
+/* OS prefers dark + theme is auto/unset (NOT forced light, NOT high-contrast).
+   high-contrast carries its own self-contained palette and must not get the
+   plain-dark overrides layered on top via specificity. */
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]):not([data-theme="github-light"]) {
+  :root:not([data-theme="light"]):not([data-theme="github-light"]):not(
+      [data-theme="high-contrast"]
+    ) {
     --color-bg: #1c1c1e;
     --color-bg-elev: #2c2c2e;
     --color-bg-elev-2: #3a3a3c;
@@ -78,6 +82,34 @@
   --color-danger: #d1242f;
   --color-warning: #9a6700;
   --color-purple: #8250df;
+}
+
+/* ─── High-contrast (a11y) ────────────────────────────────────────────
+   For users with low vision, the macOS "Increase Contrast" mode, or
+   anyone who needs maximum text legibility. Pure black background +
+   pure white foreground (21:1 contrast — WCAG AAA + then some).
+   Borders are white so UI structure stays visible. Accent + status
+   colors are picked for high luminance against black:
+     - accent  #ffff00 yellow      ~19.6:1
+     - success #00ff7f spring green ~17.2:1
+     - danger  #ff6b6b light red    ~7.0:1 (AAA non-text passes at 4.5)
+     - warning #ffaa00 amber        ~12.8:1
+     - purple  #ff80ff light pink   ~10.4:1
+   The dark utility variant DOES match (`@custom-variant dark` rule
+   isn't bound to data-theme="high-contrast" but that doesn't matter
+   here — every component reads the var tokens directly). */
+:root[data-theme="high-contrast"] {
+  --color-bg: #000000;
+  --color-bg-elev: #0a0a0a;
+  --color-bg-elev-2: #1a1a1a;
+  --color-fg: #ffffff;
+  --color-fg-muted: #d0d0d0;
+  --color-border: #ffffff;
+  --color-accent: #ffff00;
+  --color-success: #00ff7f;
+  --color-danger: #ff6b6b;
+  --color-warning: #ffaa00;
+  --color-purple: #ff80ff;
 }
 
 /* ─── Focus rings ─────────────────────────────────────────────────────
