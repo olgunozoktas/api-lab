@@ -1,20 +1,27 @@
 import { bridge } from "./bridge";
 import type { HttpHeader, HttpResponse } from "./bridge";
-import type { CurrentRequest, ResponseSnapshot } from "./types";
+import type { CurrentRequest, RequestDefaults, ResponseSnapshot } from "./types";
+import { defaultRequestDefaults } from "./types";
 import { envSubst } from "./utils";
 
 export function buildHeadersList(req: CurrentRequest, vars: Record<string, string>): Headers {
   const out = new Headers();
   for (const h of req.headers) {
     if (!h.enabled || !h.k) continue;
-    try { out.append(envSubst(h.k, vars), envSubst(h.v, vars)); } catch { /* invalid */ }
+    try {
+      out.append(envSubst(h.k, vars), envSubst(h.v, vars));
+    } catch {
+      /* invalid */
+    }
   }
   const a = req.auth;
   if (a.type === "bearer" && a.token) {
     out.set("Authorization", "Bearer " + envSubst(a.token, vars));
   } else if (a.type === "basic" && (a.user || a.pass)) {
-    out.set("Authorization",
-      "Basic " + btoa(envSubst(a.user || "", vars) + ":" + envSubst(a.pass || "", vars)));
+    out.set(
+      "Authorization",
+      "Basic " + btoa(envSubst(a.user || "", vars) + ":" + envSubst(a.pass || "", vars))
+    );
   } else if (a.type === "apikey" && a.header && a.value) {
     out.set(envSubst(a.header, vars), envSubst(a.value, vars));
   }
@@ -26,22 +33,36 @@ export function buildUrl(req: CurrentRequest, vars: Record<string, string>): str
   const params = req.params.filter((r) => r.enabled && r.k);
   if (params.length === 0) return url;
   const qs = params
-    .map((r) => encodeURIComponent(envSubst(r.k, vars)) + "=" + encodeURIComponent(envSubst(r.v, vars)))
+    .map(
+      (r) => encodeURIComponent(envSubst(r.k, vars)) + "=" + encodeURIComponent(envSubst(r.v, vars))
+    )
     .join("&");
   return url + (url.includes("?") ? "&" : "?") + qs;
 }
 
-export function buildBody(req: CurrentRequest, isGraphql: boolean, vars: Record<string, string>): string | undefined {
+export function buildBody(
+  req: CurrentRequest,
+  isGraphql: boolean,
+  vars: Record<string, string>
+): string | undefined {
   if (isGraphql) {
     let parsedVars: unknown = {};
-    try { parsedVars = req.gql.vars ? JSON.parse(envSubst(req.gql.vars, vars)) : {}; } catch { /* keep empty */ }
+    try {
+      parsedVars = req.gql.vars ? JSON.parse(envSubst(req.gql.vars, vars)) : {};
+    } catch {
+      /* keep empty */
+    }
     return JSON.stringify({ query: envSubst(req.gql.query, vars), variables: parsedVars });
   }
   if (req.body.mode === "none") return undefined;
   return envSubst(req.body.text, vars);
 }
 
-export function effectiveContentType(req: CurrentRequest, isGraphql: boolean, headers: Headers): void {
+export function effectiveContentType(
+  req: CurrentRequest,
+  isGraphql: boolean,
+  headers: Headers
+): void {
   if (isGraphql) {
     headers.set("Content-Type", "application/json");
     return;
@@ -54,13 +75,22 @@ export function effectiveContentType(req: CurrentRequest, isGraphql: boolean, he
 }
 
 async function viaNative(
-  url: string, method: string, headers: Headers, body: string | undefined,
+  url: string,
+  method: string,
+  headers: Headers,
+  body: string | undefined,
+  defaults: RequestDefaults
 ): Promise<ResponseSnapshot> {
   const headerArr: HttpHeader[] = [];
   headers.forEach((v, k) => headerArr.push({ name: k, value: v }));
   const r = await bridge.invoke<HttpResponse>("http.request", {
-    method, url, headers: headerArr, body: body ?? null,
-    timeout_ms: 60_000, follow_redirects: 10, insecure: false,
+    method,
+    url,
+    headers: headerArr,
+    body: body ?? null,
+    timeout_ms: defaults.timeoutMs,
+    follow_redirects: defaults.followRedirects,
+    insecure: defaults.insecure,
   });
   if (r.error) {
     throw new Error(r.error + (r.stderr ? " — " + r.stderr : ""));
@@ -73,7 +103,7 @@ async function viaNative(
     headers: respHeaders,
     body: r.body || "",
     contentType: ct,
-    sizeBytes: r.size_bytes ?? (r.body?.length ?? 0),
+    sizeBytes: r.size_bytes ?? r.body?.length ?? 0,
     elapsedMs: r.timing_ms ?? r.timing?.total_ms ?? 0,
     url: r.url || url,
     transport: "native",
@@ -82,13 +112,21 @@ async function viaNative(
 }
 
 async function viaFetch(
-  url: string, method: string, headers: Headers, body: string | undefined, t0: number,
+  url: string,
+  method: string,
+  headers: Headers,
+  body: string | undefined,
+  t0: number
 ): Promise<ResponseSnapshot> {
   const res = await fetch(url, { method, headers, body, redirect: "follow" });
   const respHeaders: { k: string; v: string }[] = [];
   res.headers.forEach((v, k) => respHeaders.push({ k, v }));
   let buf: ArrayBuffer;
-  try { buf = await res.arrayBuffer(); } catch { buf = new ArrayBuffer(0); }
+  try {
+    buf = await res.arrayBuffer();
+  } catch {
+    buf = new ArrayBuffer(0);
+  }
   const text = new TextDecoder("utf-8", { fatal: false }).decode(buf);
   return {
     status: res.status,
@@ -104,7 +142,10 @@ async function viaFetch(
 }
 
 export async function send(
-  req: CurrentRequest, isGraphql: boolean, vars: Record<string, string>,
+  req: CurrentRequest,
+  isGraphql: boolean,
+  vars: Record<string, string>,
+  defaults: RequestDefaults = defaultRequestDefaults()
 ): Promise<ResponseSnapshot> {
   const url = buildUrl(req, vars);
   if (!url) throw new Error("URL boş");
@@ -115,6 +156,6 @@ export async function send(
 
   const t0 = performance.now();
   return bridge.available
-    ? viaNative(url, method, headers, body)
+    ? viaNative(url, method, headers, body, defaults)
     : viaFetch(url, method, headers, body, t0);
 }

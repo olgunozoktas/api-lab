@@ -35,7 +35,7 @@
 
 /* OS prefers dark + theme is auto/unset (NOT forced light) */
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
+  :root:not([data-theme="light"]):not([data-theme="github-light"]) {
     --color-bg: #1c1c1e;
     --color-bg-elev: #2c2c2e;
     --color-bg-elev-2: #3a3a3c;
@@ -43,6 +43,62 @@
     --color-fg-muted: #98989d;
     --color-border: #38383a;
   }
+}
+
+/* ─── Tokyo Night (dark) ──────────────────────────────────────────────
+   Inspired by enkia/tokyo-night-vscode. Deep slate background with a
+   muted blue accent. Treated as a dark variant — dark utilities
+   (`dark:bg-…`) match because of the @custom-variant rule above. */
+:root[data-theme="tokyo-night"] {
+  --color-bg: #1a1b26;
+  --color-bg-elev: #24283b;
+  --color-bg-elev-2: #2f334d;
+  --color-fg: #c0caf5;
+  --color-fg-muted: #565f89;
+  --color-border: #3b4261;
+  --color-accent: #7aa2f7;
+  --color-success: #9ece6a;
+  --color-danger: #f7768e;
+  --color-warning: #e0af68;
+  --color-purple: #bb9af7;
+}
+
+/* ─── GitHub Light (light) ────────────────────────────────────────────
+   Tracks GitHub's primer/primitives v8 light tokens. Pure white
+   surface, blue-leaning accent. */
+:root[data-theme="github-light"] {
+  --color-bg: #ffffff;
+  --color-bg-elev: #f6f8fa;
+  --color-bg-elev-2: #eaeef2;
+  --color-fg: #1f2328;
+  --color-fg-muted: #59636e;
+  --color-border: #d1d9e0;
+  --color-accent: #0969da;
+  --color-success: #1a7f37;
+  --color-danger: #d1242f;
+  --color-warning: #9a6700;
+  --color-purple: #8250df;
+}
+
+/* ─── Focus rings ─────────────────────────────────────────────────────
+   Visible keyboard focus rings on every interactive surface. Override
+   the per-component focus styling only when intentional. */
+:where(button, [role="button"], a, input, textarea, select, [tabindex]):focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* `kbd` styling for the in-app shortcut hints */
+kbd {
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+  padding: 0.05em 0.35em;
+  border: 1px solid var(--color-border);
+  border-radius: 3px;
+  background: var(--color-bg-elev);
+  color: var(--color-fg-muted);
+  white-space: nowrap;
 }
 
 html,
