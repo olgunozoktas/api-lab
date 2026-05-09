@@ -1,6 +1,34 @@
 # Resizable 3-pane layout — drag handles between sidebar / composer / response
 
 Priority: P2
+Status: SHIPPED — 2026-05-09
+
+## Status
+
+Both dividers shipped (sidebar/composer + composer/response), pixel-
+based, persisted via the existing IDB Zustand middleware. New
+`ResizableDivider.tsx` is a pure pointer-driven drag component with
+Pointer Events (mouse + touch + pen via one API), `setPointerCapture`
+so drag survives the divider's small hit area, and full keyboard
+accessibility (Arrow keys nudge by 16 px, Shift = 64, Home/End = clamp
+to min/max).
+
+`ui.layout: { sidebarPx, composerPx }` extends `UiState` with sensible
+defaults (240, 560). Bounds: sidebar 180–400 px, composer 320–1200 px;
+clamped on every onChange. Migration handles old persisted state via
+`old.ui?.layout ?? DEFAULT_LAYOUT` in `internal.ts`.
+
+App.tsx grid template: `${sidebarPx}px 8px ${composerPx}px 8px 1fr`
+for the standard 3-pane layout; collapses to `${sidebarPx}px 8px 1fr`
+in WS / gRPC single-column modes (only sidebar divider visible).
+
+Double-click any divider → resets that dimension to its default.
+Visual feedback: border-color line widens from 1 px to 2 px on
+hover / drag / keyboard focus, with a 100 ms color transition so the
+state changes feel deliberate.
+
+5 unit tests for `clampDividerValue` (in-range / above-max / below-min
+/ exact bounds / NaN-safe). 230 → 235 frontend tests.
 
 ## Context
 
