@@ -26,8 +26,18 @@ const PackageTarget = enum {
     linux,
 };
 
-// Default assumes you've cloned vercel-labs/zero-native as a sibling of this
-// repo. Override with: zig build -Dzero-native-path=/path/to/zero-native
+// Default assumes you've cloned vercel-labs/zero-native as a sibling of
+// this repo (`Herd/api-lab/` next to `Herd/zero-native/`). Override with:
+//     zig build -Dzero-native-path=/abs/path/to/zero-native
+//
+// Worktree note: git worktrees live one level deeper than the primary
+// checkout (e.g. `Herd/api-lab-wt/<slug>/`), so this default resolves to
+// `Herd/api-lab-wt/zero-native/` which doesn't exist. Either pass
+// `-Dzero-native-path=...` or symlink the canonical clone into place:
+//     ln -s ~/Herd/zero-native ~/Herd/api-lab-wt/zero-native
+// (Zig 0.16 moved synchronous filesystem APIs behind std.Io.Dir which
+// can't be opened in a build script without an io param, so build-time
+// auto-discovery isn't ergonomic right now.)
 const default_zero_native_path = "../zero-native";
 const app_exe_name = "api-lab";
 
@@ -96,25 +106,29 @@ pub fn build(b: *std.Build) void {
     linkPlatform(b, target, app_mod, exe, selected_platform, web_engine, zero_native_path, cef_dir, cef_auto_install);
     b.installArtifact(exe);
 
-    const frontend_install = b.addSystemCommand(&.{ "npm", "install", "--prefix", "frontend" });
-    const frontend_install_step = b.step("frontend-install", "Install frontend dependencies");
-    frontend_install_step.dependOn(&frontend_install.step);
-
-    const frontend_build = b.addSystemCommand(&.{ "npm", "--prefix", "frontend", "run", "build" });
-    frontend_build.step.dependOn(&frontend_install.step);
-    const frontend_step = b.step("frontend-build", "Build the frontend");
-    frontend_step.dependOn(&frontend_build.step);
+    // Frontend build is owned by `dnpm run build` per frontend/CLAUDE.md
+    // (Docker-isolated npm). Earlier versions of this build script invoked
+    // `npm install --prefix frontend` and `npm --prefix frontend run build`
+    // directly on the host — that bypassed the dnpm policy and exposed
+    // every developer to npm postinstall scripts. Removed in 2026-05-09.
+    //
+    // The two-step flow is now:
+    //     cd frontend && dnpm run build
+    //     zig build run
+    //
+    // README + CLAUDE.md document this. `zig build run` no longer touches
+    // node/npm; it just runs the artifact and assumes `frontend/dist/`
+    // already exists. If dist is missing, `WebViewSource.assets()` will
+    // fail with a clear "asset path not found" runtime error.
 
     const run = b.addRunArtifact(exe);
-    run.step.dependOn(&frontend_build.step);
     addCefRuntimeRunFiles(b, target, run, exe, web_engine, cef_dir);
-    const run_step = b.step("run", "Run the app");
+    const run_step = b.step("run", "Run the app (requires `cd frontend && dnpm run build` first)");
     run_step.dependOn(&run.step);
 
     const dev = b.addSystemCommand(&.{ "zero-native", "dev", "--manifest", "app.zon", "--binary" });
     dev.addFileArg(exe.getEmittedBin());
     dev.step.dependOn(&exe.step);
-    dev.step.dependOn(&frontend_install.step);
     const dev_step = b.step("dev", "Run the frontend dev server and native shell");
     dev_step.dependOn(&dev.step);
 
@@ -137,8 +151,7 @@ pub fn build(b: *std.Build) void {
     package.addArgs(&.{ "--web-engine", @tagName(web_engine), "--cef-dir", cef_dir });
     if (cef_auto_install) package.addArg("--cef-auto-install");
     package.step.dependOn(&exe.step);
-    package.step.dependOn(&frontend_build.step);
-    const package_step = b.step("package", "Create a local package artifact");
+    const package_step = b.step("package", "Create a local package artifact (requires `cd frontend && dnpm run build` first)");
     package_step.dependOn(&package.step);
 
     const tests = b.addTest(.{ .root_module = app_mod });
@@ -246,7 +259,7 @@ fn linkPlatform(b: *std.Build, target: std.Build.ResolvedTarget, app_mod: *std.B
         if (web_engine == .chromium) app_mod.linkSystemLibrary("stdc++", .{});
     } else if (platform == .windows) {
         switch (web_engine) {
-            .system => app_mod.addCSourceFile(.{ .file = zeroNativePath(b, zero_native_path, "src/platform/windows/webview2_host.cpp"), .flags = &.{ "-std=c++17" } }),
+            .system => app_mod.addCSourceFile(.{ .file = zeroNativePath(b, zero_native_path, "src/platform/windows/webview2_host.cpp"), .flags = &.{"-std=c++17"} }),
             .chromium => {
                 const cef_check = addCefCheck(b, target, cef_dir);
                 if (cef_auto_install) {
@@ -297,37 +310,37 @@ fn addCefRuntimeRunFiles(b: *std.Build, target: std.Build.ResolvedTarget, run: *
 fn addCefCheck(b: *std.Build, target: std.Build.ResolvedTarget, cef_dir: []const u8) *std.Build.Step.Run {
     const script = switch (target.result.os.tag) {
         .macos => b.fmt(
-        \\test -f "{s}/include/cef_app.h" &&
-        \\test -d "{s}/Release/Chromium Embedded Framework.framework" &&
-        \\test -f "{s}/libcef_dll_wrapper/libcef_dll_wrapper.a" || {{
-        \\  echo "missing CEF dependency for -Dweb-engine=chromium" >&2
-        \\  echo "Expected:" >&2
-        \\  echo "  {s}/include/cef_app.h" >&2
-        \\  echo "  {s}/Release/Chromium Embedded Framework.framework" >&2
-        \\  echo "  {s}/libcef_dll_wrapper/libcef_dll_wrapper.a" >&2
-        \\  echo "Fix with: zero-native cef install --dir {s}" >&2
-        \\  echo "Or rerun with: -Dcef-auto-install=true" >&2
-        \\  echo "Pass -Dcef-dir=/path/to/cef if your bundle lives elsewhere." >&2
-        \\  exit 1
-        \\}}
+            \\test -f "{s}/include/cef_app.h" &&
+            \\test -d "{s}/Release/Chromium Embedded Framework.framework" &&
+            \\test -f "{s}/libcef_dll_wrapper/libcef_dll_wrapper.a" || {{
+            \\  echo "missing CEF dependency for -Dweb-engine=chromium" >&2
+            \\  echo "Expected:" >&2
+            \\  echo "  {s}/include/cef_app.h" >&2
+            \\  echo "  {s}/Release/Chromium Embedded Framework.framework" >&2
+            \\  echo "  {s}/libcef_dll_wrapper/libcef_dll_wrapper.a" >&2
+            \\  echo "Fix with: zero-native cef install --dir {s}" >&2
+            \\  echo "Or rerun with: -Dcef-auto-install=true" >&2
+            \\  echo "Pass -Dcef-dir=/path/to/cef if your bundle lives elsewhere." >&2
+            \\  exit 1
+            \\}}
         , .{ cef_dir, cef_dir, cef_dir, cef_dir, cef_dir, cef_dir, cef_dir }),
         .linux => b.fmt(
-        \\test -f "{s}/include/cef_app.h" &&
-        \\test -f "{s}/Release/libcef.so" &&
-        \\test -f "{s}/libcef_dll_wrapper/libcef_dll_wrapper.a" || {{
-        \\  echo "missing CEF dependency for -Dweb-engine=chromium" >&2
-        \\  echo "Fix with: zero-native cef install --dir {s}" >&2
-        \\  exit 1
-        \\}}
+            \\test -f "{s}/include/cef_app.h" &&
+            \\test -f "{s}/Release/libcef.so" &&
+            \\test -f "{s}/libcef_dll_wrapper/libcef_dll_wrapper.a" || {{
+            \\  echo "missing CEF dependency for -Dweb-engine=chromium" >&2
+            \\  echo "Fix with: zero-native cef install --dir {s}" >&2
+            \\  exit 1
+            \\}}
         , .{ cef_dir, cef_dir, cef_dir, cef_dir }),
         .windows => b.fmt(
-        \\test -f "{s}/include/cef_app.h" &&
-        \\test -f "{s}/Release/libcef.dll" &&
-        \\test -f "{s}/libcef_dll_wrapper/libcef_dll_wrapper.lib" || {{
-        \\  echo "missing CEF dependency for -Dweb-engine=chromium" >&2
-        \\  echo "Fix with: zero-native cef install --dir {s}" >&2
-        \\  exit 1
-        \\}}
+            \\test -f "{s}/include/cef_app.h" &&
+            \\test -f "{s}/Release/libcef.dll" &&
+            \\test -f "{s}/libcef_dll_wrapper/libcef_dll_wrapper.lib" || {{
+            \\  echo "missing CEF dependency for -Dweb-engine=chromium" >&2
+            \\  echo "Fix with: zero-native cef install --dir {s}" >&2
+            \\  exit 1
+            \\}}
         , .{ cef_dir, cef_dir, cef_dir, cef_dir }),
         else => "echo unsupported CEF target >&2; exit 1",
     };

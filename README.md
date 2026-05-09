@@ -1,5 +1,8 @@
 # API Lab
 
+[![CI](https://github.com/olgunozoktas/api-lab/actions/workflows/ci.yml/badge.svg)](https://github.com/olgunozoktas/api-lab/actions/workflows/ci.yml)
+[![Release](https://github.com/olgunozoktas/api-lab/actions/workflows/release.yml/badge.svg)](https://github.com/olgunozoktas/api-lab/actions/workflows/release.yml)
+
 A tiny native macOS API tester. Postman-style request composer with native HTTP transport (CORS-free), under **3 MB** binary, instant cold start.
 
 Built on top of **[vercel-labs/zero-native](https://github.com/vercel-labs/zero-native)** — a Zig-based native shell (WebKit on macOS, WebKitGTK on Linux, WebView2 on Windows). Frontend is React 19 + Vite + TypeScript + Tailwind CSS v4 + Zustand + Radix-based shadcn primitives + CodeMirror 6 + lucide-react. Multi-language UI (TR + EN; more in 3 mechanical steps).
@@ -8,6 +11,7 @@ Built on top of **[vercel-labs/zero-native](https://github.com/vercel-labs/zero-
 
 ## Features
 
+- **Multi-request workspace** — open as many tabs as you want, each with its own state. ⌘+T new, ⌘+W close, ⌘+1..9 jump, ⌘+P fuzzy switcher across tabs + collections + history.
 - **REST + GraphQL composer** with method picker, params/headers/auth/body/graphql tabs
 - **Native HTTP** via Zig handler that shells out to `curl` — bypasses WebView CORS, exposes timing breakdown (DNS / connect / TTFB / total)
 - **Browser fetch fallback** when the native bridge isn't available
@@ -18,7 +22,7 @@ Built on top of **[vercel-labs/zero-native](https://github.com/vercel-labs/zero-
 - **Collections** + history (last 200 requests) — persisted via `localStorage`
 - **Apple-style 3-pane UI**, dark / light / auto theme (system follows OS, explicit choice overrides)
 - **i18n** — TR + EN today; adding a new language is 3 mechanical steps
-- **Keyboard shortcuts** — ⌘+Enter (send), ⌘+S (save), ⌘+N (new), ⌘+F (search inside response), Tab/Shift-Tab in editor
+- **Keyboard shortcuts** — see the [Keyboard reference](#keyboard-reference) below
 
 ## Quick start
 
@@ -40,9 +44,12 @@ dnpm install                # one-time, then again whenever package.json changes
 dnpm run build              # produces /app/dist inside the volume
 dnpm sync-dist              # copy dist/ + .astro/ from volume to host
 
-# Build + run the native shell
+# Run the native shell (frontend/dist/ must already exist — see above)
 cd ..
 zig build run               # window opens; sample GitHub user request preloaded
+
+# Optional: install the pre-commit hook (zig fmt + prettier --check)
+bash scripts/install-hooks.sh
 ```
 
 If your `zero-native` checkout lives elsewhere:
@@ -55,6 +62,7 @@ zig build run -Dzero-native-path=/path/to/zero-native
 
 - The frontend (Vite + React + Tailwind v4 + CodeMirror 6) builds inside a hardened Linux container with no Docker socket, dropped capabilities, network-off rebuild phase, and read-only project mount. Malicious npm packages cannot reach your home directory.
 - `dnpm sync-dist` copies the volume artifacts to host so the Zig native shell can serve them via the `zero://app` asset handler.
+- `zig build run` deliberately does NOT shell out to host `npm` (that would bypass the dnpm sandbox). Run `dnpm run build` first; if `frontend/dist/` is missing, the WebView will surface a clear "asset path not found" error.
 
 ### Dev mode (HMR)
 
@@ -104,6 +112,58 @@ frontend/src/
 ```
 
 Each panel that depends on app state is split into a presenter (pure props) + container (wires the store). This keeps every component reusable and testable.
+
+## Keyboard reference
+
+| Shortcut | Action |
+|---|---|
+| ⌘+Enter | Send request |
+| ⌘+S | Save current request as collection |
+| ⌘+N | Reset current request to a fresh empty one |
+| ⌘+T | Open a new tab |
+| ⌘+W | Close the current tab |
+| ⌘+1 … ⌘+8 | Jump to tab N |
+| ⌘+9 | Jump to the LAST tab (Postman / VSCode convention) |
+| ⌘+P | Open the quick switcher (fuzzy across tabs / collections / history) |
+| ⌘+F | Search inside the response body (within the editor) |
+| ↑ / ↓ in switcher | Navigate results |
+| ↵ in switcher | Open the highlighted item in the current tab |
+| ⌘+↵ in switcher | Open in a NEW tab |
+
+(Use `Ctrl` instead of `⌘` on Linux/Windows.)
+
+## Testing
+
+```bash
+# Zig handler unit tests (~19 tests covering argv, header parsing, JSON encoding, error formatting)
+zig build test
+
+# Frontend Vitest suite (pure utils + store actions)
+cd frontend && dnpm run test
+
+# Frontend TypeScript strict check
+cd frontend && dnpm run typecheck
+
+# Frontend Prettier check (read-only — `prettier --write` is incompatible
+# with dnpm's RO `/app` mount; format on host or via `dnpm shell` per file)
+cd frontend && dnpm run format:check
+
+# Bundle-size guardrail — fails if dist exceeds the thresholds in
+# scripts/check-bundle-size.sh (raw + gzip per JS/CSS)
+bash scripts/check-bundle-size.sh
+```
+
+## CI / CD
+
+- **`ci.yml`** — runs on every push/PR to `main`:
+  - **Zig job (`macos-latest`)**: installs Zig 0.16 via `mlugg/setup-zig@v2`, checks out `vercel-labs/zero-native@main` as a sibling clone, runs `zig build test` + `zig build -Doptimize=ReleaseSafe`, caches `.zig-cache` and `~/.cache/zig` for incrementality.
+  - **Frontend job (`ubuntu-latest`)**: `npm ci --ignore-scripts`, lockfile-integrity check (rejects non-`registry.npmjs.org` URLs), `npm audit --audit-level=high`, TypeScript strict typecheck, Vitest, production build, bundle-size guardrail.
+- **`release.yml`** — on tag push (`v*`):
+  - Builds macOS arm64 (Apple Silicon) and macOS x86_64 (Intel) in parallel.
+  - Each runner: setup Zig, npm ci frontend, vite build, `zig build -Doptimize=ReleaseSafe`, stage tree (binary + `frontend/dist/` + `app.zon` + README + LICENSE), tarball with `sha256` sidecar, upload as workflow artifact.
+  - Aggregator: downloads both arch artifacts, creates a **draft** release via `softprops/action-gh-release@v2` with auto-generated notes. Review and publish manually.
+
+The frontend CI job runs plain `npm ci` rather than the dev-machine `dnpm` wrapper. The threat model differs (ephemeral runner, no SSH/credential exposure, torn down per-job) and the lockfile-integrity check + `npm audit` substitute for dnpm's auto-audit pass. See `.github/workflows/ci.yml` for the inline rationale.
 
 ## Adding a new language
 
