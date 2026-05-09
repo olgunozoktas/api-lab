@@ -51,6 +51,12 @@ export const tr = {
   "collections.confirmDeleteFolder":
     '"{name}" klasörünü ve içindeki TÜM istekleri silmek istediğine emin misin?',
 
+  "curl.detected": "cURL algılandı",
+  "curl.import": "İçeri aktar",
+  "curl.imported": "cURL içeri aktarıldı",
+  "curl.dismiss": "Kapat",
+  "curl.headers": "header",
+
   "composer.requestName": "İstek adı",
   "composer.save": "Kaydet",
   "composer.send": "Gönder",
