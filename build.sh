@@ -13,11 +13,15 @@
 #
 # Override with --use=<dnpm|docker|npm>.
 #
+# Default: build + launch the app (replacing any running instance).
+# Pass --no-run to build only, useful for CI or when iterating on the
+# build itself.
+#
 # Usage:
-#   ./build.sh                  # debug build (auto-detect frontend builder)
-#   ./build.sh --release        # ReleaseSafe build
-#   ./build.sh --run            # build then launch the app
-#   ./build.sh --frontend-only  # skip the Zig step
+#   ./build.sh                  # debug build + launch (default)
+#   ./build.sh --no-run         # build only, don't launch
+#   ./build.sh --release        # ReleaseSafe build + launch
+#   ./build.sh --frontend-only  # skip the Zig step (implies --no-run)
 #   ./build.sh --zig-only       # skip the frontend build (uses existing dist/)
 #   ./build.sh --use=npm        # force host npm even if dnpm is available
 #   ./build.sh -h | --help
@@ -28,7 +32,7 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 cd "$SCRIPT_DIR"
 
 OPTIMIZE=""
-RUN=0
+RUN=1                # auto-launch by default; --no-run to opt out
 FRONTEND_ONLY=0
 ZIG_ONLY=0
 USE=""
@@ -42,8 +46,9 @@ usage() {
 for arg in "$@"; do
   case "$arg" in
     --release)        OPTIMIZE="-Doptimize=ReleaseSafe" ;;
-    --run)            RUN=1 ;;
-    --frontend-only)  FRONTEND_ONLY=1 ;;
+    --run)            RUN=1 ;;          # default already; kept for compatibility
+    --no-run)         RUN=0 ;;
+    --frontend-only)  FRONTEND_ONLY=1; RUN=0 ;;  # nothing to launch
     --zig-only)       ZIG_ONLY=1 ;;
     --use=*)          USE="${arg#--use=}" ;;
     -h|--help)        usage 0 ;;
@@ -132,18 +137,26 @@ if [ "$FRONTEND_ONLY" != "1" ]; then
   zig build $OPTIMIZE "${EXTRA_ZIG_ARGS[@]}"
 fi
 
-# 3. Optional: launch the app.
+# 3. Launch the app (default; opt out with --no-run).
 if [ "$RUN" = "1" ]; then
-  if [ "$FRONTEND_ONLY" = "1" ]; then
-    echo "::warning:: --run with --frontend-only is a no-op (no native binary built)" >&2
-    exit 0
-  fi
   if [ ! -x zig-out/bin/api-lab ]; then
     echo "::error:: zig-out/bin/api-lab missing — Zig build did not produce a binary" >&2
     exit 1
   fi
-  echo "→ launch: ./zig-out/bin/api-lab"
-  exec ./zig-out/bin/api-lab
+  # Replace any already-running instance so successive ./build.sh runs
+  # behave like a hot-reload. Match by full path to avoid hitting other
+  # processes that happen to have "api-lab" in argv.
+  if pgrep -f "$SCRIPT_DIR/zig-out/bin/api-lab" >/dev/null 2>&1; then
+    echo "→ stopping previous instance"
+    pkill -TERM -f "$SCRIPT_DIR/zig-out/bin/api-lab" 2>/dev/null || true
+    # Brief grace period for the WKWebView host to tear down its window.
+    sleep 0.4
+    pkill -KILL -f "$SCRIPT_DIR/zig-out/bin/api-lab" 2>/dev/null || true
+  fi
+  echo "→ launch: ./zig-out/bin/api-lab (background, PID will print)"
+  ./zig-out/bin/api-lab >/dev/null 2>&1 &
+  echo "✓ Build + launch complete (PID $!) — zig-out/bin/api-lab"
+  exit 0
 fi
 
-echo "✓ Build complete: zig-out/bin/api-lab"
+echo "✓ Build complete: zig-out/bin/api-lab (--no-run, app not launched)"

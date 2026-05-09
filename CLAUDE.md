@@ -17,11 +17,11 @@ The frontend is **transitioning from vanilla HTML/JS to React + Tailwind**. The 
 
 ```bash
 # Build the whole app (frontend + Zig) — preferred entry point:
-./build.sh                          # debug build  (auto-detects dnpm | docker | npm)
-./build.sh --release                # ReleaseSafe optimize
-./build.sh --run                    # build then launch ./zig-out/bin/api-lab
-./build.sh --frontend-only          # skip the Zig step
-./build.sh --zig-only               # skip the frontend (uses existing dist/)
+./build.sh                          # debug build + LAUNCH (default; kills any prior instance)
+./build.sh --no-run                 # build only, don't launch (for CI / iteration)
+./build.sh --release                # ReleaseSafe build + launch
+./build.sh --frontend-only          # skip Zig (implies --no-run)
+./build.sh --zig-only               # skip frontend (uses existing dist/)
 ./build.sh --use=npm                # force host npm fallback (downgrades hardening)
 ./build.sh -Dzero-native-path=...   # passthrough Zig flags
 
@@ -53,11 +53,13 @@ bash scripts/install-hooks.sh       # one-time per clone (idempotent; sets core.
 ```
 
 `./build.sh` is the canonical build entry point — sequences the
-frontend + Zig build in the right order and handles missing
-`frontend/dist/`, missing `dnpm`, and platform-specific Zig flags
-without you needing to remember each step. The script picks its
-frontend builder in this order: `dnpm` → `docker compose run
-frontend-build` → host `npm` (with a warning).
+frontend + Zig build in the right order, kills any already-running
+api-lab instance, and launches the freshly-built binary. The
+hot-reload loop is just: edit code → `./build.sh` → app restarts.
+Pass `--no-run` to skip the launch (CI, build-only iteration).
+
+It auto-detects the frontend builder in this order: `dnpm` →
+`docker compose run frontend-build` → host `npm` (with a warning).
 
 When iterating on just one tier, prefer `./build.sh --frontend-only`
 or `./build.sh --zig-only` instead of running the underlying tools by
