@@ -9,7 +9,7 @@ A native macOS API tester (Postman-style) built on **[vercel-labs/zero-native](h
 - **Zig native shell** (`src/`) — bridge handlers, WKWebView host, asset serving
 - **Web frontend** (`frontend/`) — Vite + React + TypeScript + Tailwind v4, builds to `frontend/dist/`
 
-Network calls bypass WebView CORS by routing through a native Zig handler that shells out to `curl`. Everything else (UI, persistence via `localStorage`, request history) is browser-side.
+Network calls go around WebView CORS by routing through a native Zig handler that shells out to `curl`. Everything else (UI, persistence via `localStorage`, request history) is browser-side.
 
 The frontend is **transitioning from vanilla HTML/JS to React + Tailwind**. The legacy `src/index.html` file is still served while the React port lives in `frontend/`. Once `frontend/dist/` is wired in `app.zon` and `main.zig`, `src/index.html` will be retired.
 

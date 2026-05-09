@@ -109,7 +109,7 @@ pub fn build(b: *std.Build) void {
     // Frontend build is owned by `dnpm run build` per frontend/CLAUDE.md
     // (Docker-isolated npm). Earlier versions of this build script invoked
     // `npm install --prefix frontend` and `npm --prefix frontend run build`
-    // directly on the host — that bypassed the dnpm policy and exposed
+    // directly on the host — that sidestepped the dnpm policy and exposed
     // every developer to npm postinstall scripts. Removed in 2026-05-09.
     //
     // The two-step flow is now:

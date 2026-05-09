@@ -34,4 +34,4 @@ else
 fi
 
 echo
-echo "Done. Bypass with --no-verify if needed."
+echo "Done. Override with --no-verify if needed."

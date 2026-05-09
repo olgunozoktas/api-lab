@@ -135,9 +135,9 @@ build_frontend() {
       ;;
     npm)
       if have dnpm; then
-        echo "::warning:: --use=npm forced — bypassing dnpm hardening (frontend/CLAUDE.md)." >&2
+        echo "::warning:: --use=npm forced — skipping dnpm hardening (frontend/CLAUDE.md)." >&2
       else
-        echo "::warning:: dnpm not found — falling back to host npm. This bypasses the hardening described in frontend/CLAUDE.md (no seccomp, no cap-drop, postinstall scripts run on the host). Prefer dnpm for daily local dev." >&2
+        echo "::warning:: dnpm not found — falling back to host npm. This skips the hardening described in frontend/CLAUDE.md (no seccomp, no cap-drop, postinstall scripts run on the host). Prefer dnpm for daily local dev." >&2
       fi
       ( cd frontend
         # Test for actual installed deps (vite binary), not just dir

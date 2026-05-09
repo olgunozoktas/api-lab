@@ -15,7 +15,7 @@ Built on top of **[vercel-labs/zero-native](https://github.com/vercel-labs/zero-
 - **REST + GraphQL composer** with method picker, params/headers/auth/body/graphql tabs
 - **WebSocket workspace** — type `ws://` or `wss://` and the layout swaps to a full WS workbench: status pill, message log with timestamps + direction icons + JSON pretty-print + JSON detection badge, send box with ⌘+Enter, ping helper. Browser-native `WebSocket` API (no CORS for ws/wss).
 - **"Copy as code" generator** — emit the live request as cURL / JavaScript fetch / JavaScript axios / Python `requests` / Go `net/http` / Node.js `https`. Generated snippets carry the env-substituted URL, headers, body, and auth — copy-paste-runnable.
-- **Native HTTP** via Zig handler that shells out to `curl` — bypasses WebView CORS, exposes timing breakdown (DNS / connect / TTFB / total)
+- **Native HTTP** via Zig handler that shells out to `curl` — sidesteps WebView CORS, exposes timing breakdown (DNS / connect / TTFB / total)
 - **Browser fetch fallback** when the native bridge isn't available
 - **Auth helpers**: Bearer, Basic, API Key (header)
 - **JSON & GraphQL editor** powered by CodeMirror 6 (auto-close brackets, auto-indent, search, fold gutter, line numbers)
@@ -36,7 +36,7 @@ Prerequisites:
 - **A frontend builder** (auto-detected by `./build.sh`):
   - Preferred: **OrbStack** (or Docker Desktop) + **`dnpm`** wrapper — frontend builds run inside a hardened Linux container; npm never touches your host
   - Alternative: **Docker Compose** alone — uses the project-rooted `docker-compose.yml` (less hardened than dnpm but still containerized)
-  - Last resort: **Node 22 + `npm`** on the host (simplest, but bypasses the supply-chain isolation — not recommended for daily use)
+  - Last resort: **Node 22 + `npm`** on the host (simplest, but sidesteps the supply-chain isolation — not recommended for daily use)
 
 ```bash
 # Clone both repos as siblings — build.zig defaults to ../zero-native
@@ -74,7 +74,7 @@ The script auto-detects in this priority order. Override with `--use=<dnpm|docke
 ### Why the build flow is one script (and not `zig build run`)
 
 - The frontend (Vite + React + Tailwind v4 + CodeMirror 6) is a separate build that produces `frontend/dist/`, which the Zig shell serves via the `zero://app` asset handler.
-- `zig build run` deliberately does NOT shell out to host `npm` — that would bypass the dnpm sandbox.
+- `zig build run` deliberately does NOT shell out to host `npm` — that would sidestep the dnpm sandbox.
 - `./build.sh` sequences both halves in the right order, kills any already-running api-lab instance, and launches the new binary in the background. The dev loop is just: edit code → `./build.sh` → app reloads.
 
 ### Frontend-only commands (skip the Zig step)
