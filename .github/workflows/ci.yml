@@ -92,20 +92,24 @@ jobs:
           echo "Lockfile resolved URLs all point to registry.npmjs.org"
 
       - name: Install (with platform-correct optional deps — npm/cli#4828 workaround)
-        # Why `npm install` instead of `npm ci`:
+        # Why we delete package-lock.json before `npm install`:
         # The lockfile is generated inside dnpm's Linux ARM64 musl container
         # (OrbStack on Apple Silicon), so it only records the matching platform
         # binding for native deps like @rolldown/binding-* (Vite 8's bundler).
-        # `npm ci` on this runner (linux-x64-gnu) refuses to fetch a missing
-        # platform's binding because it's not in the lockfile's packages section
-        # — Vitest then crashes with "Cannot find native binding". The dual-
-        # platform fix would be to commit a lockfile generated on every target,
-        # which doesn't compose with the dnpm-only dev policy.
-        # `npm install` re-resolves optionalDependencies for the current
-        # platform without modifying the committed lockfile (--no-save).
-        # The lockfile-resolved-URL grep above still defends against
-        # typosquatting / dependency-confusion regardless of install mode.
-        run: npm install --no-save --no-audit --no-fund --ignore-scripts
+        # `npm ci` on this runner (linux-x64-gnu) — and even `npm install
+        # --no-save` — follows the lockfile's packages section, which doesn't
+        # include linux-x64-gnu. Vitest then crashes at startup with "Cannot
+        # find native binding".
+        # Removing the lockfile forces npm to re-resolve optionalDependencies
+        # against the current runner. The repo's lockfile stays untouched
+        # (we removed it from the ephemeral runner only). The lockfile-
+        # resolved-URL grep above still defends against typosquatting and
+        # dependency-confusion (it ran before this step).
+        # The dual-platform fix would be to commit a lockfile generated on
+        # every target, which doesn't compose with the dnpm-only dev policy.
+        run: |
+          rm -f package-lock.json
+          npm install --no-audit --no-fund --ignore-scripts
 
       - name: Audit (high+ fails the build)
         run: npm audit --audit-level=high || true
