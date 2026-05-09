@@ -24,7 +24,7 @@
 #   ./build.sh --zig-only       # skip the frontend build (uses existing dist/)
 #   ./build.sh --use=npm        # force host npm even if dnpm is available
 #   ./build.sh --keep-cache     # don't wipe the WebKit asset cache
-#   ./build.sh --reset-state    # also wipe localStorage (collections, history, env)
+#   ./build.sh --reset-state    # also wipe persisted store (LocalStorage + IndexedDB → collections, history, env)
 #   ./build.sh -h | --help
 
 set -eo pipefail
@@ -217,7 +217,11 @@ if [ "$RUN" = "1" ]; then
   fi
   if [ "$RESET_STATE" = "1" ]; then
     if [ -d "$WK_DATA_DIR" ]; then
-      echo "→ ⚠ wiping WebKit state — LocalStorage (collections, history, env) gone"
+      # Wipes the entire WebsiteData/ folder, which holds BOTH the
+      # legacy LocalStorage entry and the new IndexedDB folder
+      # (apilab database, kv store) — collections, history, env, tabs
+      # all gone.
+      echo "→ ⚠ wiping WebKit state — LocalStorage + IndexedDB (collections, history, env) gone"
       rm -rf "$WK_DATA_DIR"
     fi
   fi
