@@ -1,17 +1,16 @@
 import { useMemo, useState } from "react";
 import { useStore } from "../store";
-import { methodClass } from "../lib/utils";
 import { useT } from "../lib/i18n/useT";
-import { useConfirm } from "../lib/dialogs";
 import { cn } from "../lib/cn";
-import { ChevronRight, Folder, FolderOpen } from "lucide-react";
 import type { CollectionItem } from "../lib/types";
+import { FolderRow, RequestRow } from "./CollectionRows";
 
 // CollectionList — tree-shaped sidebar list with folders + requests.
 // Folders expand/collapse via the chevron; clicking a request loads it
-// into the active tab. Right-side X (hover) deletes the item (recursive
-// for folders, with confirm). HTML5 native drag-and-drop supports moving
-// items into folders; dropping on the empty area moves to the root.
+// into the active tab. Right-click any row → context menu with rename /
+// delete / sub-folder / open-in-new-tab. HTML5 native drag-and-drop
+// supports moving items into folders; dropping on the empty area below
+// moves to the root.
 
 export function CollectionList() {
   const items = useStore((s) => s.collectionItems);
@@ -120,194 +119,6 @@ function TreeNode({
     );
   }
   return <RequestRow item={item} depth={depth} />;
-}
-
-function FolderRow({
-  item,
-  depth,
-  open,
-  childCount,
-}: {
-  item: CollectionItem;
-  depth: number;
-  open: boolean;
-  childCount: number;
-}) {
-  const t = useT();
-  const confirm = useConfirm();
-  const toggleFolder = useStore((s) => s.toggleFolder);
-  const deleteCollectionItem = useStore((s) => s.deleteCollectionItem);
-  const renameCollectionItem = useStore((s) => s.renameCollectionItem);
-  const moveCollectionItem = useStore((s) => s.moveCollectionItem);
-  const [renaming, setRenaming] = useState(false);
-  const [draftName, setDraftName] = useState(item.name);
-  const [dragOver, setDragOver] = useState(false);
-
-  return (
-    <div
-      className={cn(
-        "group flex items-center gap-1 px-2 py-1.5 rounded-md cursor-pointer text-xs",
-        "hover:bg-[var(--color-bg-elev-2)]",
-        dragOver && "bg-[var(--color-accent)]/15 ring-1 ring-[var(--color-accent)]"
-      )}
-      style={{ paddingLeft: 8 + depth * 12 }}
-      onClick={() => toggleFolder(item.id)}
-      onDoubleClick={(e) => {
-        e.stopPropagation();
-        setRenaming(true);
-      }}
-      draggable
-      onDragStart={(e) => {
-        e.dataTransfer.setData("application/x-collection-id", item.id);
-        e.dataTransfer.effectAllowed = "move";
-      }}
-      onDragOver={(e) => {
-        if (e.dataTransfer.types.includes("application/x-collection-id")) {
-          e.preventDefault();
-          e.dataTransfer.dropEffect = "move";
-          setDragOver(true);
-        }
-      }}
-      onDragLeave={() => setDragOver(false)}
-      onDrop={(e) => {
-        e.preventDefault();
-        setDragOver(false);
-        const id = e.dataTransfer.getData("application/x-collection-id");
-        if (id && id !== item.id) moveCollectionItem(id, item.id);
-      }}
-    >
-      <ChevronRight
-        className={cn(
-          "w-3 h-3 transition-transform shrink-0 text-[var(--color-fg-muted)]",
-          open && "rotate-90"
-        )}
-        aria-hidden
-      />
-      {open ? (
-        <FolderOpen className="w-3.5 h-3.5 shrink-0 text-[var(--color-fg-muted)]" aria-hidden />
-      ) : (
-        <Folder className="w-3.5 h-3.5 shrink-0 text-[var(--color-fg-muted)]" aria-hidden />
-      )}
-      {renaming ? (
-        <input
-          autoFocus
-          value={draftName}
-          onChange={(e) => setDraftName(e.target.value)}
-          onClick={(e) => e.stopPropagation()}
-          onBlur={() => {
-            renameCollectionItem(item.id, draftName);
-            setRenaming(false);
-          }}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              renameCollectionItem(item.id, draftName);
-              setRenaming(false);
-            } else if (e.key === "Escape") {
-              setDraftName(item.name);
-              setRenaming(false);
-            }
-          }}
-          className="flex-1 bg-[var(--color-bg)] border border-[var(--color-border)] rounded px-1 text-xs"
-        />
-      ) : (
-        <span className="flex-1 truncate font-medium">{item.name}</span>
-      )}
-      <span className="text-[10px] text-[var(--color-fg-muted)]">{childCount}</span>
-      <button
-        aria-label={t("kv.delete")}
-        onClick={async (e) => {
-          e.stopPropagation();
-          const ok = await confirm({
-            title: t("collections.confirmDeleteFolder", { name: item.name }),
-            confirmLabel: t("kv.delete"),
-            cancelLabel: t("dialog.cancel"),
-            danger: true,
-          });
-          if (ok) deleteCollectionItem(item.id);
-        }}
-        className="opacity-0 group-hover:opacity-100 px-1 text-[var(--color-fg-muted)] hover:bg-[var(--color-danger)] hover:text-white rounded"
-      >
-        ✕
-      </button>
-    </div>
-  );
-}
-
-function RequestRow({ item, depth }: { item: CollectionItem; depth: number }) {
-  const t = useT();
-  const confirm = useConfirm();
-  const currentId = useStore((s) => s.current.id);
-  const loadCollection = useStore((s) => s.loadCollection);
-  const deleteCollectionItem = useStore((s) => s.deleteCollectionItem);
-  const renameCollectionItem = useStore((s) => s.renameCollectionItem);
-  const [renaming, setRenaming] = useState(false);
-  const [draftName, setDraftName] = useState(item.name);
-  const isActive = item.id === currentId;
-  const m = item.request?.method ?? "GET";
-
-  return (
-    <div
-      onClick={() => loadCollection(item)}
-      onDoubleClick={(e) => {
-        e.stopPropagation();
-        setRenaming(true);
-      }}
-      draggable
-      onDragStart={(e) => {
-        e.dataTransfer.setData("application/x-collection-id", item.id);
-        e.dataTransfer.effectAllowed = "move";
-      }}
-      className={cn(
-        "group flex items-center gap-2 py-1.5 rounded-md cursor-pointer text-xs",
-        isActive ? "bg-[var(--color-accent)]/15" : "hover:bg-[var(--color-bg-elev-2)]"
-      )}
-      style={{ paddingLeft: 8 + depth * 12, paddingRight: 8 }}
-    >
-      <span className={"font-mono font-bold w-9 flex-shrink-0 text-[10px] " + methodClass(m)}>
-        {m}
-      </span>
-      {renaming ? (
-        <input
-          autoFocus
-          value={draftName}
-          onChange={(e) => setDraftName(e.target.value)}
-          onClick={(e) => e.stopPropagation()}
-          onBlur={() => {
-            renameCollectionItem(item.id, draftName);
-            setRenaming(false);
-          }}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              renameCollectionItem(item.id, draftName);
-              setRenaming(false);
-            } else if (e.key === "Escape") {
-              setDraftName(item.name);
-              setRenaming(false);
-            }
-          }}
-          className="flex-1 bg-[var(--color-bg)] border border-[var(--color-border)] rounded px-1 text-xs"
-        />
-      ) : (
-        <span className="flex-1 truncate">{item.name || "—"}</span>
-      )}
-      <button
-        aria-label={t("kv.delete")}
-        onClick={async (e) => {
-          e.stopPropagation();
-          const ok = await confirm({
-            title: t("kv.confirmDelete"),
-            confirmLabel: t("kv.delete"),
-            cancelLabel: t("dialog.cancel"),
-            danger: true,
-          });
-          if (ok) deleteCollectionItem(item.id);
-        }}
-        className="opacity-0 group-hover:opacity-100 px-1 text-[var(--color-fg-muted)] hover:bg-[var(--color-danger)] hover:text-white rounded"
-      >
-        ✕
-      </button>
-    </div>
-  );
 }
 
 // Drop zone at the bottom of the tree — drops here move the item to root.

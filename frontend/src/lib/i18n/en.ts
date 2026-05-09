@@ -57,6 +57,11 @@ export const en: Dict = {
   "collections.newFolderPrompt": "Folder name:",
   "collections.newFolderDefault": "New folder",
   "collections.confirmDeleteFolder": 'Delete folder "{name}" and ALL requests inside it?',
+  "collections.context.newSubFolder": "New sub-folder",
+  "collections.context.rename": "Rename",
+  "collections.context.delete": "Delete",
+  "collections.context.open": "Open",
+  "collections.context.openInNewTab": "Open in new tab",
 
   "curl.detected": "cURL detected",
   "curl.import": "Import",

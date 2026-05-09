@@ -57,6 +57,11 @@ export const tr = {
   "collections.newFolderDefault": "Yeni klasör",
   "collections.confirmDeleteFolder":
     '"{name}" klasörünü ve içindeki TÜM istekleri silmek istediğine emin misin?',
+  "collections.context.newSubFolder": "Yeni alt klasör",
+  "collections.context.rename": "Yeniden adlandır",
+  "collections.context.delete": "Sil",
+  "collections.context.open": "Aç",
+  "collections.context.openInNewTab": "Yeni sekmede aç",
 
   "curl.detected": "cURL algılandı",
   "curl.import": "İçeri aktar",
