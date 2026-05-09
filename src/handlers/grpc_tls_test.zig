@@ -84,6 +84,28 @@ test "cleanupTlsTmpfiles: empty path is a safe no-op" {
     // No assertion needed — must not crash, must not error.
 }
 
+test "prepareTlsTmpfiles: tmpdir lands at 0o700 and each PEM at 0o600" {
+    var arena = std.heap.ArenaAllocator.init(testing.allocator);
+    defer arena.deinit();
+    const a = arena.allocator();
+
+    const prep = try grpc_tls.prepareTlsTmpfiles(a, testing.io, "CA", "CERT", "KEY");
+    defer grpc_tls.cleanupTlsTmpfiles(testing.io, prep.tmpdir_path);
+
+    var cwd = std.Io.Dir.cwd();
+    const dir_stat = try cwd.statFile(testing.io, prep.tmpdir_path, .{});
+    try testing.expectEqual(@as(std.posix.mode_t, 0o700), dir_stat.permissions.toMode() & 0o777);
+
+    for ([_][]const u8{
+        prep.paths.ca_cert_path,
+        prep.paths.client_cert_path,
+        prep.paths.client_key_path,
+    }) |path| {
+        const st = try cwd.statFile(testing.io, path, .{});
+        try testing.expectEqual(@as(std.posix.mode_t, 0o600), st.permissions.toMode() & 0o777);
+    }
+}
+
 test "prepareTlsTmpfiles: two consecutive calls produce different dirs (random suffix)" {
     var arena = std.heap.ArenaAllocator.init(testing.allocator);
     defer arena.deinit();
