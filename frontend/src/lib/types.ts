@@ -74,12 +74,31 @@ export type ComposerTab = "params" | "headers" | "auth" | "body" | "graphql";
 export type ResponseTab = "body" | "headers" | "raw";
 export type SidebarTab = "collections" | "history";
 
+export type Theme = "auto" | "light" | "dark" | "tokyo-night" | "github-light";
+
+export const THEMES: Theme[] = ["auto", "light", "dark", "tokyo-night", "github-light"];
+
 export type UiState = {
-  theme: "auto" | "light" | "dark";
+  theme: Theme;
   composerTab: ComposerTab;
   responseTab: ResponseTab;
   sidebarTab: SidebarTab;
 };
+
+// Default request behaviors — surfaced in the Settings modal so power
+// users can shift project-wide defaults instead of editing each request.
+// Persisted alongside the rest of the store under `defaults`.
+export type RequestDefaults = {
+  timeoutMs: number;
+  followRedirects: number;
+  insecure: boolean;
+};
+
+export const defaultRequestDefaults = (): RequestDefaults => ({
+  timeoutMs: 60000,
+  followRedirects: 10,
+  insecure: false,
+});
 
 // One open tab in the multi-request workspace. `request` is the editable
 // state; `lastResponse` is the most recent response shown in the response

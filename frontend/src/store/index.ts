@@ -11,6 +11,7 @@ import type {
   OpenTab,
   ComposerTab,
   ResponseTab,
+  RequestDefaults,
 } from "../lib/types";
 import { emptyRequest, emptyTab } from "../lib/types";
 import { uid } from "../lib/utils";
@@ -43,6 +44,7 @@ type Actions = {
   setUi: (patch: Partial<UiState>) => void;
   setEnvs: (envs: Environment[]) => void;
   setLocale: (l: Locale) => void;
+  setDefaults: (patch: Partial<RequestDefaults>) => void;
   pushHistory: (
     snap: RequestSnapshot,
     status: number,
@@ -215,6 +217,10 @@ export const useStore = create<State & Actions>()(
 
       setEnvs: (envs) => set({ envs }),
       setLocale: (locale) => set({ locale }),
+      setDefaults: (patch) =>
+        set((s) => ({
+          defaults: { ...s.defaults, ...patch },
+        })),
 
       pushHistory: (snap, status, sizeBytes, elapsedMs) =>
         set((s) => {
@@ -381,6 +387,7 @@ export const useStore = create<State & Actions>()(
           activeTabId: s.activeTabId,
           ui: s.ui,
           locale: s.locale,
+          defaults: s.defaults,
         }) as State,
     }
   )

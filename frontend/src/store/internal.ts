@@ -11,8 +11,9 @@ import type {
   ResponseSnapshot,
   UiState,
   Environment,
+  RequestDefaults,
 } from "../lib/types";
-import { emptyRequest, emptyTab } from "../lib/types";
+import { emptyRequest, emptyTab, defaultRequestDefaults } from "../lib/types";
 import { uid } from "../lib/utils";
 import { detectLocale, type Locale } from "../lib/i18n";
 
@@ -30,6 +31,7 @@ export type CoreState = {
   lastResponse: ResponseSnapshot | null;
   ui: UiState;
   locale: Locale;
+  defaults: RequestDefaults;
   toast: { msg: string; ts: number } | null;
 };
 
@@ -68,6 +70,7 @@ export function buildInitialState(): CoreState {
       sidebarTab: "collections",
     },
     locale: detectLocale("tr"),
+    defaults: defaultRequestDefaults(),
     toast: null,
   };
 }
@@ -136,6 +139,7 @@ export function migrateV1toV2(persisted: unknown): CoreState {
     activeEnv: old.activeEnv ?? "default",
     history: old.history ?? [],
     locale: old.locale ?? detectLocale("tr"),
+    defaults: old.defaults ?? defaultRequestDefaults(),
     toast: null,
   };
 }

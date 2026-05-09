@@ -27,11 +27,20 @@ export function App() {
   const [busy, setBusy] = useState(false);
   const [switcherOpen, setSwitcherOpen] = useState(false);
 
+  const defaults = useStore((s) => s.defaults);
+
   useEffect(() => {
     const html = document.documentElement;
-    if (ui.theme === "auto") html.removeAttribute("data-theme");
-    else html.setAttribute("data-theme", ui.theme);
-    html.style.colorScheme = ui.theme === "auto" ? "light dark" : ui.theme;
+    if (ui.theme === "auto") {
+      html.removeAttribute("data-theme");
+      html.style.colorScheme = "light dark";
+    } else {
+      html.setAttribute("data-theme", ui.theme);
+      // Tell the user agent (form controls, scrollbars) which color
+      // family this theme belongs to so native UI matches.
+      const isLight = ui.theme === "light" || ui.theme === "github-light";
+      html.style.colorScheme = isLight ? "light" : "dark";
+    }
   }, [ui.theme]);
 
   const onSend = useCallback(async () => {
@@ -42,7 +51,7 @@ export function App() {
     }
     setBusy(true);
     try {
-      const res = await send(current, isGraphql, vars);
+      const res = await send(current, isGraphql, vars, defaults);
       setLastResponse(res);
       pushHistory(
         {
@@ -76,7 +85,7 @@ export function App() {
     } finally {
       setBusy(false);
     }
-  }, [busy, current, isGraphql, pushHistory, setLastResponse, showToast, t, vars]);
+  }, [busy, current, defaults, isGraphql, pushHistory, setLastResponse, showToast, t, vars]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
