@@ -1,4 +1,5 @@
 import { Component, type ReactNode } from "react";
+import { resolveStackSafe } from "../lib/resolveStack";
 
 // ErrorBoundary — last-line-of-defense for runtime crashes. Without it
 // a thrown error during render leaves the user with a white screen and
@@ -6,6 +7,12 @@ import { Component, type ReactNode } from "react";
 // shows the error + a "Copy" button (one-shot to clipboard for pasting
 // into AI agents / bug reports) + a "Reset state" escape hatch (clears
 // localStorage so a wedged store doesn't trap the user).
+//
+// On catch we also kick off async source-map resolution against the
+// `.js.map` sidecar Vite emits — by the time the render commits, the
+// stack frames in this.state.resolvedStack carry real function + file
+// names instead of minifier output. Falls back to the raw stack if the
+// fetch / parse fails.
 //
 // Pair with the global onerror / onunhandledrejection listeners wired
 // in main.tsx — those catch async errors that React doesn't see (event
@@ -16,27 +23,54 @@ type State = {
   error: Error | null;
   info: string | null;
   copied: boolean;
+  resolvedStack: string | null;
+  resolving: boolean;
 };
 
 export class ErrorBoundary extends Component<Props, State> {
-  state: State = { error: null, info: null, copied: false };
+  state: State = {
+    error: null,
+    info: null,
+    copied: false,
+    resolvedStack: null,
+    resolving: false,
+  };
 
   static getDerivedStateFromError(error: Error): State {
-    return { error, info: null, copied: false };
+    return { error, info: null, copied: false, resolvedStack: null, resolving: false };
   }
 
   componentDidCatch(error: Error, info: { componentStack?: string | null }) {
-    this.setState({ error, info: info.componentStack ?? null, copied: false });
+    this.setState({
+      error,
+      info: info.componentStack ?? null,
+      copied: false,
+      resolving: !!error.stack,
+      resolvedStack: null,
+    });
     // eslint-disable-next-line no-console
     console.error("[api-lab] React error boundary caught:", error, info);
+    if (error.stack) {
+      // Fire async source-map resolution. Render keeps showing the raw
+      // stack until this completes; UI swaps to resolved version when
+      // setState fires below. Errors swallowed by resolveStackSafe.
+      void resolveStackSafe(error.stack).then((resolved) => {
+        if (resolved && resolved !== error.stack) {
+          this.setState({ resolvedStack: resolved, resolving: false });
+        } else {
+          this.setState({ resolving: false });
+        }
+      });
+    }
   }
 
   // Build a multi-section payload that's useful both for the user
   // copy-pasting into a chat AND for an LLM trying to diagnose. Includes
-  // location, user agent, build hash if injected, and the full error +
-  // component stack.
+  // location, user agent, the resolved (or raw, if resolution didn't
+  // land) error stack, the message, and the component stack.
   private buildReport(): string {
     const e = this.state.error;
+    const stack = this.state.resolvedStack || e?.stack || e?.message || String(e || "(no error)");
     const lines: string[] = [];
     lines.push("# API Lab runtime error");
     lines.push("");
@@ -45,10 +79,13 @@ export class ErrorBoundary extends Component<Props, State> {
     lines.push(
       `User-Agent: ${typeof navigator !== "undefined" ? navigator.userAgent : "(no nav)"}`
     );
+    if (e?.message && this.state.resolvedStack) {
+      lines.push(`Message: ${e.message}`);
+    }
     lines.push("");
-    lines.push("## Error");
+    lines.push(this.state.resolvedStack ? "## Error (source-map resolved)" : "## Error");
     lines.push("```");
-    lines.push(String(e?.stack || e?.message || e || "(no error)"));
+    lines.push(stack);
     lines.push("```");
     if (this.state.info) {
       lines.push("");
@@ -132,6 +169,18 @@ export class ErrorBoundary extends Component<Props, State> {
           <code>collectionItems</code>, <code>tabs</code>, or migration, try{" "}
           <strong>Reset state + reload</strong>.
         </p>
+        {this.state.resolving && (
+          <p
+            style={{
+              margin: "0 0 8px",
+              fontSize: "12px",
+              fontStyle: "italic",
+              color: "#666",
+            }}
+          >
+            Resolving source maps…
+          </p>
+        )}
         <pre
           style={{
             whiteSpace: "pre-wrap",
@@ -146,7 +195,8 @@ export class ErrorBoundary extends Component<Props, State> {
             overflow: "auto",
           }}
         >
-          {String(this.state.error?.stack || this.state.error?.message || this.state.error)}
+          {this.state.resolvedStack ||
+            String(this.state.error?.stack || this.state.error?.message || this.state.error)}
         </pre>
         {this.state.info && (
           <details style={{ marginBottom: "12px" }}>
