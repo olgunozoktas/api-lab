@@ -32,6 +32,16 @@ export const tr = {
   "composer.tab.body": "Body",
   "composer.tab.graphql": "GraphQL",
 
+  "tabs.new": "Yeni sekme",
+  "tabs.close": "Sekmeyi kapat",
+  "tabs.openInNewTab": "Yeni sekmede aç",
+
+  "switcher.placeholder": "İstek ara… (Esc kapatır, ↑↓ gez, ↵ aç)",
+  "switcher.empty": "Eşleşme yok",
+  "switcher.section.tabs": "Açık sekmeler",
+  "switcher.section.collections": "Koleksiyonlar",
+  "switcher.section.history": "Geçmiş",
+
   "kv.addParam": "+ Param ekle",
   "kv.addHeader": "+ Header ekle",
   "kv.addEnv": "+ Environment ekle",
