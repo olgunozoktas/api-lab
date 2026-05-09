@@ -100,8 +100,34 @@ build_frontend() {
   builder=$(detect_builder)
   case "$builder" in
     dnpm)
+      # Ensure mount-point dirs exist on host before dnpm can bind them.
+      # dnpm's RO source mount needs `.astro` and `node_modules` to exist
+      # as empty hosts even when the actual data lives in Docker volumes.
+      mkdir -p frontend/.astro frontend/node_modules frontend/dist
       echo "→ frontend: dnpm run build (hardened container)"
       ( cd frontend && dnpm run build )
+      # dnpm writes dist/ to a Docker volume (frontend_dist), not the host
+      # bind mount, because the host source is mounted RO for security. The
+      # Zig app serves frontend/dist/ from the host though, so we have to
+      # copy the volume's contents back. `dnpm sync-dist` was supposed to
+      # do this but it backs up + wipes host dist without restoring from
+      # the volume in our setup (still TBD upstream). Do the copy directly
+      # via a one-shot docker run — no daemon side effects, no extra deps.
+      if have docker && docker volume inspect frontend_dist >/dev/null 2>&1; then
+        echo "→ syncing frontend_dist Docker volume → ./frontend/dist/"
+        rm -rf frontend/dist
+        mkdir -p frontend/dist
+        docker run --rm \
+          -v frontend_dist:/src:ro \
+          -v "$SCRIPT_DIR/frontend/dist:/dst" \
+          alpine sh -c "cp -R /src/. /dst/" \
+          || {
+            echo "::error:: docker cp from frontend_dist volume failed" >&2
+            exit 1
+          }
+      else
+        echo "::warning:: frontend_dist volume not found — Zig will see stale or missing dist" >&2
+      fi
       ;;
     docker)
       echo "→ frontend: docker compose run --rm frontend-build"
