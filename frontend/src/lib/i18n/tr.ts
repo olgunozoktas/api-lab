@@ -261,7 +261,7 @@ export const tr = {
   "grpc.tls.clientKey.placeholder":
     "-----BEGIN PRIVATE KEY-----\nMIIE...client key...\n-----END PRIVATE KEY-----",
   "grpc.tls.security.warning":
-    "Client key tarayıcı depolamasında saklanır. Production key yerine dev/test sertifikası kullan; export ile başka cihaza taşımadan önce iki kez düşün.",
+    "Client key tarayıcı depolamasında saklanır. Production key yerine dev/test sertifikası kullan; export ile başka cihaza taşımadan önce iki kez düşün. Çağrı süresince /tmp altındaki PEM dosyaları yalnızca senin kullanıcına okunabilecek şekilde (0o700 dizin / 0o600 dosya) korunur.",
   "grpc.tls.hint":
     "Boş bırakılırsa grpcurl sistem trust root'larını kullanır. Self-signed dev sunucuları + internal PKI + mTLS gerektiren prod servisler için doldur.",
   "grpc.reflect.browse": "Servisleri tara",

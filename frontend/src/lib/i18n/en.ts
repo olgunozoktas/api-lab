@@ -260,7 +260,7 @@ export const en: Dict = {
   "grpc.tls.clientKey.placeholder":
     "-----BEGIN PRIVATE KEY-----\nMIIE...client key...\n-----END PRIVATE KEY-----",
   "grpc.tls.security.warning":
-    "Client keys live in browser storage. Use a dev/test cert, not your production key; think twice before exporting to another machine.",
+    "Client keys live in browser storage. Use a dev/test cert, not your production key; think twice before exporting to another machine. During each call the temporary PEM files under /tmp are locked down to your UID only (0o700 dir / 0o600 file).",
   "grpc.tls.hint":
     "Leave blank to let grpcurl use the system trust roots. Fill these in for self-signed dev servers, internal PKIs, or services that authenticate via mTLS.",
   "grpc.reflect.browse": "Browse services",

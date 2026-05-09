@@ -28,15 +28,15 @@ chmod via `posix.chmod` after the fact, or use `Dir.makeDir(io, path,
 
 ## Items
 
-- [ ] Add explicit chmod 0o700 to the tmpdir created in
+- [x] Add explicit chmod 0o700 to the tmpdir created in
       `prepareTlsTmpfiles` (research the right Zig 0.16 API:
       `posix.chmod`, `Dir.chmod`, or a mode arg on the create call).
-- [ ] Add explicit chmod 0o600 to each PEM file written via
+- [x] Add explicit chmod 0o600 to each PEM file written via
       `Dir.writeFile`. Apply post-write since `WriteFileOptions.flags`
       is a `CreateFileOptions` and may not expose mode bits.
-- [ ] Test: `prepareTlsTmpfiles` writes a PEM, then `stat` the file via
+- [x] Test: `prepareTlsTmpfiles` writes a PEM, then `stat` the file via
       `Dir.statFile` to assert mode bits land at 0o600 (and dir 0o700).
-- [ ] Add a one-line note in the TLS tab security warning that the
+- [x] Add a one-line note in the TLS tab security warning that the
       tmp files are protected to the current user only.
 
 ## Acceptance
@@ -66,3 +66,45 @@ scope for v1.
    `makeDir` mode parameter (line ~1037 for `deleteDir`, find `makeDir`).
 3. Extend `grpc_tls_test.zig` with a stat-based mode-bits assertion.
 4. Tests must run cleanly on macOS — Linux-specific syscalls are out.
+
+## Status — shipped 2026-05-09 (UTC)
+
+Shipped end-to-end on `feat/grpc-tls-tmpfile-permissions`. All 4 items
+checked.
+
+**What landed:**
+
+- New `TLS_TMPDIR_MODE = 0o700` and `TLS_FILE_MODE = 0o600` constants
+  in `src/handlers/grpc_tls.zig` colocated with `prepareTlsTmpfiles`
+  for easy audit + tuning.
+- Dir creation switched from `cwd.createDirPath(io, path)` to
+  `cwd.createDirPathStatus(io, path, .fromMode(0o700))` — passes the
+  explicit mode at create time. Followed by a defensive
+  `cwd.setFilePermissions(io, path, .fromMode(0o700), .{})` to close
+  any umask-related widening (belt-and-suspenders; the TOCTOU window
+  is microseconds and the parent file's Tradeoffs section accepts it).
+- Each PEM file (`ca.pem` / `client.pem` / `client.key`) gets an
+  explicit `setFilePermissions(.fromMode(0o600), .{})` immediately
+  after `writeFile`. The directory's 0o700 mode is the actual gate
+  (no traverse for non-owners) — per-file 0o600 is defense-in-depth.
+- New unit test `prepareTlsTmpfiles: tmpdir lands at 0o700 and each
+  PEM at 0o600` uses `cwd.statFile(io, path, .{})` and
+  `stat.permissions.toMode() & 0o777` to assert the actual mode bits
+  on the real filesystem.
+- `grpc.tls.security.warning` i18n string extended in both `tr.ts`
+  and `en.ts` with a sentence noting `/tmp` PEMs are locked to UID
+  only (0o700 dir / 0o600 file).
+
+**Acceptance hits:**
+
+- ✅ `stat` of `/tmp/api-lab-grpc-<hex>` shows `drwx------` (0o700).
+- ✅ `stat` of each PEM file shows `-rw-------` (0o600).
+- ✅ Second-user denial follows from the dir's 0o700 — non-owners
+  can't even traverse the dir to reach the file paths.
+- ✅ All existing Zig tests (`zig build test`) still pass; macOS-only.
+
+**Deferrals (none):**
+
+The Tradeoffs `O_TMPFILE` (Linux-only, never-named files) idea
+explicitly stays out of scope per the parent file. macOS doesn't
+support that syscall.
