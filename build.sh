@@ -13,9 +13,8 @@
 #
 # Override with --use=<dnpm|docker|npm>.
 #
-# Default: build + launch the app (replacing any running instance).
-# Pass --no-run to build only, useful for CI or when iterating on the
-# build itself.
+# Default: build + clear WebKit asset cache + launch the app
+# (replacing any running instance). Pass --no-run to build only.
 #
 # Usage:
 #   ./build.sh                  # debug build + launch (default)
@@ -24,6 +23,8 @@
 #   ./build.sh --frontend-only  # skip the Zig step (implies --no-run)
 #   ./build.sh --zig-only       # skip the frontend build (uses existing dist/)
 #   ./build.sh --use=npm        # force host npm even if dnpm is available
+#   ./build.sh --keep-cache     # don't wipe the WebKit asset cache
+#   ./build.sh --reset-state    # also wipe localStorage (collections, history, env)
 #   ./build.sh -h | --help
 
 set -eo pipefail
@@ -36,7 +37,13 @@ RUN=1                # auto-launch by default; --no-run to opt out
 FRONTEND_ONLY=0
 ZIG_ONLY=0
 USE=""
+KEEP_CACHE=0         # default: wipe WebKit asset cache pre-launch
+RESET_STATE=0        # opt-in: also wipe LocalStorage (destructive)
 EXTRA_ZIG_ARGS=()
+
+# WKWebView's data store, keyed by the bundle's display name (with space).
+WK_CACHE_DIR="$HOME/Library/Caches/API Lab"
+WK_DATA_DIR="$HOME/Library/WebKit/API Lab"
 
 usage() {
   sed -n 's/^# \?//; 2,/^$/p' "$0" | head -22
@@ -51,6 +58,8 @@ for arg in "$@"; do
     --frontend-only)  FRONTEND_ONLY=1; RUN=0 ;;  # nothing to launch
     --zig-only)       ZIG_ONLY=1 ;;
     --use=*)          USE="${arg#--use=}" ;;
+    --keep-cache)     KEEP_CACHE=1 ;;
+    --reset-state)    RESET_STATE=1 ;;
     -h|--help)        usage 0 ;;
     -D*)              EXTRA_ZIG_ARGS+=("$arg") ;;  # passthrough -Dkey=value flags
     *)                echo "Unknown arg: $arg" >&2; usage 1 ;;
@@ -143,16 +152,39 @@ if [ "$RUN" = "1" ]; then
     echo "::error:: zig-out/bin/api-lab missing — Zig build did not produce a binary" >&2
     exit 1
   fi
-  # Replace any already-running instance so successive ./build.sh runs
+
+  # 3a. Stop any already-running instance so the cache wipe + relaunch
   # behave like a hot-reload. Match by full path to avoid hitting other
   # processes that happen to have "api-lab" in argv.
   if pgrep -f "$SCRIPT_DIR/zig-out/bin/api-lab" >/dev/null 2>&1; then
     echo "→ stopping previous instance"
     pkill -TERM -f "$SCRIPT_DIR/zig-out/bin/api-lab" 2>/dev/null || true
-    # Brief grace period for the WKWebView host to tear down its window.
     sleep 0.4
     pkill -KILL -f "$SCRIPT_DIR/zig-out/bin/api-lab" 2>/dev/null || true
   fi
+
+  # 3b. Wipe WebKit's asset cache so the new bundle is served instead of
+  # a stale copy. WKWebView caches the served HTML/JS in
+  # ~/Library/Caches/API Lab/WebKit/, which sometimes survives a binary
+  # swap and shows old UI even after a fresh build (the bug that
+  # surfaced 2026-05-09). LocalStorage / IndexedDB live in
+  # ~/Library/WebKit/API Lab/WebsiteData/ and are NOT touched here —
+  # those carry the user's collections, history, environments. Pass
+  # --keep-cache to skip this step (e.g. to debug a cache-related
+  # regression), or --reset-state to wipe everything including state.
+  if [ "$KEEP_CACHE" != "1" ] && [ -d "$WK_CACHE_DIR" ]; then
+    echo "→ clearing WebKit asset cache ($WK_CACHE_DIR)"
+    rm -rf "$WK_CACHE_DIR"
+  fi
+  if [ "$RESET_STATE" = "1" ]; then
+    if [ -d "$WK_DATA_DIR" ]; then
+      echo "→ ⚠ wiping WebKit state — LocalStorage (collections, history, env) gone"
+      rm -rf "$WK_DATA_DIR"
+    fi
+  fi
+
+  # 3c. Launch in background so build.sh exits cleanly while the
+  # WKWebView window stays open.
   echo "→ launch: ./zig-out/bin/api-lab (background, PID will print)"
   ./zig-out/bin/api-lab >/dev/null 2>&1 &
   echo "✓ Build + launch complete (PID $!) — zig-out/bin/api-lab"

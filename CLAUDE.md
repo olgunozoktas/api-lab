@@ -17,12 +17,14 @@ The frontend is **transitioning from vanilla HTML/JS to React + Tailwind**. The 
 
 ```bash
 # Build the whole app (frontend + Zig) — preferred entry point:
-./build.sh                          # debug build + LAUNCH (default; kills any prior instance)
+./build.sh                          # debug build + LAUNCH (default; kills prior instance + clears WebKit cache)
 ./build.sh --no-run                 # build only, don't launch (for CI / iteration)
 ./build.sh --release                # ReleaseSafe build + launch
 ./build.sh --frontend-only          # skip Zig (implies --no-run)
 ./build.sh --zig-only               # skip frontend (uses existing dist/)
 ./build.sh --use=npm                # force host npm fallback (downgrades hardening)
+./build.sh --keep-cache             # don't wipe ~/Library/Caches/API Lab/ before launch
+./build.sh --reset-state            # ⚠ also wipe ~/Library/WebKit/API Lab/ (LocalStorage gone)
 ./build.sh -Dzero-native-path=...   # passthrough Zig flags
 
 # Frontend (NEVER run npm/npx/node directly — see frontend/CLAUDE.md):
@@ -54,11 +56,19 @@ bash scripts/install-hooks.sh       # one-time per clone (idempotent; sets core.
 
 `./build.sh` is the canonical build entry point — sequences the
 frontend + Zig build in the right order, kills any already-running
-api-lab instance, and launches the freshly-built binary. The
-hot-reload loop is just: edit code → `./build.sh` → app restarts.
-Pass `--no-run` to skip the launch (CI, build-only iteration).
+api-lab instance, **wipes the WebKit asset cache** (so the new bundle
+is served instead of a stale copy), and launches the freshly-built
+binary. The hot-reload loop is just: edit code → `./build.sh` → app
+restarts with fresh assets. Pass `--no-run` to skip the launch (CI,
+build-only iteration).
 
-It auto-detects the frontend builder in this order: `dnpm` →
+The cache wipe touches `~/Library/Caches/API Lab/` only; LocalStorage
+in `~/Library/WebKit/API Lab/WebsiteData/` (the user's collections,
+history, environments) is preserved. Pass `--reset-state` to wipe
+that too (rarely needed; useful for "force a v1→v2 migration" or
+"my persisted state is wedged").
+
+The script auto-detects the frontend builder in this order: `dnpm` →
 `docker compose run frontend-build` → host `npm` (with a warning).
 
 When iterating on just one tier, prefer `./build.sh --frontend-only`
