@@ -7,10 +7,16 @@ new VERSION ships. `unreleased/<slug>.md` is the working set —
 populated as slices land on `main`.
 
 Convention (CLAUDE.md hard rule): every change that touches user-
-facing behavior MUST drop a markdown file in `changelog/unreleased/`
-in the same commit as the change. At release-cut time, the entries
-are concatenated into `released/v<version>.md` and the unreleased
-slot is emptied.
+facing behavior MUST drop a markdown file in
+`frontend/changelog/unreleased/` in the same commit as the change.
+At release-cut time, the entries are concatenated into
+`frontend/changelog/released/v<version>.md` and the unreleased slot
+is emptied.
+
+The directory lives under `frontend/` (not at the repo root) so the
+dnpm docker build can see it — the build container only mounts
+`frontend/` as `/app`, and anything outside that path is invisible
+to Vite's `import.meta.glob` at build time.
 
 Internal-only refactors (no user-visible delta) do NOT require an
 entry. The author judges; reviewer pushes back if the call is wrong.

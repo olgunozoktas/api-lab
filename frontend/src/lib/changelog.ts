@@ -25,12 +25,12 @@ export type ChangelogEntry = {
 // Path shape (relative to vite.config.ts which is at frontend/):
 //   ../changelog/released/v0.1.0.md
 //   ../changelog/unreleased/2026-05-10-store-split.md
-const RELEASED = import.meta.glob<string>("../../../changelog/released/*.md", {
+const RELEASED = import.meta.glob<string>("../../changelog/released/*.md", {
   query: "?raw",
   import: "default",
   eager: true,
 });
-const UNRELEASED = import.meta.glob<string>("../../../changelog/unreleased/*.md", {
+const UNRELEASED = import.meta.glob<string>("../../changelog/unreleased/*.md", {
   query: "?raw",
   import: "default",
   eager: true,
