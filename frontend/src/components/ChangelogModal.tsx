@@ -1,6 +1,8 @@
+import { useMemo } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
 import { useT } from "../lib/i18n/useT";
-import { CHANGELOG_ENTRIES, APP_VERSION } from "../lib/changelog";
+import { useStore } from "../store";
+import { CHANGELOG_ENTRIES, APP_VERSION, selectChangelogEntries } from "../lib/changelog";
 import { ChangelogEntryCard } from "./ChangelogEntryCard";
 
 export type ChangelogModalProps = {
@@ -14,12 +16,15 @@ export type ChangelogModalProps = {
 // surface something rather than render nothing.
 export function ChangelogModal({ open, onOpenChange }: ChangelogModalProps) {
   const t = useT();
-  const entries = CHANGELOG_ENTRIES;
+  const locale = useStore((s) => s.locale);
+  // Pick the active-locale variant of each entry. Recomputes when the
+  // user switches language in Settings.
+  const entries = useMemo(() => selectChangelogEntries(CHANGELOG_ENTRIES, locale), [locale]);
   const unreleasedLabel = t("changelog.unreleased");
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-4xl w-[92vw] max-h-[88vh] overflow-y-auto p-0">
+      <DialogContent className="sm:max-w-4xl w-[92vw] h-[88vh] overflow-hidden p-0 flex flex-col">
         <DialogHeader className="px-5 py-4 border-b border-[var(--color-border)]">
           <DialogTitle className="text-base flex items-baseline gap-2">
             {t("changelog.title")}
@@ -29,7 +34,7 @@ export function ChangelogModal({ open, onOpenChange }: ChangelogModalProps) {
           </DialogTitle>
         </DialogHeader>
 
-        <div className="px-5 py-4 space-y-4">
+        <div className="flex-1 min-h-0 overflow-y-auto px-5 py-4 space-y-4">
           {entries.length === 0 ? (
             <p className="text-sm text-[var(--color-fg-muted)]">{t("changelog.empty")}</p>
           ) : (

@@ -1,7 +1,8 @@
 import { useMemo, useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
 import { useT } from "../lib/i18n/useT";
-import { GUIDES, groupGuides, searchGuides, type GuideEntry } from "../lib/guides";
+import { useStore } from "../store";
+import { GUIDES, groupGuides, searchGuides, selectGuides, type GuideEntry } from "../lib/guides";
 import { GuideCard } from "./GuideCard";
 import { cn } from "../lib/cn";
 
@@ -19,21 +20,27 @@ export type GuideHubProps = {
 // its own component).
 export function GuideHub({ open, onOpenChange, initialSlug }: GuideHubProps) {
   const t = useT();
+  const locale = useStore((s) => s.locale);
   const [query, setQuery] = useState("");
   const [selectedSlug, setSelectedSlug] = useState<string | null>(null);
+
+  // Pick the active-locale variant of each guide. Recomputes when the
+  // user switches language in Settings — the modal re-renders with TR
+  // bodies on the next paint.
+  const localized = useMemo(() => selectGuides(GUIDES, locale), [locale]);
 
   // Reset selection when modal opens (or jump to initialSlug).
   useEffect(() => {
     if (!open) return;
-    if (initialSlug && GUIDES.some((g) => g.slug === initialSlug)) {
+    if (initialSlug && localized.some((g) => g.slug === initialSlug)) {
       setSelectedSlug(initialSlug);
       return;
     }
-    setSelectedSlug(GUIDES[0]?.slug ?? null);
+    setSelectedSlug(localized[0]?.slug ?? null);
     setQuery("");
-  }, [open, initialSlug]);
+  }, [open, initialSlug, localized]);
 
-  const filtered = useMemo<GuideEntry[]>(() => searchGuides(GUIDES, query), [query]);
+  const filtered = useMemo<GuideEntry[]>(() => searchGuides(localized, query), [localized, query]);
   const groups = useMemo(() => groupGuides(filtered), [filtered]);
 
   // If the current selection got filtered out, fall back to the first
@@ -42,11 +49,11 @@ export function GuideHub({ open, onOpenChange, initialSlug }: GuideHubProps) {
     selectedSlug && filtered.some((g) => g.slug === selectedSlug)
       ? selectedSlug
       : (filtered[0]?.slug ?? null);
-  const selected = effectiveSlug ? GUIDES.find((g) => g.slug === effectiveSlug) : null;
+  const selected = effectiveSlug ? localized.find((g) => g.slug === effectiveSlug) : null;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-6xl w-[92vw] max-h-[88vh] overflow-hidden p-0 flex flex-col">
+      <DialogContent className="sm:max-w-6xl w-[92vw] h-[88vh] overflow-hidden p-0 flex flex-col">
         <DialogHeader className="px-5 py-4 border-b border-[var(--color-border)]">
           <DialogTitle className="text-base">{t("guides.title")}</DialogTitle>
         </DialogHeader>
