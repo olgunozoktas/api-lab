@@ -95,6 +95,8 @@ export const tr = {
   "composer.save": "Kaydet",
   "composer.send": "Gönder",
   "composer.sending": "Gönderiliyor...",
+  "composer.cancel": "İptal",
+  "composer.cancelTitle": "Bu isteği iptal et (⌘+.)",
   "composer.urlPlaceholder": "https://api.example.com/path  (env: {{vars}})",
   "composer.tab.params": "Params",
   "composer.tab.headers": "Headers",
@@ -316,4 +318,5 @@ export const tr = {
   "toast.saved": "Kaydedildi",
   "toast.urlEmpty": "URL boş",
   "toast.networkError": "Hata: {msg}",
+  "toast.requestCancelled": "İstek iptal edildi",
 };

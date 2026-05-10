@@ -95,16 +95,31 @@ export function effectiveContentType(
   }
 }
 
+// Standard browser AbortError shape so callers can `e.name === "AbortError"`.
+export function makeAbortError(): DOMException {
+  return new DOMException("Request cancelled", "AbortError");
+}
+
 async function viaNative(
   url: string,
   method: string,
   headers: Headers,
   body: string | undefined,
-  defaults: RequestDefaults
+  defaults: RequestDefaults,
+  signal?: AbortSignal
 ): Promise<ResponseSnapshot> {
+  // Soft cancel: the zero-native bridge dispatches synchronously on the
+  // main thread — an in-flight `http.request` blocks the bridge thread
+  // until curl returns, so we cannot send a separate `http.cancel` IPC
+  // call to kill the subprocess (a real cancel needs bridge AsyncHandler
+  // support, queued as a follow-up). When the signal aborts, throw
+  // AbortError immediately so the UI returns to ready; the bridge call's
+  // eventual response is discarded by JS but the curl subprocess keeps
+  // running until natural completion (timeout or success).
+  if (signal?.aborted) throw makeAbortError();
   const headerArr: HttpHeader[] = [];
   headers.forEach((v, k) => headerArr.push({ name: k, value: v }));
-  const r = await bridge.invoke<HttpResponse>("http.request", {
+  const bridgePromise = bridge.invoke<HttpResponse>("http.request", {
     method,
     url,
     headers: headerArr,
@@ -113,6 +128,15 @@ async function viaNative(
     follow_redirects: defaults.followRedirects,
     insecure: defaults.insecure,
   });
+  const r: HttpResponse = signal
+    ? await Promise.race([
+        bridgePromise,
+        new Promise<HttpResponse>((_, reject) => {
+          if (signal.aborted) return reject(makeAbortError());
+          signal.addEventListener("abort", () => reject(makeAbortError()), { once: true });
+        }),
+      ])
+    : await bridgePromise;
   if (r.error) {
     throw new Error(r.error + (r.stderr ? " — " + r.stderr : ""));
   }
@@ -137,9 +161,10 @@ async function viaFetch(
   method: string,
   headers: Headers,
   body: string | undefined,
-  t0: number
+  t0: number,
+  signal?: AbortSignal
 ): Promise<ResponseSnapshot> {
-  const res = await fetch(url, { method, headers, body, redirect: "follow" });
+  const res = await fetch(url, { method, headers, body, redirect: "follow", signal });
   const respHeaders: { k: string; v: string }[] = [];
   res.headers.forEach((v, k) => respHeaders.push({ k, v }));
   let buf: ArrayBuffer;
@@ -162,13 +187,21 @@ async function viaFetch(
   };
 }
 
+export type SendOptions = {
+  /** Aborts the in-flight request when triggered. Fetch path uses
+   *  fetch's native signal; native (curl-via-bridge) path soft-cancels
+   *  on the JS side because the bridge is synchronous (see viaNative). */
+  signal?: AbortSignal;
+};
+
 export async function send(
   req: CurrentRequest,
   isGraphql: boolean,
   vars: Record<string, string>,
-  defaults: RequestDefaults = defaultRequestDefaults()
+  defaults: RequestDefaults = defaultRequestDefaults(),
+  opts: SendOptions = {}
 ): Promise<ResponseSnapshot> {
-  const result = await sendWithScripts(req, isGraphql, vars, defaults);
+  const result = await sendWithScripts(req, isGraphql, vars, defaults, opts);
   return result.response;
 }
 
@@ -179,7 +212,8 @@ export async function sendWithScripts(
   req: CurrentRequest,
   isGraphql: boolean,
   vars: Record<string, string>,
-  defaults: RequestDefaults = defaultRequestDefaults()
+  defaults: RequestDefaults = defaultRequestDefaults(),
+  opts: SendOptions = {}
 ): Promise<SendResult> {
   let activeRequest: CurrentRequest = req;
   let activeEnv: Record<string, string> = { ...vars };
@@ -213,8 +247,8 @@ export async function sendWithScripts(
 
   const t0 = performance.now();
   const response = bridge.available
-    ? await viaNative(url, method, headers, body, defaults)
-    : await viaFetch(url, method, headers, body, t0);
+    ? await viaNative(url, method, headers, body, defaults, opts.signal)
+    : await viaFetch(url, method, headers, body, t0, opts.signal);
 
   let postOutcome: ScriptOutcome | undefined;
   if (req.postScript && req.postScript.trim()) {
