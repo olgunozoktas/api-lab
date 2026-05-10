@@ -1,11 +1,39 @@
 import { describe, it, expect } from "vitest";
-import { groupGuides, searchGuides, _internal, type GuideEntry } from "../guides";
+import { groupGuides, searchGuides, selectGuides, _internal, type GuideEntry } from "../guides";
 
 const FIXTURES: GuideEntry[] = [
-  { slug: "alpha", title: "Alpha basics", group: "Basics", order: 1, body: "intro alpha" },
-  { slug: "beta", title: "Beta intermediate", group: "Basics", order: 2, body: "more beta" },
-  { slug: "grpc", title: "gRPC reflection", group: "Protocols", order: 1, body: "grpcurl" },
-  { slug: "ws", title: "WebSocket basics", group: "Protocols", order: 2, body: "ws://" },
+  {
+    slug: "alpha",
+    lang: "en",
+    title: "Alpha basics",
+    group: "Basics",
+    order: 1,
+    body: "intro alpha",
+  },
+  {
+    slug: "beta",
+    lang: "en",
+    title: "Beta intermediate",
+    group: "Basics",
+    order: 2,
+    body: "more beta",
+  },
+  {
+    slug: "grpc",
+    lang: "en",
+    title: "gRPC reflection",
+    group: "Protocols",
+    order: 1,
+    body: "grpcurl",
+  },
+  {
+    slug: "ws",
+    lang: "en",
+    title: "WebSocket basics",
+    group: "Protocols",
+    order: 2,
+    body: "ws://",
+  },
 ];
 
 describe("guides — parseEntry", () => {
@@ -90,5 +118,39 @@ describe("guides — searchGuides", () => {
 
   it("returns empty when no matches", () => {
     expect(searchGuides(FIXTURES, "nothing-here")).toEqual([]);
+  });
+});
+
+describe("guides — selectGuides (locale picker)", () => {
+  const MIXED: GuideEntry[] = [
+    { slug: "a", lang: "en", title: "A (en)", group: "G", order: 1, body: "" },
+    { slug: "a", lang: "tr", title: "A (tr)", group: "G", order: 1, body: "" },
+    { slug: "b", lang: "en", title: "B (en)", group: "G", order: 2, body: "" },
+    // No Turkish translation for `b` — selectGuides should fall back.
+  ];
+
+  it("picks the active-locale variant when present", () => {
+    const r = selectGuides(MIXED, "tr");
+    const a = r.find((e) => e.slug === "a");
+    expect(a?.lang).toBe("tr");
+    expect(a?.title).toBe("A (tr)");
+  });
+
+  it("falls back to en when the active-locale variant is missing", () => {
+    const r = selectGuides(MIXED, "tr");
+    const b = r.find((e) => e.slug === "b");
+    expect(b?.lang).toBe("en");
+    expect(b?.title).toBe("B (en)");
+  });
+
+  it("picks en when active locale is en", () => {
+    const r = selectGuides(MIXED, "en");
+    expect(r.every((e) => e.lang === "en")).toBe(true);
+  });
+
+  it("returns one entry per slug regardless of language count", () => {
+    const r = selectGuides(MIXED, "tr");
+    const slugs = r.map((e) => e.slug);
+    expect(new Set(slugs).size).toBe(slugs.length);
   });
 });

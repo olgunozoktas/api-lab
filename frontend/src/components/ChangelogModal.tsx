@@ -1,6 +1,8 @@
+import { useMemo } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
 import { useT } from "../lib/i18n/useT";
-import { CHANGELOG_ENTRIES, APP_VERSION } from "../lib/changelog";
+import { useStore } from "../store";
+import { CHANGELOG_ENTRIES, APP_VERSION, selectChangelogEntries } from "../lib/changelog";
 import { ChangelogEntryCard } from "./ChangelogEntryCard";
 
 export type ChangelogModalProps = {
@@ -14,7 +16,10 @@ export type ChangelogModalProps = {
 // surface something rather than render nothing.
 export function ChangelogModal({ open, onOpenChange }: ChangelogModalProps) {
   const t = useT();
-  const entries = CHANGELOG_ENTRIES;
+  const locale = useStore((s) => s.locale);
+  // Pick the active-locale variant of each entry. Recomputes when the
+  // user switches language in Settings.
+  const entries = useMemo(() => selectChangelogEntries(CHANGELOG_ENTRIES, locale), [locale]);
   const unreleasedLabel = t("changelog.unreleased");
 
   return (
