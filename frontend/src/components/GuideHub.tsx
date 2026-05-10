@@ -46,12 +46,12 @@ export function GuideHub({ open, onOpenChange, initialSlug }: GuideHubProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-4xl max-h-[85vh] overflow-hidden p-0 flex flex-col">
+      <DialogContent className="sm:max-w-6xl w-[92vw] max-h-[88vh] overflow-hidden p-0 flex flex-col">
         <DialogHeader className="px-5 py-4 border-b border-[var(--color-border)]">
           <DialogTitle className="text-base">{t("guides.title")}</DialogTitle>
         </DialogHeader>
 
-        <div className="flex-1 grid grid-cols-[220px_1fr] min-h-0">
+        <div className="flex-1 grid grid-cols-[260px_1fr] min-h-0">
           {/* Sidebar */}
           <aside className="border-r border-[var(--color-border)] flex flex-col min-h-0">
             <div className="px-3 py-2 border-b border-[var(--color-border)]">

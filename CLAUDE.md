@@ -136,9 +136,9 @@ Every component is a candidate library export. Reviews reject violations.
 
 This is non-negotiable. Reviews reject any file exceeding 400 lines. Legacy files at the time of this rule landing must be refactored before extension.
 
-**Changelog: every user-visible change ships an entry.** Every commit / PR that touches user-facing behavior MUST drop a markdown file under `changelog/unreleased/` in the same commit. Internal-only refactors (no user-visible delta — pure renames, file splits, type-only changes) do NOT need an entry; the author judges, the reviewer pushes back if the call is wrong.
+**Changelog: every user-visible change ships an entry.** Every commit / PR that touches user-facing behavior MUST drop a markdown file under `frontend/changelog/unreleased/` in the same commit. Internal-only refactors (no user-visible delta — pure renames, file splits, type-only changes) do NOT need an entry; the author judges, the reviewer pushes back if the call is wrong.
 
-Entry format (`changelog/unreleased/<YYYY-MM-DD>-<slug>.md`):
+Entry format (`frontend/changelog/unreleased/<YYYY-MM-DD>-<slug>.md`):
 
 ```markdown
 ---
@@ -151,13 +151,20 @@ should care. Optional bullet list. Keep under ~300 words.
 ```
 
 The bundled `frontend/src/lib/changelog.ts` glob-imports every
-`changelog/{released,unreleased}/*.md` at build time. The in-app
-`<ChangelogModal>` opens automatically on first launch when
+`frontend/changelog/{released,unreleased}/*.md` at build time. The
+in-app `<ChangelogModal>` opens automatically on first launch when
 `APP_VERSION > lastSeenVersion` (persisted in IDB) and is accessible
 from the TopBar's clock-history button anytime. At release-cut time,
 `unreleased/*.md` entries get concatenated into
 `released/v<version>.md` and the unreleased slot is emptied. See
-`changelog/README.md` for the full convention.
+`frontend/changelog/README.md` for the full convention.
+
+**Why under `frontend/`** — the dnpm docker build container only mounts
+`frontend/` as `/app`. Anything outside that mount is invisible at
+glob-resolution time, so a repo-root `changelog/` directory would silently
+yield zero entries (the in-app modal would render an empty state). Same
+reason `APP_VERSION` reads from `frontend/package.json` rather than a
+top-level `VERSION` file.
 
 ## Secrets policy (HARD RULE — never violated)
 

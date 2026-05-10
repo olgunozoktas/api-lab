@@ -19,7 +19,7 @@ export function ChangelogModal({ open, onOpenChange }: ChangelogModalProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-y-auto p-0">
+      <DialogContent className="sm:max-w-4xl w-[92vw] max-h-[88vh] overflow-y-auto p-0">
         <DialogHeader className="px-5 py-4 border-b border-[var(--color-border)]">
           <DialogTitle className="text-base flex items-baseline gap-2">
             {t("changelog.title")}
