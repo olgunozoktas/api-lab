@@ -1,5 +1,5 @@
 import type { StateCreator } from "zustand";
-import type { CollectionItem, Environment } from "../lib/types";
+import type { CollectionItem, Environment, RequestSnapshot } from "../lib/types";
 import { uid } from "../lib/utils";
 import { descendantIds, nextOrder } from "./internal";
 import type { Store, StoreMutators } from "./types";
@@ -7,6 +7,7 @@ import type { Store, StoreMutators } from "./types";
 export type CollectionsActions = {
   deleteCollectionItem: (id: string) => void;
   addFolder: (parentId: string | null, name: string) => string;
+  addRequest: (parentId: string | null, name: string) => CollectionItem;
   renameCollectionItem: (id: string, name: string) => void;
   toggleFolder: (id: string) => void;
   moveCollectionItem: (id: string, newParentId: string | null) => void;
@@ -16,6 +17,22 @@ export type CollectionsActions = {
     wrapperName: string
   ) => void;
 };
+
+// Default empty request snapshot for newly-created collection items.
+// Mirrors `emptyRequest()` from lib/types but returns the snapshot
+// shape (no id/name, isGraphql flag) that CollectionItem expects.
+function emptyRequestSnapshot(): RequestSnapshot {
+  return {
+    method: "GET",
+    url: "",
+    params: [{ enabled: true, k: "", v: "" }],
+    headers: [{ enabled: true, k: "", v: "" }],
+    auth: { type: "none" },
+    body: { mode: "none", text: "" },
+    gql: { query: "", vars: "" },
+    isGraphql: false,
+  };
+}
 
 export const createCollectionsSlice: StateCreator<Store, StoreMutators, [], CollectionsActions> = (
   set
@@ -57,6 +74,33 @@ export const createCollectionsSlice: StateCreator<Store, StoreMutators, [], Coll
       collectionsExpanded: { ...s.collectionsExpanded, [id]: true },
     }));
     return id;
+  },
+
+  addRequest: (parentId, name) => {
+    const id = uid();
+    const trimmed = name.trim() || "Yeni istek";
+    let created!: CollectionItem;
+    set((s) => {
+      created = {
+        id,
+        parentId,
+        kind: "request",
+        order: nextOrder(s.collectionItems, parentId),
+        name: trimmed,
+        request: emptyRequestSnapshot(),
+      };
+      // Auto-expand the parent folder so the new request is visible
+      // (no-op when parentId === null — root has no expanded flag).
+      const expanded =
+        parentId !== null && !s.collectionsExpanded[parentId]
+          ? { ...s.collectionsExpanded, [parentId]: true }
+          : s.collectionsExpanded;
+      return {
+        collectionItems: [...s.collectionItems, created],
+        collectionsExpanded: expanded,
+      };
+    });
+    return created;
   },
 
   renameCollectionItem: (id, name) =>
