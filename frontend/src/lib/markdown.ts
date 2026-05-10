@@ -15,11 +15,12 @@
 //   _italic_  /  *italic*
 //   [text](https://url)    (links open in a new tab)
 //   ---                    (hr)
+//   GFM-style tables       (| col | col |\n|---|---|\n| a | b |)
 //   blank lines            (paragraph break)
 //
-// Out of scope intentionally: tables, blockquotes, image embeds, raw
-// HTML pass-through, footnotes. We author the content; if we need
-// any of these, add them to the renderer.
+// Out of scope intentionally: blockquotes, image embeds, raw HTML
+// pass-through, footnotes, table-cell alignment. We author the
+// content; if we need any of these, add them to the renderer.
 
 const ESCAPE_RE = /[&<>"']/g;
 const ESCAPE_MAP: Record<string, string> = {
@@ -90,7 +91,32 @@ type Block =
   | { kind: "ul"; items: string[] }
   | { kind: "ol"; items: string[] }
   | { kind: "code"; lang: string; text: string }
-  | { kind: "hr" };
+  | { kind: "hr" }
+  | { kind: "table"; headers: string[]; rows: string[][] };
+
+// Split a `| a | b | c |` row into trimmed cells. Strips the leading
+// and trailing pipe (with surrounding whitespace) so `splitRow("| a | b |")`
+// returns `["a", "b"]` rather than `["", "a", "b", ""]`.
+function splitTableRow(line: string): string[] {
+  const trimmed = line.trim().replace(/^\|/, "").replace(/\|$/, "");
+  return trimmed.split("|").map((c) => c.trim());
+}
+
+// A separator row is `|---|---|` or `| :--- | ---: |` etc. Each cell
+// is dashes optionally bracketed by colons (alignment markers, which
+// we ignore in v1).
+function isTableSeparator(line: string): boolean {
+  const t = line.trim();
+  if (!t.startsWith("|") || !t.endsWith("|")) return false;
+  const cells = splitTableRow(t);
+  if (cells.length === 0) return false;
+  return cells.every((c) => /^:?-+:?$/.test(c));
+}
+
+function isTableRow(line: string): boolean {
+  const t = line.trim();
+  return t.startsWith("|") && t.endsWith("|") && t.length >= 2;
+}
 
 function tokenize(src: string): Block[] {
   const blocks: Block[] = [];
@@ -136,6 +162,24 @@ function tokenize(src: string): Block[] {
       continue;
     }
 
+    // GFM table — header row (|...|) followed by a separator row
+    // (|---|---|). Followed by zero or more data rows (also |...|).
+    if (isTableRow(line) && i + 1 < lines.length && isTableSeparator(lines[i + 1].trimEnd())) {
+      const headers = splitTableRow(line);
+      i += 2; // consume header + separator
+      const rows: string[][] = [];
+      while (i < lines.length && isTableRow(lines[i].trimEnd())) {
+        const cells = splitTableRow(lines[i].trimEnd());
+        // Pad/trim to header width so renderBlock's <td> count matches.
+        while (cells.length < headers.length) cells.push("");
+        if (cells.length > headers.length) cells.length = headers.length;
+        rows.push(cells);
+        i++;
+      }
+      blocks.push({ kind: "table", headers, rows });
+      continue;
+    }
+
     // Unordered list
     if (/^[-*]\s+/.test(line)) {
       const items: string[] = [];
@@ -169,6 +213,11 @@ function tokenize(src: string): Block[] {
       if (/^#{1,4}\s+/.test(next)) break;
       if (/^[-*]\s+/.test(next)) break;
       if (/^\d+\.\s+/.test(next)) break;
+      // Don't slurp pipe-rows into a paragraph — let the table check
+      // on the next outer-loop iteration pick them up. (A bare `|`
+      // line without a separator below it falls through to a fresh
+      // paragraph rather than glomming onto the previous one.)
+      if (isTableRow(next)) break;
       buf.push(next);
       i++;
     }
@@ -194,6 +243,22 @@ function renderBlock(b: Block): string {
     }
     case "hr":
       return "<hr />";
+    case "table": {
+      const head =
+        "<thead><tr>" +
+        b.headers.map((h) => `<th>${renderInline(escapeHtml(h))}</th>`).join("") +
+        "</tr></thead>";
+      const body =
+        "<tbody>" +
+        b.rows
+          .map(
+            (r) =>
+              "<tr>" + r.map((c) => `<td>${renderInline(escapeHtml(c))}</td>`).join("") + "</tr>"
+          )
+          .join("") +
+        "</tbody>";
+      return `<table>${head}${body}</table>`;
+    }
   }
 }
 
