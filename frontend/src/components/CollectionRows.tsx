@@ -11,6 +11,7 @@ import { useConfirm } from "../lib/dialogs";
 import { cn } from "../lib/cn";
 import {
   ChevronRight,
+  FilePlus,
   Folder,
   FolderOpen,
   FolderPlus,
@@ -46,6 +47,8 @@ export function FolderRow({
   const renameCollectionItem = useStore((s) => s.renameCollectionItem);
   const moveCollectionItem = useStore((s) => s.moveCollectionItem);
   const addFolder = useStore((s) => s.addFolder);
+  const addRequest = useStore((s) => s.addRequest);
+  const loadCollection = useStore((s) => s.loadCollection);
   const expanded = useStore((s) => s.collectionsExpanded);
   const [renaming, setRenaming] = useState(false);
   const [draftName, setDraftName] = useState(item.name);
@@ -63,6 +66,14 @@ export function FolderRow({
 
   const onAddSubFolder = () => {
     addFolder(item.id, t("collections.newFolderDefault"));
+    if (!expanded[item.id]) toggleFolder(item.id);
+  };
+
+  const onAddRequest = () => {
+    const created = addRequest(item.id, t("collections.newRequestDefault"));
+    // Switch the active composer to the freshly-created request so
+    // the user can start editing immediately.
+    loadCollection(created);
     if (!expanded[item.id]) toggleFolder(item.id);
   };
 
@@ -159,6 +170,10 @@ export function FolderRow({
         </div>
       </ContextMenuTrigger>
       <ContextMenuContent>
+        <ContextMenuItem onSelect={onAddRequest}>
+          <FilePlus className="w-3.5 h-3.5" aria-hidden />
+          {t("collections.context.newRequest")}
+        </ContextMenuItem>
         <ContextMenuItem onSelect={onAddSubFolder}>
           <FolderPlus className="w-3.5 h-3.5" aria-hidden />
           {t("collections.context.newSubFolder")}
