@@ -136,6 +136,29 @@ Every component is a candidate library export. Reviews reject violations.
 
 This is non-negotiable. Reviews reject any file exceeding 400 lines. Legacy files at the time of this rule landing must be refactored before extension.
 
+**Changelog: every user-visible change ships an entry.** Every commit / PR that touches user-facing behavior MUST drop a markdown file under `changelog/unreleased/` in the same commit. Internal-only refactors (no user-visible delta — pure renames, file splits, type-only changes) do NOT need an entry; the author judges, the reviewer pushes back if the call is wrong.
+
+Entry format (`changelog/unreleased/<YYYY-MM-DD>-<slug>.md`):
+
+```markdown
+---
+title: Short user-facing headline
+date: 2026-05-10
+---
+
+One paragraph of prose explaining what changed and why the user
+should care. Optional bullet list. Keep under ~300 words.
+```
+
+The bundled `frontend/src/lib/changelog.ts` glob-imports every
+`changelog/{released,unreleased}/*.md` at build time. The in-app
+`<ChangelogModal>` opens automatically on first launch when
+`APP_VERSION > lastSeenVersion` (persisted in IDB) and is accessible
+from the TopBar's clock-history button anytime. At release-cut time,
+`unreleased/*.md` entries get concatenated into
+`released/v<version>.md` and the unreleased slot is emptied. See
+`changelog/README.md` for the full convention.
+
 ## Secrets policy (HARD RULE — never violated)
 
 **Never commit secrets, credentials, or anything that grants access to a system.** This applies to every commit, every PR, every workflow file, every test fixture, every code comment, every doc page — no exceptions, in any project context.
