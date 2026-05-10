@@ -117,12 +117,16 @@ build_frontend() {
         echo "→ syncing frontend_dist Docker volume → ./frontend/dist/"
         rm -rf frontend/dist
         mkdir -p frontend/dist
+        # Use tar pipe instead of `cp -R` — BusyBox cp in alpine doesn't
+        # auto-create intermediate dirs (e.g. /dst/assets/), so cp into a
+        # fresh /dst with nested source paths fails per-file. tar handles
+        # directory creation atomically as part of extraction.
         docker run --rm \
           -v frontend_dist:/src:ro \
           -v "$SCRIPT_DIR/frontend/dist:/dst" \
-          alpine sh -c "cp -R /src/. /dst/" \
+          alpine sh -c "tar -C /src -cf - . | tar -C /dst -xf -" \
           || {
-            echo "::error:: docker cp from frontend_dist volume failed" >&2
+            echo "::error:: docker tar from frontend_dist volume failed" >&2
             exit 1
           }
       else
