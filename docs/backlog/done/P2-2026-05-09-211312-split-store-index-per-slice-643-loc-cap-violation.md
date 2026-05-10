@@ -26,7 +26,7 @@ boundary preserved.
 
 ## Items
 
-- [ ] Audit `store/index.ts` → identify natural slice boundaries.
+- [x] Audit `store/index.ts` → identify natural slice boundaries.
       Provisional grouping: collections (collectionItems +
       collectionsExpanded + addFolder/move/etc.), tabs (tabs +
       activeTabId + newTab/closeTab/etc.), env (envs + activeEnv +
@@ -36,25 +36,44 @@ boundary preserved.
       response (lastResponse + setLastResponse + toast + showToast),
       current (current + setCurrent + resetCurrent +
       loadCollection / loadHistoryItem + saveCurrent).
-- [ ] Split each slice into its own file under `frontend/src/store/`
+- [x] Split each slice into its own file under `frontend/src/store/`
       (one file per concern). Extract action types + initializers
       where they live now in `internal.ts`.
-- [ ] `index.ts` becomes the composition root: imports each slice,
+- [x] `index.ts` becomes the composition root: imports each slice,
       composes via Zustand's slice pattern (`(set, get) =>
       ({...createCollectionsSlice(set, get), ...createTabsSlice(...),
       ...})`), keeps the persist middleware + migration chain
       intact.
-- [ ] Verify v1→v2→v3 migrations still fire correctly (write a
+- [x] Verify v1→v2→v3 migrations still fire correctly (write a
       test if one doesn't exist — load a v2 persisted snapshot,
       verify v3 shape after).
-- [ ] Each new slice file MUST stay under 400 LOC. If a slice
+- [x] Each new slice file MUST stay under 400 LOC. If a slice
       naturally hits 350+, decompose further (e.g. collections +
       collectionTree + collectionImport).
-- [ ] All existing tests pass without modification — the public
+- [x] All existing tests pass without modification — the public
       `useStore` hook surface is unchanged; only the internals
       reorganize.
-- [ ] `index.ts` final size after split should be a slim
+- [x] `index.ts` final size after split should be a slim
       composition layer (target: under 100 LOC).
+
+## Status — shipped 2026-05-10 (UTC)
+
+All 7 items shipped. Ship summary:
+
+- New files: `store/types.ts`, `store/collections.ts`, `store/tabs.ts`,
+  `store/env.ts`, `store/history.ts`, `store/examples.ts`,
+  `store/ui.ts`, `store/response.ts`, `store/current.ts`,
+  `store/__tests__/migration.test.ts`.
+- Rewrote: `store/index.ts` (643 → 80 LOC).
+- `internal.ts` unchanged (244 LOC, holds `CoreState`, `buildInitialState`,
+  `clone`, `descendantIds`, `nextOrder`, `snapshotActiveIntoTab`,
+  `nextActiveAfterClose`, `migrateV1toV2`, `migrateV2toV3`).
+- Largest slice file: `collections.ts` at 161 LOC (well under 400 cap).
+- Tests: 272 → 277 (+5 new migration tests covering v1→v2, v2→v3, chained).
+- Typecheck: clean. Production build: clean (596ms).
+- Persist contract preserved: `name: "apilab.store.v1"`, `version: 3`,
+  `partialize` lists same 10 keys, `migrate` chain intact, IDB storage
+  unchanged. Persisted user state from before the split loads identically.
 
 ## Acceptance
 
