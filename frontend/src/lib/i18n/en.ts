@@ -13,10 +13,16 @@ export const en: Dict = {
   "topbar.envEdit": "Env...",
   "topbar.envSelect": "Select environment",
   "topbar.changelog": "Changelog",
+  "topbar.guides": "Guides (?)",
 
   "changelog.title": "What's new",
   "changelog.unreleased": "Unreleased",
   "changelog.empty": "No changelog entries yet.",
+
+  "guides.title": "Guides",
+  "guides.search.placeholder": "Search...",
+  "guides.search.empty": "No matches",
+  "guides.empty": "No guides yet.",
 
   "settings.title": "Settings",
   "settings.section.appearance": "Appearance",
