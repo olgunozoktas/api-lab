@@ -24,7 +24,7 @@ export function ChangelogModal({ open, onOpenChange }: ChangelogModalProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-4xl w-[92vw] max-h-[88vh] overflow-y-auto p-0">
+      <DialogContent className="sm:max-w-4xl w-[92vw] h-[88vh] overflow-hidden p-0 flex flex-col">
         <DialogHeader className="px-5 py-4 border-b border-[var(--color-border)]">
           <DialogTitle className="text-base flex items-baseline gap-2">
             {t("changelog.title")}
@@ -34,7 +34,7 @@ export function ChangelogModal({ open, onOpenChange }: ChangelogModalProps) {
           </DialogTitle>
         </DialogHeader>
 
-        <div className="px-5 py-4 space-y-4">
+        <div className="flex-1 min-h-0 overflow-y-auto px-5 py-4 space-y-4">
           {entries.length === 0 ? (
             <p className="text-sm text-[var(--color-fg-muted)]">{t("changelog.empty")}</p>
           ) : (
