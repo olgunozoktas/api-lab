@@ -66,7 +66,11 @@ pub fn prepareTlsTmpfiles(
     }
 
     var rand_bytes: [4]u8 = undefined;
-    std.crypto.random.bytes(&rand_bytes);
+    // `std.crypto.random` was removed in a Zig 0.16 point release;
+    // the replacement lives on the IO context as `io.random(buf)`
+    // (non-secure suffices — the dir's 0o700 mode is the actual
+    // security gate, the random hex just avoids per-request collisions).
+    io.random(&rand_bytes);
     const tmpdir_path = try std.fmt.allocPrint(
         a,
         "/tmp/api-lab-grpc-{x:0>2}{x:0>2}{x:0>2}{x:0>2}",
