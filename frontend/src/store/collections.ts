@@ -4,10 +4,20 @@ import { uid } from "../lib/utils";
 import { descendantIds, nextOrder } from "./internal";
 import type { Store, StoreMutators } from "./types";
 
+// Kind hint for newly-created requests. Picks a default URL prefix
+// (or method + isGraphql flag) so the right protocol-specific tab is
+// active as soon as the user lands on the new request — instead of
+// landing on HTTP and having to type `wss://` manually.
+//
+// `http` is the default for back-compat with callers that don't pass
+// a kind. `graphql` marks isGraphql; the runtime URL detectors handle
+// `ws`, `sse`, `grpc` based on URL prefix.
+export type NewRequestKind = "http" | "graphql" | "ws" | "sse" | "grpc";
+
 export type CollectionsActions = {
   deleteCollectionItem: (id: string) => void;
   addFolder: (parentId: string | null, name: string) => string;
-  addRequest: (parentId: string | null, name: string) => CollectionItem;
+  addRequest: (parentId: string | null, name: string, kind?: NewRequestKind) => CollectionItem;
   renameCollectionItem: (id: string, name: string) => void;
   toggleFolder: (id: string) => void;
   moveCollectionItem: (id: string, newParentId: string | null) => void;
@@ -21,16 +31,21 @@ export type CollectionsActions = {
 // Default empty request snapshot for newly-created collection items.
 // Mirrors `emptyRequest()` from lib/types but returns the snapshot
 // shape (no id/name, isGraphql flag) that CollectionItem expects.
-function emptyRequestSnapshot(): RequestSnapshot {
+function emptyRequestSnapshot(kind: NewRequestKind = "http"): RequestSnapshot {
+  // URL prefix per protocol — empty for HTTP/GraphQL (user picks the
+  // host), `wss://` / `sses://` / `grpcs://` for the streaming ones
+  // (TLS-by-default, easy to drop the `s` if not needed).
+  const url =
+    kind === "ws" ? "wss://" : kind === "sse" ? "sses://" : kind === "grpc" ? "grpcs://" : "";
   return {
-    method: "GET",
-    url: "",
+    method: kind === "graphql" ? "POST" : "GET",
+    url,
     params: [{ enabled: true, k: "", v: "" }],
     headers: [{ enabled: true, k: "", v: "" }],
     auth: { type: "none" },
     body: { mode: "none", text: "" },
     gql: { query: "", vars: "" },
-    isGraphql: false,
+    isGraphql: kind === "graphql",
   };
 }
 
@@ -76,7 +91,7 @@ export const createCollectionsSlice: StateCreator<Store, StoreMutators, [], Coll
     return id;
   },
 
-  addRequest: (parentId, name) => {
+  addRequest: (parentId, name, kind = "http") => {
     const id = uid();
     const trimmed = name.trim() || "Yeni istek";
     let created!: CollectionItem;
@@ -87,7 +102,7 @@ export const createCollectionsSlice: StateCreator<Store, StoreMutators, [], Coll
         kind: "request",
         order: nextOrder(s.collectionItems, parentId),
         name: trimmed,
-        request: emptyRequestSnapshot(),
+        request: emptyRequestSnapshot(kind),
       };
       // Auto-expand the parent folder so the new request is visible
       // (no-op when parentId === null — root has no expanded flag).
