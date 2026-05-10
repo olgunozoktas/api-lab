@@ -55,6 +55,7 @@ export const en: Dict = {
   "sidebar.empty.collections": "No saved requests yet",
   "sidebar.empty.history": "No history yet",
   "sidebar.newRequest": "+ New request",
+  "sidebar.newRequest.title": "Reset the active tab — right-click to pick WS / SSE / gRPC",
   "sidebar.clearHistory": "Clear",
   "sidebar.confirmClearHistory": "Clear history?",
 

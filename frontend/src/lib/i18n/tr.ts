@@ -54,6 +54,7 @@ export const tr = {
   "sidebar.empty.collections": "Henüz kayıtlı istek yok",
   "sidebar.empty.history": "Henüz geçmiş yok",
   "sidebar.newRequest": "+ Yeni İstek",
+  "sidebar.newRequest.title": "Aktif sekmeyi sıfırla — sağ tık ile WS/SSE/gRPC seçebilirsin",
   "sidebar.clearHistory": "Temizle",
   "sidebar.confirmClearHistory": "Geçmiş silinsin mi?",
 

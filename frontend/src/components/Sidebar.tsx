@@ -8,6 +8,14 @@ import { Tabs, TabsList, TabsTrigger } from "./ui/tabs";
 import { Button } from "./ui/button";
 import { SearchInput } from "./ui/search-input";
 import { parsePostmanV2 } from "../lib/importers/postmanV2";
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuTrigger,
+} from "./ui/context-menu";
+import { Cable, FilePlus, Network, Radio, Sparkles } from "lucide-react";
+import type { NewRequestKind } from "../store/collections";
 
 export function Sidebar() {
   const ui = useStore((s) => s.ui);
@@ -58,9 +66,46 @@ export function Sidebar() {
             <CollectionList query={collectionsQuery} />
           </div>
           <div className="px-2 pb-2 shrink-0">
-            <Button variant="dashed" size="md" className="w-full" onClick={resetCurrent}>
-              {t("sidebar.newRequest")}
-            </Button>
+            {/* Left-click → HTTP default (matches the previous behaviour
+                + the ⌘+N shortcut). Right-click → protocol picker for
+                WS / SSE / gRPC / GraphQL, mirroring the folder context
+                menu so users get a consistent way to spin up a non-HTTP
+                request. */}
+            <ContextMenu>
+              <ContextMenuTrigger asChild>
+                <Button
+                  variant="dashed"
+                  size="md"
+                  className="w-full"
+                  onClick={() => resetCurrent("http")}
+                  title={t("sidebar.newRequest.title")}
+                >
+                  {t("sidebar.newRequest")}
+                </Button>
+              </ContextMenuTrigger>
+              <ContextMenuContent>
+                <ContextMenuItem onSelect={() => resetCurrent("http")}>
+                  <FilePlus className="w-3.5 h-3.5" aria-hidden />
+                  {t("collections.context.newRequest")}
+                </ContextMenuItem>
+                <ContextMenuItem onSelect={() => resetCurrent("graphql" as NewRequestKind)}>
+                  <Sparkles className="w-3.5 h-3.5" aria-hidden />
+                  {t("collections.context.newGraphql")}
+                </ContextMenuItem>
+                <ContextMenuItem onSelect={() => resetCurrent("ws" as NewRequestKind)}>
+                  <Cable className="w-3.5 h-3.5" aria-hidden />
+                  {t("collections.context.newWs")}
+                </ContextMenuItem>
+                <ContextMenuItem onSelect={() => resetCurrent("sse" as NewRequestKind)}>
+                  <Radio className="w-3.5 h-3.5" aria-hidden />
+                  {t("collections.context.newSse")}
+                </ContextMenuItem>
+                <ContextMenuItem onSelect={() => resetCurrent("grpc" as NewRequestKind)}>
+                  <Network className="w-3.5 h-3.5" aria-hidden />
+                  {t("collections.context.newGrpc")}
+                </ContextMenuItem>
+              </ContextMenuContent>
+            </ContextMenu>
           </div>
         </>
       ) : (
