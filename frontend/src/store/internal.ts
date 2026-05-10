@@ -215,30 +215,3 @@ export function nextOrder(items: CollectionItem[], parentId: string | null): num
   }
   return max + 1;
 }
-
-// Storage adapter — falls back to in-memory map under null-origin
-// (e.g. assets-mode test environments) so the store never throws on init.
-export function safeLocalStorage(): Storage {
-  try {
-    const _t = "__t";
-    localStorage.setItem(_t, "1");
-    localStorage.removeItem(_t);
-    return localStorage;
-  } catch {
-    const mem: Record<string, string> = {};
-    return {
-      length: 0,
-      key: () => null,
-      clear: () => {
-        for (const k of Object.keys(mem)) delete mem[k];
-      },
-      getItem: (k: string) => mem[k] ?? null,
-      setItem: (k: string, v: string) => {
-        mem[k] = v;
-      },
-      removeItem: (k: string) => {
-        delete mem[k];
-      },
-    };
-  }
-}
