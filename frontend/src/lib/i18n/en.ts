@@ -12,6 +12,11 @@ export const en: Dict = {
   "topbar.settings": "Settings",
   "topbar.envEdit": "Env...",
   "topbar.envSelect": "Select environment",
+  "topbar.changelog": "Changelog",
+
+  "changelog.title": "What's new",
+  "changelog.unreleased": "Unreleased",
+  "changelog.empty": "No changelog entries yet.",
 
   "settings.title": "Settings",
   "settings.section.appearance": "Appearance",

@@ -11,6 +11,11 @@ export const tr = {
   "topbar.settings": "Ayarlar",
   "topbar.envEdit": "Env...",
   "topbar.envSelect": "Environment seç",
+  "topbar.changelog": "Değişiklik notları",
+
+  "changelog.title": "Yenilikler",
+  "changelog.unreleased": "Yayınlanmadı",
+  "changelog.empty": "Henüz değişiklik notu yok.",
 
   "settings.title": "Ayarlar",
   "settings.section.appearance": "Görünüm",

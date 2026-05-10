@@ -2,10 +2,12 @@ import { useStore } from "../store";
 import { useState } from "react";
 import { EnvEditorModal } from "./EnvEditorModal";
 import { SettingsModal } from "./SettingsModal";
+import { ChangelogModal } from "./ChangelogModal";
+import { useChangelogAutoOpen } from "../lib/changelog_gate";
 import { useT } from "../lib/i18n/useT";
 import { Button } from "./ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
-import { Settings, Settings2 } from "lucide-react";
+import { History, Settings, Settings2 } from "lucide-react";
 
 export function TopBar() {
   const envs = useStore((s) => s.envs);
@@ -14,6 +16,10 @@ export function TopBar() {
   const t = useT();
   const [editingEnv, setEditingEnv] = useState(false);
   const [editingSettings, setEditingSettings] = useState(false);
+  // Changelog auto-opens on first launch when APP_VERSION > lastSeen.
+  // The hook handles the markSeen side-effect; we just bind the open
+  // state and surface a manual-open button below.
+  const { open: changelogOpen, setOpen: setChangelogOpen } = useChangelogAutoOpen();
 
   return (
     <>
@@ -44,6 +50,15 @@ export function TopBar() {
         <Button
           variant="ghost"
           size="sm"
+          onClick={() => setChangelogOpen(true)}
+          aria-label={t("topbar.changelog")}
+          title={t("topbar.changelog")}
+        >
+          <History className="w-3.5 h-3.5" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
           onClick={() => setEditingSettings(true)}
           aria-label={t("topbar.settings")}
         >
@@ -53,6 +68,7 @@ export function TopBar() {
       </header>
       {editingEnv && <EnvEditorModal open onOpenChange={(o) => !o && setEditingEnv(false)} />}
       <SettingsModal open={editingSettings} onOpenChange={setEditingSettings} />
+      <ChangelogModal open={changelogOpen} onOpenChange={setChangelogOpen} />
     </>
   );
 }
