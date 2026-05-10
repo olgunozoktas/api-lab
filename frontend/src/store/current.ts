@@ -10,10 +10,16 @@ import { emptyRequest } from "../lib/types";
 import { uid } from "../lib/utils";
 import { clone, nextOrder } from "./internal";
 import type { Store, StoreMutators } from "./types";
+import type { NewRequestKind } from "./collections";
 
 export type CurrentActions = {
   setCurrent: (patch: Partial<CurrentRequest>) => void;
-  resetCurrent: () => void;
+  // Reset the active tab to a fresh blank request. Optional `kind`
+  // pre-fills URL prefix (`wss://`, `sses://`, `grpcs://`) + isGraphql
+  // so the right composer tab is active immediately. Defaults to
+  // "http" when called with no args (back-compat with the keyboard
+  // shortcut + sidebar's primary New-request button).
+  resetCurrent: (kind?: NewRequestKind) => void;
   loadCollection: (c: CollectionItem) => void;
   loadHistoryItem: (h: HistoryItem) => void;
   saveCurrent: () => void;
@@ -42,9 +48,20 @@ export const createCurrentSlice: StateCreator<Store, StoreMutators, [], CurrentA
       };
     }),
 
-  resetCurrent: () =>
+  resetCurrent: (kind = "http") =>
     set((s) => {
       const fresh = emptyRequest();
+      // Per-protocol pre-fills. HTTP keeps `emptyRequest()` defaults.
+      if (kind === "graphql") {
+        fresh.method = "POST";
+      } else if (kind === "ws") {
+        fresh.url = "wss://";
+      } else if (kind === "sse") {
+        fresh.url = "sses://";
+      } else if (kind === "grpc") {
+        fresh.url = "grpcs://";
+      }
+      const composerTab: ComposerTab = kind === "graphql" ? "graphql" : "params";
       return {
         current: fresh,
         tabs: s.tabs.map((t) =>
@@ -54,12 +71,12 @@ export const createCurrentSlice: StateCreator<Store, StoreMutators, [], CurrentA
                 request: clone(fresh),
                 name: fresh.name,
                 lastResponse: null,
-                composerTab: "params",
+                composerTab,
               }
             : t
         ),
         lastResponse: null,
-        ui: { ...s.ui, composerTab: "params" },
+        ui: { ...s.ui, composerTab },
       };
     }),
 
