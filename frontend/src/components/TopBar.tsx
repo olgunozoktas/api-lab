@@ -37,18 +37,23 @@ export function TopBar() {
         </div>
         <div className="flex-1" />
 
-        <Select value={activeEnv} onValueChange={setActiveEnv}>
-          <SelectTrigger aria-label={t("topbar.envSelect")} className="w-auto">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {envs.map((e) => (
-              <SelectItem key={e.id} value={e.id}>
-                {e.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        {/* Hide the env switcher when there's only one env — a solo
+            "default" dropdown is visual noise. The Env... button stays
+            visible so users can still discover and create more. */}
+        {envs.length > 1 ? (
+          <Select value={activeEnv} onValueChange={setActiveEnv}>
+            <SelectTrigger aria-label={t("topbar.envSelect")} className="w-auto">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {envs.map((e) => (
+                <SelectItem key={e.id} value={e.id}>
+                  {e.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        ) : null}
 
         <Button variant="ghost" size="sm" onClick={() => setEditingEnv(true)}>
           <Settings2 className="w-3.5 h-3.5" />

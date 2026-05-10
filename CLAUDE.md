@@ -106,13 +106,38 @@ frontend/
 │   ├── App.tsx               # 3-pane layout
 │   ├── main.css              # Tailwind v4 with @theme tokens
 │   ├── lib/bridge.ts         # window.zero.invoke<T>() wrapper, typed
-│   ├── store/                # Zustand stores: collections, env, history, ui, current
-│   ├── components/           # Sidebar, RequestComposer, ResponseViewer, AuthPanel, BodyPanel, ...
+│   ├── lib/markdown.ts       # Hand-rolled subset renderer (escape-by-default; no marked/dompurify)
+│   ├── lib/changelog.ts      # Changelog glob-import + locale picker (CHANGELOG_ENTRIES + selectChangelogEntries)
+│   ├── lib/guides.ts         # Guide glob-import + locale picker (GUIDES + selectGuides)
+│   ├── store/                # Zustand stores: collections, env, history, ui, current, …
+│   ├── components/           # Sidebar, RequestComposer, ResponseViewer, AuthPanel, BodyPanel, ChangelogModal, GuideHub, …
+│   ├── guides/               # In-app feature guides as <slug>.<lang>.md
 │   └── lib/highlight.ts      # token-based JSON highlight (NOT regex chain — see Gotchas)
-├── vite.config.ts            # @vitejs/plugin-react + @tailwindcss/vite
+├── changelog/
+│   ├── released/v<version>.<lang>.md
+│   └── unreleased/<YYYY-MM-DD>-<slug>.<lang>.md
+├── vite.config.ts            # @vitejs/plugin-react + @tailwindcss/vite, injects __APP_VERSION__ from package.json
 ├── tsconfig.json
-└── package.json
+└── package.json              # `version` field is the source of truth for APP_VERSION
 ```
+
+**In-app help surfaces** — two modals make the project's prose
+content user-discoverable without leaving the app:
+
+- **Guide hub** (`?` shortcut, top-bar help-circle icon) — content
+  under `frontend/src/guides/<slug>.<lang>.md`. Glob-imported at
+  build time; `selectGuides(GUIDES, locale)` picks the active-locale
+  variant per slug, falling back to `en`.
+- **Changelog modal** (top-bar clock-history icon, auto-opens once
+  on first launch when `APP_VERSION > lastSeenVersion`) — content
+  under `frontend/changelog/{released,unreleased}/<slug>.<lang>.md`.
+  Same glob-import + locale-pick pattern.
+
+Both modals share `frontend/src/lib/markdown.ts` — a hand-rolled
+markdown subset renderer (paragraphs, headings, lists, code blocks,
+inline code, bold/italic, links, hr, GFM tables) with
+escape-by-default safety. No `marked` / `dompurify` dependency in
+the bundle.
 
 ## Hard rules (project-wide)
 

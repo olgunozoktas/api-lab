@@ -11,16 +11,21 @@ import { useConfirm } from "../lib/dialogs";
 import { cn } from "../lib/cn";
 import {
   ChevronRight,
+  Cable,
   FilePlus,
   Folder,
   FolderOpen,
   FolderPlus,
+  Network,
   Pencil,
+  Radio,
+  Sparkles,
   Trash2,
   Eye,
   ExternalLink,
 } from "lucide-react";
 import type { CollectionItem } from "../lib/types";
+import type { NewRequestKind } from "../store/collections";
 import {
   ContextMenu,
   ContextMenuContent,
@@ -69,8 +74,8 @@ export function FolderRow({
     if (!expanded[item.id]) toggleFolder(item.id);
   };
 
-  const onAddRequest = () => {
-    const created = addRequest(item.id, t("collections.newRequestDefault"));
+  const onAddRequest = (kind: NewRequestKind = "http") => {
+    const created = addRequest(item.id, t("collections.newRequestDefault"), kind);
     // Switch the active composer to the freshly-created request so
     // the user can start editing immediately.
     loadCollection(created);
@@ -170,10 +175,27 @@ export function FolderRow({
         </div>
       </ContextMenuTrigger>
       <ContextMenuContent>
-        <ContextMenuItem onSelect={onAddRequest}>
+        <ContextMenuItem onSelect={() => onAddRequest("http")}>
           <FilePlus className="w-3.5 h-3.5" aria-hidden />
           {t("collections.context.newRequest")}
         </ContextMenuItem>
+        <ContextMenuItem onSelect={() => onAddRequest("graphql")}>
+          <Sparkles className="w-3.5 h-3.5" aria-hidden />
+          {t("collections.context.newGraphql")}
+        </ContextMenuItem>
+        <ContextMenuItem onSelect={() => onAddRequest("ws")}>
+          <Cable className="w-3.5 h-3.5" aria-hidden />
+          {t("collections.context.newWs")}
+        </ContextMenuItem>
+        <ContextMenuItem onSelect={() => onAddRequest("sse")}>
+          <Radio className="w-3.5 h-3.5" aria-hidden />
+          {t("collections.context.newSse")}
+        </ContextMenuItem>
+        <ContextMenuItem onSelect={() => onAddRequest("grpc")}>
+          <Network className="w-3.5 h-3.5" aria-hidden />
+          {t("collections.context.newGrpc")}
+        </ContextMenuItem>
+        <ContextMenuSeparator />
         <ContextMenuItem onSelect={onAddSubFolder}>
           <FolderPlus className="w-3.5 h-3.5" aria-hidden />
           {t("collections.context.newSubFolder")}

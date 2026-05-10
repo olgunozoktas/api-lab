@@ -1,10 +1,10 @@
 import { useStore } from "../store";
 import { useT } from "../lib/i18n/useT";
-import { isProbablyJson } from "../lib/utils";
+import { isProbablyJson, methodClass, statusText } from "../lib/utils";
 import JsonView from "@uiw/react-json-view";
 import { CodeEditor } from "./ui/code-editor";
 import { SaveAsVariableMenu } from "./SaveAsVariable";
-import type { ResponseSnapshot, ResponseTab } from "../lib/types";
+import type { HistoryItem, ResponseSnapshot, ResponseTab } from "../lib/types";
 
 // Theme tokens fed to JsonView. Reads CSS variables so light/dark switch live.
 const treeStyle: Record<string, string> = {
@@ -117,16 +117,99 @@ export function ResponseBody({ response: r, tab }: ResponseBodyProps) {
 
 function EmptyState() {
   const t = useT();
+  const history = useStore((s) => s.history);
+  const loadHistoryItem = useStore((s) => s.loadHistoryItem);
+  // Show up to 6 most-recent items as clickable suggestions so a fresh
+  // empty request has a one-click way to recover any past send.
+  const recent = history.slice(0, 6);
+
+  if (recent.length === 0) {
+    // No history yet — original "Ready to send" hint still serves the
+    // first-launch case.
+    return (
+      <div className="flex-1 flex items-center justify-center text-center text-[var(--color-fg-muted)] gap-2 flex-col">
+        <div>{t("response.empty.title")}</div>
+        <div className="text-[11px] flex items-center gap-1.5">
+          <Kbd>⌘</Kbd>+<Kbd>Enter</Kbd>
+          <Kbd>⌘</Kbd>+<Kbd>S</Kbd>
+          <Kbd>⌘</Kbd>+<Kbd>N</Kbd>
+          <span>{t("response.empty.shortcuts")}</span>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex-1 flex items-center justify-center text-center text-[var(--color-fg-muted)] gap-2 flex-col">
-      <div>{t("response.empty.title")}</div>
-      <div className="text-[11px] flex items-center gap-1.5">
-        <Kbd>⌘</Kbd>+<Kbd>Enter</Kbd>
-        <Kbd>⌘</Kbd>+<Kbd>S</Kbd>
-        <Kbd>⌘</Kbd>+<Kbd>N</Kbd>
-        <span>{t("response.empty.shortcuts")}</span>
+    <div className="flex-1 overflow-y-auto px-6 py-8">
+      <div className="max-w-xl mx-auto space-y-4">
+        <div className="text-center text-[var(--color-fg-muted)]">
+          <div className="text-sm">{t("response.empty.title")}</div>
+          <div className="text-[11px] flex items-center justify-center gap-1.5 mt-1">
+            <Kbd>⌘</Kbd>+<Kbd>Enter</Kbd>
+            <Kbd>⌘</Kbd>+<Kbd>S</Kbd>
+            <Kbd>⌘</Kbd>+<Kbd>N</Kbd>
+            <span>{t("response.empty.shortcuts")}</span>
+          </div>
+        </div>
+
+        <div>
+          <p className="text-[10px] uppercase tracking-wide font-semibold text-[var(--color-fg-muted)] mb-2 px-1">
+            {t("response.empty.recentHistory")}
+          </p>
+          <ul role="list" className="space-y-1">
+            {recent.map((h) => (
+              <HistoryRecentItem
+                key={h.id}
+                item={h}
+                onLoad={() => loadHistoryItem(h)}
+                pickHint={t("response.empty.pickHint")}
+              />
+            ))}
+          </ul>
+        </div>
       </div>
     </div>
+  );
+}
+
+function HistoryRecentItem({
+  item,
+  onLoad,
+  pickHint,
+}: {
+  item: HistoryItem;
+  onLoad: () => void;
+  pickHint: string;
+}) {
+  const status = item.response.status;
+  const ok = status >= 200 && status < 400;
+  return (
+    <li>
+      <button
+        type="button"
+        onClick={onLoad}
+        title={pickHint}
+        className="w-full text-left flex items-center gap-2 px-3 py-2 rounded border border-[var(--color-border)] bg-[var(--color-bg-elev)] hover:bg-[var(--color-bg-elev-2)] hover:border-[var(--color-accent)]/40 transition-colors"
+      >
+        <span
+          className={`text-[10px] font-mono font-semibold uppercase tracking-wide w-12 shrink-0 ${methodClass(item.request.method)}`}
+        >
+          {item.request.method}
+        </span>
+        <span
+          className={`text-[10px] font-mono font-semibold w-9 shrink-0 ${ok ? "text-[var(--color-success)]" : "text-[var(--color-danger)]"}`}
+          aria-label={statusText(status)}
+        >
+          {status || "—"}
+        </span>
+        <span className="flex-1 truncate font-mono text-xs text-[var(--color-fg)]">
+          {item.request.url || "—"}
+        </span>
+        <span className="text-[10px] text-[var(--color-fg-muted)] tabular-nums shrink-0">
+          {Math.round(item.response.elapsedMs)}ms
+        </span>
+      </button>
+    </li>
   );
 }
 

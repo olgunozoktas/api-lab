@@ -14,17 +14,26 @@ Built on top of **[vercel-labs/zero-native](https://github.com/vercel-labs/zero-
 - **Multi-request workspace** — open as many tabs as you want, each with its own state. ⌘+T new, ⌘+W close, ⌘+1..9 jump, ⌘+P fuzzy switcher across tabs + collections + history. Drag to reorder, middle-click to close, dirty indicator when a tab diverges from its saved state.
 - **REST + GraphQL composer** with method picker, params/headers/auth/body/graphql tabs
 - **WebSocket workspace** — type `ws://` or `wss://` and the layout swaps to a full WS workbench: status pill, message log with timestamps + direction icons + JSON pretty-print + JSON detection badge, send box with ⌘+Enter, ping helper. Browser-native `WebSocket` API (no CORS for ws/wss).
+- **Server-Sent Events panel** — `sse://` / `sses://` URLs activate a one-way stream tab with auto-reconnect, named-event tags, and last-event-id cursor capture.
+- **gRPC panel** with reflection — `grpc://` / `grpcs://` URLs route through `grpcurl`. Reflection-cached service browser (5-min TTL per target), unary + server-streaming, paste-in mTLS credentials with hardened `0o700`/`0o600` per-call temp files.
+- **Right-click → New request with protocol picker** — pick HTTP / GraphQL / WebSocket / SSE / gRPC when creating an entry under any folder; the URL prefix + composer tab pre-fill so you don't have to type `wss://` manually.
 - **"Copy as code" generator** — emit the live request as cURL / JavaScript fetch / JavaScript axios / Python `requests` / Go `net/http` / Node.js `https`. Generated snippets carry the env-substituted URL, headers, body, and auth — copy-paste-runnable.
 - **Native HTTP** via Zig handler that shells out to `curl` — sidesteps WebView CORS, exposes timing breakdown (DNS / connect / TTFB / total)
-- **Browser fetch fallback** when the native bridge isn't available
-- **Auth helpers**: Bearer, Basic, API Key (header)
+- **Request cancellation** — Send button morphs to a red Cancel; `⌘+.` (canonical macOS abort) fires the same handler. AbortSignal threaded through the fetch path.
+- **Pre / post-request scripts** — QuickJS sandbox with a `pm.*` API subset (5s CPU / 10MB heap, no fetch/XHR). pm.test pass/fail tally + console output rendered inline.
+- **Auth helpers**: Bearer, Basic, API Key (header), OAuth 2.0 helper variant (paste-token + Refresh)
 - **JSON & GraphQL editor** powered by CodeMirror 6 (auto-close brackets, auto-indent, search, fold gutter, line numbers)
 - **JSON tree response viewer** powered by `@uiw/react-json-view` (expand/collapse, copy-path)
-- **Environments** with `{{var}}` substitution
-- **Collections** + history (last 200 requests) — persisted via `localStorage`
+- **Save as variable** — right-click any value in the response viewer to extract it into an environment variable (`{{access_token}}` etc.) for later requests.
+- **Environments** with `{{var}}` substitution. Single-env users see a clean top bar; the env switcher only appears once a second environment exists.
+- **Collections** + history (last 200 requests) — persisted via IndexedDB (uncaps the old localStorage 5 MB ceiling) with v1→v2→v3 migrations.
+- **Postman v2.1 import** — drag-drop a collection JSON to bring the whole tree + variables over.
+- **History suggestions in the empty response pane** — when a fresh request hasn't been sent, the right pane lists the 6 most-recent history items as one-click loads.
+- **In-app feature guides** — press `?` (or click the help-circle icon) for 14 curated walkthroughs (Quick start, Environments, Collections, Body modes, Auth, gRPC, Cancellation, Streaming, Examples, Scripts, Save as variable, Copy as code, Postman import, Quick switcher). Live search across title / group / body. Localized in TR + EN; falls back to EN per slug if a translation is missing.
+- **In-app changelog** — top-bar clock-history icon opens "What's new". Auto-opens once on first launch after a version bump; manual opens don't touch lastSeen. Markdown bodies (incl. GFM tables) bundled at build time. Localized in TR + EN.
 - **Settings hub** — single modal for theme, language, request defaults (timeout, redirect cap, TLS-skip toggle)
-- **Themes** — auto / light / dark / Tokyo Night (dark) / GitHub Light, applied via `:root[data-theme="..."]` CSS variable swaps
-- **i18n** — TR + EN today; adding a new language is 3 mechanical steps
+- **Themes** — auto / light / dark / Tokyo Night (dark) / GitHub Light / high-contrast, applied via `:root[data-theme="..."]` CSS variable swaps
+- **i18n** — TR + EN today; adding a new language is 3 mechanical steps. Guide / changelog content also localized as `<slug>.<lang>.md` markdown.
 - **Keyboard shortcuts** — see the [Keyboard reference](#keyboard-reference) below
 
 ## Quick start
