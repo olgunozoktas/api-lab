@@ -1,13 +1,15 @@
 import { useStore } from "../store";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { EnvEditorModal } from "./EnvEditorModal";
 import { SettingsModal } from "./SettingsModal";
 import { ChangelogModal } from "./ChangelogModal";
+import { GuideHub } from "./GuideHub";
 import { useChangelogAutoOpen } from "../lib/changelog_gate";
+import { useGuideShortcut } from "../lib/guides_shortcut";
 import { useT } from "../lib/i18n/useT";
 import { Button } from "./ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
-import { History, Settings, Settings2 } from "lucide-react";
+import { HelpCircle, History, Settings, Settings2 } from "lucide-react";
 
 export function TopBar() {
   const envs = useStore((s) => s.envs);
@@ -16,10 +18,15 @@ export function TopBar() {
   const t = useT();
   const [editingEnv, setEditingEnv] = useState(false);
   const [editingSettings, setEditingSettings] = useState(false);
+  const [guideOpen, setGuideOpen] = useState(false);
   // Changelog auto-opens on first launch when APP_VERSION > lastSeen.
   // The hook handles the markSeen side-effect; we just bind the open
   // state and surface a manual-open button below.
   const { open: changelogOpen, setOpen: setChangelogOpen } = useChangelogAutoOpen();
+  // `?` opens the guide hub from anywhere (skips when focus is in an
+  // editable element so users can still type "?" into URLs / bodies).
+  const openGuide = useCallback(() => setGuideOpen(true), []);
+  useGuideShortcut(openGuide);
 
   return (
     <>
@@ -50,6 +57,15 @@ export function TopBar() {
         <Button
           variant="ghost"
           size="sm"
+          onClick={() => setGuideOpen(true)}
+          aria-label={t("topbar.guides")}
+          title={t("topbar.guides")}
+        >
+          <HelpCircle className="w-3.5 h-3.5" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
           onClick={() => setChangelogOpen(true)}
           aria-label={t("topbar.changelog")}
           title={t("topbar.changelog")}
@@ -69,6 +85,7 @@ export function TopBar() {
       {editingEnv && <EnvEditorModal open onOpenChange={(o) => !o && setEditingEnv(false)} />}
       <SettingsModal open={editingSettings} onOpenChange={setEditingSettings} />
       <ChangelogModal open={changelogOpen} onOpenChange={setChangelogOpen} />
+      <GuideHub open={guideOpen} onOpenChange={setGuideOpen} />
     </>
   );
 }

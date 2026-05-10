@@ -12,10 +12,16 @@ export const tr = {
   "topbar.envEdit": "Env...",
   "topbar.envSelect": "Environment seç",
   "topbar.changelog": "Değişiklik notları",
+  "topbar.guides": "Rehberler (?)",
 
   "changelog.title": "Yenilikler",
   "changelog.unreleased": "Yayınlanmadı",
   "changelog.empty": "Henüz değişiklik notu yok.",
+
+  "guides.title": "Rehberler",
+  "guides.search.placeholder": "Ara...",
+  "guides.search.empty": "Eşleşme yok",
+  "guides.empty": "Henüz rehber yok.",
 
   "settings.title": "Ayarlar",
   "settings.section.appearance": "Görünüm",
