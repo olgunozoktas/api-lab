@@ -97,5 +97,48 @@ body content
       const html = renderMarkdown("before\n\n---\n\nafter");
       expect(html).toContain("<hr />");
     });
+
+    it("renders GFM tables (header + separator + rows)", () => {
+      const md = `| Mode | Sends as |
+| ---- | -------- |
+| JSON | application/json |
+| Raw | passthrough |`;
+      const html = renderMarkdown(md);
+      expect(html).toContain("<table>");
+      expect(html).toContain("<thead><tr><th>Mode</th><th>Sends as</th></tr></thead>");
+      expect(html).toContain("<tbody>");
+      expect(html).toContain("<td>JSON</td>");
+      expect(html).toContain("<td>application/json</td>");
+      expect(html).toContain("</table>");
+    });
+
+    it("does NOT render a table when separator row is missing", () => {
+      // Bare pipe-line without a `---` separator should not become a
+      // <table>; it falls through to a paragraph (a `|` line by itself
+      // isn't ambiguous markdown but isn't a useful table either).
+      const html = renderMarkdown("| solo line |");
+      expect(html).not.toContain("<table>");
+    });
+
+    it("renders inline formatting inside table cells", () => {
+      const md = `| Lib | Note |
+| --- | ---- |
+| **bold** | \`code\` |`;
+      const html = renderMarkdown(md);
+      expect(html).toContain("<td><strong>bold</strong></td>");
+      expect(html).toContain("<td><code>code</code></td>");
+    });
+
+    it("pads short rows + truncates long rows to header width", () => {
+      const md = `| A | B | C |
+| --- | --- | --- |
+| 1 |
+| 1 | 2 | 3 | 4 |`;
+      const html = renderMarkdown(md);
+      // First data row pads to 3 cells.
+      expect(html).toMatch(/<tr><td>1<\/td><td><\/td><td><\/td><\/tr>/);
+      // Second data row trims to 3 cells (4th is dropped).
+      expect(html).toMatch(/<tr><td>1<\/td><td>2<\/td><td>3<\/td><\/tr>/);
+    });
   });
 });
