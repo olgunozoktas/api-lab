@@ -78,7 +78,22 @@ export const en: Dict = {
   "sidebar.section.saved": "Saved",
   "sidebar.section.recent": "Recent requests",
   "sidebar.empty.collections": "No saved requests yet",
+  "sidebar.empty.collections.intro":
+    "Saved requests are the fastest way to re-open something later. A few ways to start:",
+  "sidebar.empty.collections.tip1":
+    "Type a URL and hit Send, then ⌘ S to save — the name is auto-derived as `METHOD shortUrl`.",
+  "sidebar.empty.collections.tip2":
+    "Use + Folder above to create a folder, then right-click the folder → New request.",
+  "sidebar.empty.collections.tip3":
+    "Already have a Postman v2 collection? Use the Import button to bring it in.",
   "sidebar.empty.history": "No history yet",
+  "sidebar.empty.history.intro":
+    "History populates automatically the moment you send your first request. It:",
+  "sidebar.empty.history.tip1": "Keeps the last 200 requests locally; nothing is sent anywhere.",
+  "sidebar.empty.history.tip2":
+    "Click to load into the active tab; right-click → Open in new tab to compare side-by-side.",
+  "sidebar.empty.history.tip3":
+    "Status filter pills (2xx / 3xx / 4xx / 5xx) narrow the list to a single status class.",
   "sidebar.newRequest": "+ New request",
   "sidebar.newRequest.title": "Reset the active tab — right-click to pick WS / SSE / gRPC",
   "sidebar.clearHistory": "Clear",
