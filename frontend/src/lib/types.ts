@@ -225,6 +225,9 @@ export type UiState = {
   responseTab: ResponseTab;
   sidebarTab: SidebarTab;
   layout: Layout;
+  // ⌘B toggles the sidebar visibility. Optional so v3 persisted
+  // snapshots without the field hydrate cleanly (`undefined` → open).
+  sidebarCollapsed?: boolean;
 };
 
 // Default request behaviors — surfaced in the Settings modal so power

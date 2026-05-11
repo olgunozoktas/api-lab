@@ -194,6 +194,16 @@ export function App() {
         return;
       }
 
+      // ⌘B — toggle the sidebar (VS Code / Cursor / Linear primary-
+      // sidebar shortcut). Collapses the saved-requests + history
+      // pane so the composer + response viewer get the full width.
+      if (e.key === "b" || e.key === "B") {
+        e.preventDefault();
+        const cur = useStore.getState().ui.sidebarCollapsed ?? false;
+        useStore.getState().setUi({ sidebarCollapsed: !cur });
+        return;
+      }
+
       // Cmd+1..9 — jump to tab N (or last if N > tabs.length)
       if (e.key >= "1" && e.key <= "9") {
         e.preventDefault();
@@ -248,24 +258,32 @@ export function App() {
 
   // Grid template: sidebar | divider (8px) | composer | divider (8px) | response.
   // In single-column modes (WS / gRPC) the third divider + composer collapse —
-  // only the sidebar divider remains.
+  // only the sidebar divider remains. ⌘B toggles the sidebar entirely;
+  // when collapsed, the leading two grid tracks are dropped and `<Sidebar/>`
+  // + its divider aren't rendered (so they can't steal pointer events).
+  const sidebarCollapsed = ui.sidebarCollapsed ?? false;
+  const leading = sidebarCollapsed ? "" : `${layout.sidebarPx}px 8px `;
   const gridTemplateColumns = singleColumn
-    ? `${layout.sidebarPx}px 8px 1fr`
-    : `${layout.sidebarPx}px 8px ${layout.composerPx}px 8px 1fr`;
+    ? `${leading}1fr`
+    : `${leading}${layout.composerPx}px 8px 1fr`;
 
   return (
     <div className="h-full flex flex-col bg-[var(--color-bg)] text-[var(--color-fg)] text-[13px]">
       <TopBar />
       <main className="flex-1 grid min-h-0" style={{ gridTemplateColumns }}>
-        <Sidebar />
-        <ResizableDivider
-          value={layout.sidebarPx}
-          onChange={(sidebarPx) => updateLayout({ sidebarPx })}
-          onReset={() => updateLayout({ sidebarPx: DEFAULT_LAYOUT.sidebarPx })}
-          min={SIDEBAR_PX_MIN}
-          max={SIDEBAR_PX_MAX}
-          ariaLabel={t2("layout.sidebar.aria")}
-        />
+        {!sidebarCollapsed && (
+          <>
+            <Sidebar />
+            <ResizableDivider
+              value={layout.sidebarPx}
+              onChange={(sidebarPx) => updateLayout({ sidebarPx })}
+              onReset={() => updateLayout({ sidebarPx: DEFAULT_LAYOUT.sidebarPx })}
+              min={SIDEBAR_PX_MIN}
+              max={SIDEBAR_PX_MAX}
+              ariaLabel={t2("layout.sidebar.aria")}
+            />
+          </>
+        )}
         {singleColumn ? (
           <div className="flex flex-col min-h-0 min-w-0 overflow-hidden">
             <TabStripContainer />
