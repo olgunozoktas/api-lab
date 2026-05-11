@@ -36,8 +36,14 @@ export const en: Dict = {
   "settings.language": "Language",
   "settings.section.defaults": "Request defaults",
   "settings.timeoutMs": "Timeout (ms)",
+  "settings.timeoutMs.hint":
+    "How long to wait for a response (in milliseconds) before the request fails. Default 60000 = 1 minute.",
   "settings.followRedirects": "Max redirects",
+  "settings.followRedirects.hint":
+    "Maximum hops in a 3xx redirect chain. 0 disables auto-following entirely.",
   "settings.insecure": "Skip TLS verification (insecure)",
+  "settings.insecure.hint":
+    "Skip certificate validation (curl's -k flag). Useful for self-signed dev APIs; never use against production.",
   "settings.section.shortcuts": "Keyboard shortcuts",
   "settings.shortcuts.send": "Send request",
   "settings.shortcuts.save": "Save",
