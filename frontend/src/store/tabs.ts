@@ -26,9 +26,15 @@ export type TabsActions = {
   // Right-click context-menu actions. `keepId` stays open, everything
   // else gets closed; same activation rule as closeTab (active stays
   // active if it survives, otherwise nearest neighbor wins).
+  // Pinned tabs survive bulk-close — closeOtherTabs / closeTabsToRight
+  // skip them (matches Chrome / Safari pinned-tab semantics).
   closeOtherTabs: (keepId: string) => void;
   closeTabsToRight: (fromId: string) => void;
   duplicateTab: (id: string) => void;
+  // Toggle the pinned flag + move the tab to the boundary between
+  // pinned and unpinned so the strip stays grouped (pinned leftmost,
+  // unpinned right). No-op if the id isn't found.
+  togglePinTab: (id: string) => void;
   // Pop the most-recently-closed tab back into the strip + activate it.
   // No-op when the recently-closed stack is empty.
   reopenLastClosedTab: () => void;
@@ -109,17 +115,20 @@ export const createTabsSlice: StateCreator<Store, StoreMutators, [], TabsActions
       // one (otherwise unsaved edits in the active tab would lose
       // their mirror values).
       const snapshotted = snapshotActiveIntoTab(s);
-      const survivor = snapshotted.find((t) => t.id === keepId) ?? keep;
+      // Survivors = the named tab + any pinned tabs (Chrome / Safari
+      // pinned-tab semantics — pin survives bulk-close).
+      const survivors = snapshotted.filter((t) => t.id === keepId || t.pinned);
+      const victims = snapshotted.filter((t) => t.id !== keepId && !t.pinned);
+      // No-op when nothing to close (e.g. all tabs are pinned + the
+      // kept one is among them).
+      if (victims.length === 0) return {};
       // Push each victim onto the reopen stack (left-to-right) so the
-      // most-recent-by-position lands at the end of the LIFO. User's
-      // mental model after bulk close: the leftmost survivor is the
-      // "newest" reopen target.
+      // most-recent-by-position lands at the end of the LIFO.
       let stack = s.recentlyClosed;
-      for (const t of snapshotted) {
-        if (t.id !== keepId) stack = pushClosed(stack, t);
-      }
+      for (const t of victims) stack = pushClosed(stack, t);
+      const survivor = survivors.find((t) => t.id === keepId) ?? survivors[0];
       return {
-        tabs: [survivor],
+        tabs: survivors,
         activeTabId: survivor.id,
         current: clone(survivor.request),
         lastResponse: survivor.lastResponse,
@@ -137,8 +146,15 @@ export const createTabsSlice: StateCreator<Store, StoreMutators, [], TabsActions
       const idx = s.tabs.findIndex((t) => t.id === fromId);
       if (idx < 0 || idx === s.tabs.length - 1) return {};
       const snapshotted = snapshotActiveIntoTab(s);
-      const kept = snapshotted.slice(0, idx + 1);
-      const dropped = snapshotted.slice(idx + 1);
+      const head = snapshotted.slice(0, idx + 1);
+      const tail = snapshotted.slice(idx + 1);
+      // Pinned tabs in the right-of-anchor range survive — pin
+      // semantics override "close to right". The reopen stack only
+      // gets the unpinned victims.
+      const pinnedSurvivors = tail.filter((t) => t.pinned);
+      const dropped = tail.filter((t) => !t.pinned);
+      const kept = [...head, ...pinnedSurvivors];
+      if (dropped.length === 0) return {};
       // Push every dropped tab onto the reopen stack in display order
       // so ⌘+Shift+T pops the rightmost (which is the user's mental
       // model after "close to the right").
@@ -191,6 +207,24 @@ export const createTabsSlice: StateCreator<Store, StoreMutators, [], TabsActions
           responseTab: dup.responseTab,
         },
       };
+    }),
+
+  togglePinTab: (id) =>
+    set((s) => {
+      const snapshotted = snapshotActiveIntoTab(s);
+      const target = snapshotted.find((t) => t.id === id);
+      if (!target) return {};
+      const nextPinned = !target.pinned;
+      // Strip target out, flip pin flag, re-insert at the boundary
+      // between pinned and unpinned so the strip stays grouped.
+      const withoutTarget = snapshotted.filter((t) => t.id !== id);
+      const updated: OpenTab = { ...target, pinned: nextPinned };
+      // First-unpinned index in the remaining tabs — the boundary.
+      let boundary = withoutTarget.findIndex((t) => !t.pinned);
+      if (boundary < 0) boundary = withoutTarget.length;
+      const inserted = nextPinned ? boundary : withoutTarget.length;
+      const next = [...withoutTarget.slice(0, inserted), updated, ...withoutTarget.slice(inserted)];
+      return { tabs: next };
     }),
 
   reopenLastClosedTab: () =>

@@ -4,7 +4,7 @@ import { useT } from "../lib/i18n/useT";
 import type { CollectionItem, OpenTab } from "../lib/types";
 import { methodClass, statusPillClass, statusText } from "../lib/utils";
 import { cn } from "../lib/cn";
-import { Plus, X, Copy as CopyIcon, ChevronsRight, XCircle } from "lucide-react";
+import { Plus, X, Copy as CopyIcon, ChevronsRight, Pin, PinOff, XCircle } from "lucide-react";
 import {
   ContextMenu,
   ContextMenuContent,
@@ -62,6 +62,7 @@ export type TabStripPresenterProps = {
   onCloseOthers?: (id: string) => void;
   onCloseToRight?: (id: string) => void;
   onDuplicate?: (id: string) => void;
+  onTogglePin?: (id: string) => void;
   onNewTab: () => void;
   onReorder: (fromIdx: number, toIdx: number) => void;
   newTabLabel?: string;
@@ -70,6 +71,8 @@ export type TabStripPresenterProps = {
   closeOthersLabel?: string;
   closeToRightLabel?: string;
   duplicateLabel?: string;
+  pinLabel?: string;
+  unpinLabel?: string;
   className?: string;
 };
 
@@ -82,6 +85,7 @@ export function TabStripPresenter({
   onCloseOthers,
   onCloseToRight,
   onDuplicate,
+  onTogglePin,
   onNewTab,
   onReorder,
   newTabLabel = "New tab",
@@ -89,6 +93,8 @@ export function TabStripPresenter({
   closeOthersLabel = "Close others",
   closeToRightLabel = "Close tabs to the right",
   duplicateLabel = "Duplicate tab",
+  pinLabel = "Pin tab",
+  unpinLabel = "Unpin tab",
   className,
 }: TabStripPresenterProps) {
   const [dragFromIdx, setDragFromIdx] = useState<number | null>(null);
@@ -162,6 +168,15 @@ export function TabStripPresenter({
                   isDropTarget && "bg-[var(--color-accent)]/15"
                 )}
               >
+                {/* Pinned indicator — sits to the left of the method
+                pill so the strip groups pinned tabs visually. */}
+                {tab.pinned ? (
+                  <Pin
+                    className="w-3 h-3 shrink-0 text-[var(--color-accent)] -rotate-45"
+                    aria-label={pinLabel}
+                  />
+                ) : null}
+
                 {/* Method-color indicator */}
                 <span
                   className={cn(
@@ -254,6 +269,16 @@ export function TabStripPresenter({
                   {duplicateLabel}
                 </ContextMenuItem>
               ) : null}
+              {onTogglePin ? (
+                <ContextMenuItem onSelect={() => onTogglePin(tab.id)}>
+                  {tab.pinned ? (
+                    <PinOff className="w-3.5 h-3.5" aria-hidden />
+                  ) : (
+                    <Pin className="w-3.5 h-3.5" aria-hidden />
+                  )}
+                  {tab.pinned ? unpinLabel : pinLabel}
+                </ContextMenuItem>
+              ) : null}
               {(onCloseOthers || onCloseToRight) && <ContextMenuSeparator />}
               {onCloseOthers ? (
                 <ContextMenuItem onSelect={() => onCloseOthers(tab.id)} disabled={tabs.length <= 1}>
@@ -305,6 +330,7 @@ export function TabStripContainer() {
   const closeOtherTabs = useStore((s) => s.closeOtherTabs);
   const closeTabsToRight = useStore((s) => s.closeTabsToRight);
   const duplicateTab = useStore((s) => s.duplicateTab);
+  const togglePinTab = useStore((s) => s.togglePinTab);
   const newTab = useStore((s) => s.newTab);
   const reorderTabs = useStore((s) => s.reorderTabs);
   const t = useT();
@@ -330,6 +356,7 @@ export function TabStripContainer() {
   const onCloseOthers = useCallback((id: string) => closeOtherTabs(id), [closeOtherTabs]);
   const onCloseToRight = useCallback((id: string) => closeTabsToRight(id), [closeTabsToRight]);
   const onDuplicate = useCallback((id: string) => duplicateTab(id), [duplicateTab]);
+  const onTogglePin = useCallback((id: string) => togglePinTab(id), [togglePinTab]);
   const onNewTab = useCallback(() => newTab(), [newTab]);
   const onReorder = useCallback(
     (fromIdx: number, toIdx: number) => reorderTabs(fromIdx, toIdx),
@@ -346,6 +373,7 @@ export function TabStripContainer() {
       onCloseOthers={onCloseOthers}
       onCloseToRight={onCloseToRight}
       onDuplicate={onDuplicate}
+      onTogglePin={onTogglePin}
       onNewTab={onNewTab}
       onReorder={onReorder}
       newTabLabel={t("tabs.new")}
@@ -353,6 +381,8 @@ export function TabStripContainer() {
       closeOthersLabel={t("tabs.closeOthers")}
       closeToRightLabel={t("tabs.closeToRight")}
       duplicateLabel={t("tabs.duplicate")}
+      pinLabel={t("tabs.pin")}
+      unpinLabel={t("tabs.unpin")}
     />
   );
 }

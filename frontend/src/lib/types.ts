@@ -256,6 +256,11 @@ export type OpenTab = {
   lastResponse: ResponseSnapshot | null;
   composerTab: ComposerTab;
   responseTab: ResponseTab;
+  // Pinned tabs stick to the left edge of the strip and are skipped
+  // by "Close others" / "Close to the right" bulk-close actions.
+  // Optional so persisted v3 snapshots from before pin shipped still
+  // load — readers should default `pinned ?? false`.
+  pinned?: boolean;
 };
 
 export const emptyTab = (id: string): OpenTab => ({
@@ -265,6 +270,7 @@ export const emptyTab = (id: string): OpenTab => ({
   lastResponse: null,
   composerTab: "params",
   responseTab: "body",
+  pinned: false,
 });
 
 export const emptyRequest = (): CurrentRequest => ({

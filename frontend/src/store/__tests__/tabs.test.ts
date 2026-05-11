@@ -234,4 +234,65 @@ describe("tabs", () => {
     expect(after.tabs).toHaveLength(before.tabs.length);
     expect(after.activeTabId).toBe(before.activeTabId);
   });
+
+  it("togglePinTab() flips pinned + moves the tab to the boundary", () => {
+    useStore.getState().newTab();
+    useStore.getState().newTab();
+    const before = useStore.getState();
+    const middle = before.tabs[1];
+    expect(middle.pinned).toBeFalsy();
+    useStore.getState().togglePinTab(middle.id);
+    const after = useStore.getState();
+    // Pinned tab now occupies the leftmost position (boundary === 0
+    // since no other pinned tabs exist).
+    expect(after.tabs[0].id).toBe(middle.id);
+    expect(after.tabs[0].pinned).toBe(true);
+    // Unpin → flips flag back + drops it to the right end (after all
+    // unpinned tabs).
+    useStore.getState().togglePinTab(middle.id);
+    const final = useStore.getState();
+    const last = final.tabs[final.tabs.length - 1];
+    expect(last.id).toBe(middle.id);
+    expect(last.pinned).toBe(false);
+  });
+
+  it("closeOtherTabs() skips pinned tabs", () => {
+    useStore.getState().newTab();
+    useStore.getState().newTab();
+    const before = useStore.getState();
+    expect(before.tabs.length).toBeGreaterThanOrEqual(3);
+    // Pin the middle tab
+    const middleId = before.tabs[1].id;
+    useStore.getState().togglePinTab(middleId);
+    // Keep the leftmost unpinned (now at index 1 after togglePin moves
+    // middle to the front)
+    const after1 = useStore.getState();
+    const keepId = after1.tabs[1].id;
+    useStore.getState().closeOtherTabs(keepId);
+    const final = useStore.getState();
+    // Pinned middle survives + kept tab survives
+    expect(final.tabs).toHaveLength(2);
+    expect(final.tabs.some((t) => t.id === middleId)).toBe(true);
+    expect(final.tabs.some((t) => t.id === keepId)).toBe(true);
+  });
+
+  it("closeTabsToRight() skips pinned tabs in the closed range", () => {
+    useStore.getState().newTab();
+    useStore.getState().newTab();
+    useStore.getState().newTab();
+    const before = useStore.getState();
+    expect(before.tabs.length).toBeGreaterThanOrEqual(4);
+    // Pin the rightmost tab — it should survive closeTabsToRight even
+    // though it's right of the anchor.
+    const rightmostId = before.tabs[before.tabs.length - 1].id;
+    useStore.getState().togglePinTab(rightmostId);
+    // After togglePin, the pinned tab moved to the front. Need fresh
+    // indices.
+    const after1 = useStore.getState();
+    const anchorId = after1.tabs[1].id; // first unpinned
+    useStore.getState().closeTabsToRight(anchorId);
+    const final = useStore.getState();
+    // Pinned tab still in the list
+    expect(final.tabs.some((t) => t.id === rightmostId)).toBe(true);
+  });
 });
