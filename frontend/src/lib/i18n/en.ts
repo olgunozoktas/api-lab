@@ -147,7 +147,9 @@ export const en: Dict = {
 
   "composer.requestName": "Request name",
   "composer.save": "Save",
+  "composer.save.title": "Save the request to the active folder (⌘+S)",
   "composer.send": "Send",
+  "composer.send.title": "Send the request (⌘+↵)",
   "composer.sending": "Sending...",
   "composer.cancel": "Cancel",
   "composer.cancelTitle": "Cancel this request (⌘+.)",

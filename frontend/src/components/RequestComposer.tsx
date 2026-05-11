@@ -1,5 +1,5 @@
 import { useStore } from "../store";
-import { UrlBarContainer } from "./UrlBar";
+import { KbdHint, UrlBarContainer } from "./UrlBar";
 import { KvTable } from "./KvTable";
 import { AuthPanelContainer } from "./AuthPanel";
 import { BodyPanelContainer } from "./BodyPanel";
@@ -64,8 +64,9 @@ export function RequestComposer({
           placeholder={t("composer.requestName")}
           className="flex-1 bg-transparent border-0 outline-none text-sm font-medium"
         />
-        <Button variant="secondary" size="sm" onClick={onSave}>
+        <Button variant="secondary" size="sm" onClick={onSave} title={t("composer.save.title")}>
           {t("composer.save")}
+          <KbdHint>⌘ S</KbdHint>
         </Button>
       </div>
 
