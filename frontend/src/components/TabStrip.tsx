@@ -99,9 +99,22 @@ export function TabStripPresenter({
 }: TabStripPresenterProps) {
   const [dragFromIdx, setDragFromIdx] = useState<number | null>(null);
   const [dragOverIdx, setDragOverIdx] = useState<number | null>(null);
+  // When the active tab changes, scroll it into view inside the strip
+  // so a newly-created or quick-switched tab isn't hidden off-screen.
+  // `nearest` keeps the scroll movement minimal — the active tab stays
+  // wherever it is if already visible.
+  const stripRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    const strip = stripRef.current;
+    if (!strip) return;
+    const target = strip.querySelector<HTMLElement>(`[data-tab-id="${activeTabId}"]`);
+    if (!target) return;
+    target.scrollIntoView({ block: "nearest", inline: "nearest" });
+  }, [activeTabId]);
 
   return (
     <div
+      ref={stripRef}
       role="tablist"
       aria-label="Open requests"
       className={cn(
@@ -119,6 +132,7 @@ export function TabStripPresenter({
                 role="tab"
                 aria-selected={active}
                 tabIndex={0}
+                data-tab-id={tab.id}
                 draggable
                 onDragStart={(e) => {
                   setDragFromIdx(idx);
@@ -159,7 +173,13 @@ export function TabStripPresenter({
                   }
                 }}
                 className={cn(
-                  "group relative flex items-center gap-2 px-3 min-w-0 max-w-[220px] cursor-pointer select-none",
+                  // `flex-shrink-0` keeps tabs at their readable
+                  // min-width when the strip is full — the container
+                  // already has `overflow-x-auto` so additional tabs
+                  // push the row past the viewport and the user can
+                  // scroll instead of every tab collapsing to the
+                  // status pill (the previous min-w-0 behavior).
+                  "group relative flex flex-shrink-0 items-center gap-2 px-3 min-w-[140px] max-w-[220px] cursor-pointer select-none",
                   "border-r border-[var(--color-border)] text-xs",
                   "transition-colors duration-100",
                   active
@@ -319,7 +339,10 @@ export function TabStripPresenter({
         aria-label={newTabLabel}
         onClick={onNewTab}
         className={cn(
-          "px-3 grid place-items-center text-[var(--color-fg-muted)]",
+          // Sticks at the right end of the visible tabs even when the
+          // strip scrolls — `flex-shrink-0` so it can't be squeezed by
+          // overflow.
+          "px-3 grid place-items-center text-[var(--color-fg-muted)] flex-shrink-0",
           "hover:bg-[var(--color-bg-elev)] hover:text-[var(--color-fg)]",
           "border-r border-[var(--color-border)]",
           "transition-colors duration-100"
