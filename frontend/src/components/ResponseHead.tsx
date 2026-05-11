@@ -41,7 +41,7 @@ export function ResponseHead({
       >
         {r.status} {r.statusText || statusText(r.status)}
       </span>
-      <span className="text-xs text-[var(--color-fg-muted)]">{r.elapsedMs} ms</span>
+      <TimingBadge response={r} />
       <span className="text-xs text-[var(--color-fg-muted)]">{humanSize(r.sizeBytes)}</span>
       <span
         className={
@@ -76,6 +76,33 @@ export function ResponseHead({
       </Button>
       {copyAsSlot}
     </div>
+  );
+}
+
+// Elapsed-time badge with a curl-timing breakdown tooltip. The
+// Zig bridge fills `timing` from curl's `--write-out '%{json}'`
+// — DNS, TCP/TLS connect, and TTFB are extremely useful for
+// answering "why was this request slow?". When the request was
+// replayed from history (no timing) the tooltip degrades to a
+// plain "Elapsed: Xms" string.
+function TimingBadge({ response: r }: { response: ResponseSnapshot }) {
+  const t = useT();
+  const tooltip = r.timing
+    ? [
+        `${t("response.timing.dns")}: ${Math.round(r.timing.namelookup_ms)} ms`,
+        `${t("response.timing.connect")}: ${Math.round(r.timing.connect_ms)} ms`,
+        `${t("response.timing.ttfb")}: ${Math.round(r.timing.ttfb_ms)} ms`,
+        `${t("response.timing.total")}: ${Math.round(r.timing.total_ms)} ms`,
+      ].join("\n")
+    : t("response.timing.elapsed", { ms: String(r.elapsedMs) });
+  return (
+    <span
+      className="text-xs text-[var(--color-fg-muted)] cursor-help"
+      title={tooltip}
+      aria-label={tooltip.replace(/\n/g, " · ")}
+    >
+      {r.elapsedMs} ms
+    </span>
   );
 }
 

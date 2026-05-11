@@ -286,6 +286,11 @@ export const tr = {
   "response.bodyCopied": "Body kopyalandı",
   "response.codeCopied": "{lang} kopyalandı",
   "response.transport.title": "HTTP transport",
+  "response.timing.elapsed": "Geçen süre: {ms} ms",
+  "response.timing.dns": "DNS",
+  "response.timing.connect": "TCP / TLS handshake",
+  "response.timing.ttfb": "TTFB (ilk byte)",
+  "response.timing.total": "Toplam",
 
   "ws.connect": "Bağlan",
   "ws.disconnect": "Bağlantıyı Kes",
