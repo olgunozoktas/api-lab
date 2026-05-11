@@ -285,6 +285,11 @@ export const en: Dict = {
   "response.bodyCopied": "Body copied",
   "response.codeCopied": "{lang} copied",
   "response.transport.title": "HTTP transport",
+  "response.timing.elapsed": "Elapsed: {ms} ms",
+  "response.timing.dns": "DNS",
+  "response.timing.connect": "TCP / TLS handshake",
+  "response.timing.ttfb": "TTFB (first byte)",
+  "response.timing.total": "Total",
 
   "ws.connect": "Connect",
   "ws.disconnect": "Disconnect",
