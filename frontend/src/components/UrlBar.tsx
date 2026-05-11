@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { useStore } from "../store";
-import { methodClass } from "../lib/utils";
+import { useStore, useActiveVars } from "../store";
+import { envSubst, methodClass } from "../lib/utils";
 import { useT } from "../lib/i18n/useT";
 import { Button } from "./ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
@@ -17,6 +17,11 @@ export type UrlBarProps = {
   busy: boolean;
   hideSend?: boolean;
   hideMethod?: boolean;
+  // When set + different from `url`, rendered as a small faded line
+  // below the URL input so the user can see what their `{{var}}`
+  // references actually resolve to before hitting Send. Container
+  // computes via `envSubst(url, activeVars)`. Undefined = no preview.
+  resolvedUrl?: string;
   onMethodChange: (m: string) => void;
   onUrlChange: (u: string) => void;
   onSend: () => void;
@@ -35,6 +40,7 @@ export function UrlBar({
   busy,
   hideSend,
   hideMethod,
+  resolvedUrl,
   onMethodChange,
   onUrlChange,
   onSend,
@@ -62,61 +68,78 @@ export function UrlBar({
   // calls the abort-controller wired up in App.tsx. Falls back to
   // the disabled-Send shape when no onCancel is wired (older callers).
   const showCancel = busy && !!onCancel;
+  // Show the resolved-URL preview only when the user actually has
+  // `{{var}}` references AND substitution changes the visible string.
+  // Avoids confusing "preview matches" duplication on plain URLs and
+  // hides the row entirely while substitution is a no-op.
+  const showResolved = !!resolvedUrl && resolvedUrl !== url && /\{\{/.test(url);
   return (
-    <div className="flex gap-1.5 px-3 py-2.5 bg-[var(--color-bg-elev)] border-b border-[var(--color-border)]">
-      {!hideMethod && (
-        <Select value={method} onValueChange={onMethodChange}>
-          <SelectTrigger
-            aria-label="HTTP method"
-            className={"w-22 font-mono font-bold " + methodClass(method)}
-          >
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {METHODS.map((m) => (
-              <SelectItem key={m} value={m}>
-                <span className={"font-mono font-bold " + methodClass(m)}>{m}</span>
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      )}
-      <input
-        ref={inputRef}
-        type="text"
-        value={url}
-        onChange={(e) => onUrlChange(e.target.value)}
-        onPaste={(e) => {
-          if (!onCurlPaste) return;
-          const text = e.clipboardData.getData("text/plain");
-          if (looksLikeCurl(text)) {
-            const handled = onCurlPaste(text);
-            if (handled) e.preventDefault();
+    <div className="bg-[var(--color-bg-elev)] border-b border-[var(--color-border)]">
+      <div className="flex gap-1.5 px-3 pt-2.5 pb-1.5">
+        {!hideMethod && (
+          <Select value={method} onValueChange={onMethodChange}>
+            <SelectTrigger
+              aria-label="HTTP method"
+              className={"w-22 font-mono font-bold " + methodClass(method)}
+            >
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {METHODS.map((m) => (
+                <SelectItem key={m} value={m}>
+                  <span className={"font-mono font-bold " + methodClass(m)}>{m}</span>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
+        <input
+          ref={inputRef}
+          type="text"
+          value={url}
+          onChange={(e) => onUrlChange(e.target.value)}
+          onPaste={(e) => {
+            if (!onCurlPaste) return;
+            const text = e.clipboardData.getData("text/plain");
+            if (looksLikeCurl(text)) {
+              const handled = onCurlPaste(text);
+              if (handled) e.preventDefault();
+            }
+          }}
+          placeholder={t("composer.urlPlaceholder", { vars: "{{base_url}}/path" })}
+          className={
+            "flex-1 bg-[var(--color-bg-elev-2)] border border-[var(--color-border)] " +
+            "rounded-md px-2.5 py-1.5 font-mono text-xs outline-none " +
+            "focus:border-[var(--color-accent)]"
           }
-        }}
-        placeholder={t("composer.urlPlaceholder", { vars: "{{base_url}}/path" })}
-        className={
-          "flex-1 bg-[var(--color-bg-elev-2)] border border-[var(--color-border)] " +
-          "rounded-md px-2.5 py-1.5 font-mono text-xs outline-none " +
-          "focus:border-[var(--color-accent)]"
-        }
-      />
-      {!hideSend && showCancel && (
-        <Button
-          variant="danger"
-          onClick={onCancel}
-          title={t("composer.cancelTitle")}
-          aria-label={t("composer.cancelTitle")}
+        />
+        {!hideSend && showCancel && (
+          <Button
+            variant="danger"
+            onClick={onCancel}
+            title={t("composer.cancelTitle")}
+            aria-label={t("composer.cancelTitle")}
+          >
+            <X className="w-3.5 h-3.5" />
+            {t("composer.cancel")}
+          </Button>
+        )}
+        {!hideSend && !showCancel && (
+          <Button variant="primary" onClick={onSend} disabled={busy}>
+            <Send className="w-3.5 h-3.5" />
+            {busy ? t("composer.sending") : t("composer.send")}
+          </Button>
+        )}
+      </div>
+      {showResolved && (
+        <div
+          className="px-3 pb-2 -mt-0.5 font-mono text-[10px] text-[var(--color-fg-muted)] truncate"
+          title={resolvedUrl}
+          aria-label={t("composer.url.resolvedAria")}
         >
-          <X className="w-3.5 h-3.5" />
-          {t("composer.cancel")}
-        </Button>
-      )}
-      {!hideSend && !showCancel && (
-        <Button variant="primary" onClick={onSend} disabled={busy}>
-          <Send className="w-3.5 h-3.5" />
-          {busy ? t("composer.sending") : t("composer.send")}
-        </Button>
+          <span className="opacity-70">{t("composer.url.resolvesTo")}</span>{" "}
+          <span className="text-[var(--color-fg)]">{resolvedUrl}</span>
+        </div>
       )}
     </div>
   );
@@ -143,7 +166,12 @@ export function UrlBarContainer({
   const setCurrent = useStore((s) => s.setCurrent);
   const setUi = useStore((s) => s.setUi);
   const showToast = useStore((s) => s.showToast);
+  const vars = useActiveVars();
   const t = useT();
+  // Compute the resolved URL only when the input has `{{...}}` so
+  // plain URLs skip the envSubst regex entirely. Empty-string result
+  // from substitution is treated the same as no preview.
+  const resolvedUrl = /\{\{/.test(url) ? envSubst(url, vars) : undefined;
 
   // Last-paste preview lets the user see WHAT will be imported before
   // committing. Without it, a paste either silently rewrites the
@@ -192,6 +220,7 @@ export function UrlBarContainer({
         busy={busy}
         hideSend={hideSend}
         hideMethod={hideMethod}
+        resolvedUrl={resolvedUrl}
         onMethodChange={(m) => setCurrent({ method: m })}
         onUrlChange={(u) => setCurrent({ url: u })}
         onSend={onSend}

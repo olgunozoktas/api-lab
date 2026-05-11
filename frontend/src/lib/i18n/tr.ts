@@ -130,6 +130,8 @@ export const tr = {
   "composer.cancel": "İptal",
   "composer.cancelTitle": "Bu isteği iptal et (⌘+.)",
   "composer.urlPlaceholder": "https://api.example.com/path  (env: {{vars}})",
+  "composer.url.resolvesTo": "→",
+  "composer.url.resolvedAria": "URL'nin aktif ortam değişkenleriyle çözümlenmiş hâli",
   "composer.tab.params": "Params",
   "composer.tab.headers": "Headers",
   "composer.tab.auth": "Auth",

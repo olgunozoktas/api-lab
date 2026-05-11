@@ -130,6 +130,8 @@ export const en: Dict = {
   "composer.cancel": "Cancel",
   "composer.cancelTitle": "Cancel this request (⌘+.)",
   "composer.urlPlaceholder": "https://api.example.com/path  (env: {{vars}})",
+  "composer.url.resolvesTo": "→",
+  "composer.url.resolvedAria": "URL resolved with the active environment",
   "composer.tab.params": "Params",
   "composer.tab.headers": "Headers",
   "composer.tab.auth": "Auth",
