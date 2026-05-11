@@ -2,7 +2,7 @@ import { useRef, useState, useCallback, useEffect } from "react";
 import { useStore } from "../store";
 import { useT } from "../lib/i18n/useT";
 import type { CollectionItem, OpenTab } from "../lib/types";
-import { methodClass } from "../lib/utils";
+import { methodClass, statusPillClass, statusText } from "../lib/utils";
 import { cn } from "../lib/cn";
 import { Plus, X } from "lucide-react";
 
@@ -148,6 +148,22 @@ export function TabStripPresenter({
             >
               {tab.request.method}
             </span>
+
+            {/* Last-response status pill — colored by 2xx/3xx/4xx/5xx
+                so a glance across the tab strip shows which tabs
+                succeeded vs erred. Empty when no response yet. */}
+            {tab.lastResponse ? (
+              <span
+                className={cn(
+                  "text-[9px] font-mono font-semibold leading-none px-1 py-0.5 rounded shrink-0",
+                  statusPillClass(tab.lastResponse.status)
+                )}
+                title={`${tab.lastResponse.status} ${statusText(tab.lastResponse.status)}`}
+                aria-label={`Last response: ${tab.lastResponse.status} ${statusText(tab.lastResponse.status)}`}
+              >
+                {tab.lastResponse.status || "—"}
+              </span>
+            ) : null}
 
             {/* Tab title — truncated */}
             <span className="truncate flex-1 min-w-0" title={tab.name}>
