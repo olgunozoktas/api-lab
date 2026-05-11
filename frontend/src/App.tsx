@@ -178,7 +178,11 @@ export function App() {
         closeTab(useStore.getState().activeTabId);
         return;
       }
-      if (e.key === "p" || e.key === "P") {
+      // ⌘P AND ⌘K both open the quick switcher. ⌘P matches the
+      // existing muscle memory; ⌘K is the modern command-palette
+      // convention (Linear / Notion / Slack / GitHub) and the one
+      // most users reach for first.
+      if (e.key === "p" || e.key === "P" || e.key === "k" || e.key === "K") {
         e.preventDefault();
         setSwitcherOpen(true);
         return;

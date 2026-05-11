@@ -37,11 +37,11 @@ aktif sekme otomatik olarak görüş alanına gelir.
 
 ## Gezinme & yerleşim
 
-| Kısayol | Eylem                                               |
-| ------- | --------------------------------------------------- |
-| ⌘ P     | Quick switcher — kaydedilmiş istekleri fuzzy ara    |
-| ⌘ B     | Kenar çubuğunu aç/kapat (kayıtlı istekler + geçmiş) |
-| ?       | Bu Guide hub'ı aç                                   |
+| Kısayol   | Eylem                                                                                                                      |
+| --------- | -------------------------------------------------------------------------------------------------------------------------- |
+| ⌘ K / ⌘ P | Quick switcher — kaydedilmiş istekleri fuzzy ara. ⌘ K modern command-palette geleneği; ⌘ P Postman alışkanlığını yansıtır. |
+| ⌘ B       | Kenar çubuğunu aç/kapat (kayıtlı istekler + geçmiş)                                                                        |
+| ?         | Bu Guide hub'ı aç                                                                                                          |
 
 ## Composer
 

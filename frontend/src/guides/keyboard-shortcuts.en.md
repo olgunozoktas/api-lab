@@ -38,11 +38,11 @@ the quick switcher.
 
 ## Navigation & layout
 
-| Shortcut | Action                                        |
-| -------- | --------------------------------------------- |
-| ⌘ P      | Quick switcher — fuzzy-find any saved request |
-| ⌘ B      | Toggle the sidebar (saved requests + history) |
-| ?        | Open this Guide hub                           |
+| Shortcut  | Action                                                                                                                 |
+| --------- | ---------------------------------------------------------------------------------------------------------------------- |
+| ⌘ K / ⌘ P | Quick switcher — fuzzy-find any saved request. ⌘ K matches the modern command-palette convention; ⌘ P mirrors Postman. |
+| ⌘ B       | Toggle the sidebar (saved requests + history)                                                                          |
+| ?         | Open this Guide hub                                                                                                    |
 
 ## Composer
 
