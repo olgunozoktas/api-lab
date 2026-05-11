@@ -13,21 +13,17 @@ export function GraphqlPanel({ value, onChange }: GraphqlPanelProps) {
   const t = useT();
   return (
     <div>
-      <div className="mb-2 text-[11px] text-[var(--color-fg-muted)]">
-        {t("graphql.note")}
-      </div>
-      <label className="text-[11px] text-[var(--color-fg-muted)]">
-        {t("graphql.query")}
-      </label>
+      <div className="mb-2 text-[11px] text-[var(--color-fg-muted)]">{t("graphql.note")}</div>
+      <label className="text-[11px] text-[var(--color-fg-muted)]">{t("graphql.query")}</label>
       <CodeEditor
         value={value.query}
         onChange={(query) => onChange({ ...value, query })}
         language="graphql"
         placeholder="query { users { id name } }"
-        minHeight={180}
-        className="mb-3"
+        minHeight={120}
+        className="mb-2"
       />
-      <label className="text-[11px] text-[var(--color-fg-muted)] block mt-2">
+      <label className="text-[11px] text-[var(--color-fg-muted)] block mt-1">
         {t("graphql.vars")}
       </label>
       <CodeEditor
@@ -35,7 +31,7 @@ export function GraphqlPanel({ value, onChange }: GraphqlPanelProps) {
         onChange={(vars) => onChange({ ...value, vars })}
         language="json"
         placeholder='{ "id": 1 }'
-        minHeight={120}
+        minHeight={72}
       />
     </div>
   );
