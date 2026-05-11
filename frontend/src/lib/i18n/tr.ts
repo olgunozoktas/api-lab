@@ -147,7 +147,9 @@ export const tr = {
 
   "composer.requestName": "İstek adı",
   "composer.save": "Kaydet",
+  "composer.save.title": "İsteği aktif klasöre kaydet (⌘+S)",
   "composer.send": "Gönder",
+  "composer.send.title": "İsteği gönder (⌘+↵)",
   "composer.sending": "Gönderiliyor...",
   "composer.cancel": "İptal",
   "composer.cancelTitle": "Bu isteği iptal et (⌘+.)",

@@ -125,9 +125,15 @@ export function UrlBar({
           </Button>
         )}
         {!hideSend && !showCancel && (
-          <Button variant="primary" onClick={onSend} disabled={busy}>
+          <Button
+            variant="primary"
+            onClick={onSend}
+            disabled={busy}
+            title={t("composer.send.title")}
+          >
             <Send className="w-3.5 h-3.5" />
             {busy ? t("composer.sending") : t("composer.send")}
+            {!busy && <KbdHint>⌘ ↵</KbdHint>}
           </Button>
         )}
       </div>
@@ -274,5 +280,19 @@ function CurlImportBanner({
         <X className="w-3 h-3" />
       </button>
     </div>
+  );
+}
+
+// Tiny faded kbd hint rendered inside an action button — reminds
+// the user there's a shortcut for what they're clicking without
+// stealing visual weight from the primary label.
+export function KbdHint({ children }: { children: React.ReactNode }) {
+  return (
+    <kbd
+      className="ml-1 px-1 py-px rounded text-[10px] font-mono bg-black/10 text-current/70 opacity-70"
+      aria-hidden
+    >
+      {children}
+    </kbd>
   );
 }
