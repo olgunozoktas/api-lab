@@ -374,6 +374,11 @@ export const en: Dict = {
   "grpc.status.missing": "GRPCURL MISSING",
 
   "env.modal.title": "Environments",
+  "env.modal.hint":
+    "Each environment is a key/value list. Reference one anywhere — URL, headers, or body — as {{name}}. At request time the active environment's value is substituted in. Pick the active one from the env switcher in the top bar.",
+  "env.varCount": "{n} variables",
+  "env.varCountShort": "{n} vars",
+  "env.activeBadge": "active",
   "env.minRequired": "At least 1 environment is required",
   "env.placeholderText": "key=value\nbase_url=https://api.example.com\ntoken=abc123",
   "env.saved": "Environments saved",

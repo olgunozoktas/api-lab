@@ -3,9 +3,7 @@ import { useStore } from "../store";
 import { useT } from "../lib/i18n/useT";
 import { uid } from "../lib/utils";
 import type { Environment } from "../lib/types";
-import {
-  Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle,
-} from "./ui/dialog";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "./ui/dialog";
 import { Button } from "./ui/button";
 import { Trash2 } from "lucide-react";
 
@@ -16,6 +14,7 @@ type Props = {
 
 export function EnvEditorModal({ open, onOpenChange }: Props) {
   const initialEnvs = useStore((s) => s.envs);
+  const activeEnvId = useStore((s) => s.activeEnv);
   const setEnvs = useStore((s) => s.setEnvs);
   const showToast = useStore((s) => s.showToast);
   const t = useT();
@@ -25,11 +24,18 @@ export function EnvEditorModal({ open, onOpenChange }: Props) {
     setLocal((ls) => ls.map((e) => (e.id === id ? { ...e, ...patch } : e)));
   };
   const remove = (id: string) => {
-    if (envs.length <= 1) { showToast(t("env.minRequired")); return; }
+    if (envs.length <= 1) {
+      showToast(t("env.minRequired"));
+      return;
+    }
     setLocal((ls) => ls.filter((e) => e.id !== id));
   };
   const add = () => setLocal((ls) => [...ls, { id: uid(), name: "new", vars: {} }]);
-  const save = () => { setEnvs(envs); showToast(t("env.saved")); onOpenChange(false); };
+  const save = () => {
+    setEnvs(envs);
+    showToast(t("env.saved"));
+    onOpenChange(false);
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -37,12 +43,31 @@ export function EnvEditorModal({ open, onOpenChange }: Props) {
         <DialogHeader>
           <DialogTitle>{t("env.modal.title")}</DialogTitle>
         </DialogHeader>
-        {envs.map((e) => <EnvRow key={e.id} env={e} onUpdate={update} onRemove={remove} />)}
+        <div className="rounded-md border border-[var(--color-border)] bg-[var(--color-bg-elev)] px-3 py-2.5 mb-3 space-y-1">
+          <p className="text-[11px] leading-relaxed text-[var(--color-fg-muted)]">
+            {t("env.modal.hint")}
+          </p>
+          <p className="text-[10px] font-mono text-[var(--color-fg-muted)]">
+            <span className="text-[var(--color-accent)]">{`{{base_url}}`}</span>
+            /users/{`{{user_id}}`}
+          </p>
+        </div>
+        {envs.map((e) => (
+          <EnvRow
+            key={e.id}
+            env={e}
+            isActive={e.id === activeEnvId}
+            onUpdate={update}
+            onRemove={remove}
+          />
+        ))}
         <Button variant="dashed" size="md" className="w-full" onClick={add}>
           {t("kv.addEnv")}
         </Button>
         <DialogFooter>
-          <Button variant="primary" onClick={save}>{t("composer.save")}</Button>
+          <Button variant="primary" onClick={save}>
+            {t("composer.save")}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -51,13 +76,17 @@ export function EnvEditorModal({ open, onOpenChange }: Props) {
 
 type RowProps = {
   env: Environment;
+  isActive: boolean;
   onUpdate: (id: string, patch: Partial<Environment>) => void;
   onRemove: (id: string) => void;
 };
 
-function EnvRow({ env, onUpdate, onRemove }: RowProps) {
+function EnvRow({ env, isActive, onUpdate, onRemove }: RowProps) {
   const t = useT();
-  const text = Object.entries(env.vars).map(([k, v]) => `${k}=${v}`).join("\n");
+  const text = Object.entries(env.vars)
+    .map(([k, v]) => `${k}=${v}`)
+    .join("\n");
+  const varCount = Object.keys(env.vars).length;
 
   const onText = (val: string) => {
     const next: Record<string, string> = {};
@@ -85,7 +114,24 @@ function EnvRow({ env, onUpdate, onRemove }: RowProps) {
             "px-2 py-1 text-xs outline-none focus:border-[var(--color-accent)]"
           }
         />
-        <Button variant="ghost" size="icon" onClick={() => onRemove(env.id)} aria-label={t("env.deleteEnv")}>
+        <span
+          className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-[var(--color-bg-elev)] text-[var(--color-fg-muted)] shrink-0"
+          aria-label={t("env.varCount", { n: String(varCount) })}
+          title={t("env.varCount", { n: String(varCount) })}
+        >
+          {t("env.varCountShort", { n: String(varCount) })}
+        </span>
+        {isActive && (
+          <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-[var(--color-accent)]/15 text-[var(--color-accent)] shrink-0">
+            {t("env.activeBadge")}
+          </span>
+        )}
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => onRemove(env.id)}
+          aria-label={t("env.deleteEnv")}
+        >
           <Trash2 className="w-3.5 h-3.5" />
         </Button>
       </div>
