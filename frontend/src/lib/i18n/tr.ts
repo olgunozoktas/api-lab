@@ -222,6 +222,8 @@ export const tr = {
   "response.bodyDownloaded": "Body dosyaya kaydedildi",
   "response.headers.copyValue": "{name} değerini kopyala",
   "response.headers.valueCopied": "{name} panoya kopyalandı",
+  "response.headers.searchPlaceholder": "Header ara... (örn: cache, cors, x-)",
+  "response.headers.searchAria": "Yanıt header'larını filtrele",
   "response.copyAs": "Kod Kopyala",
   "response.copyAs.title": "Kod olarak kopyala",
   "response.tab.body": "Body",

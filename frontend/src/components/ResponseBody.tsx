@@ -1,8 +1,9 @@
+import { useMemo, useState } from "react";
 import { useStore } from "../store";
 import { useT } from "../lib/i18n/useT";
 import { isProbablyJson } from "../lib/utils";
 import JsonView from "@uiw/react-json-view";
-import { Copy } from "lucide-react";
+import { Copy, Search, X } from "lucide-react";
 import { CodeEditor } from "./ui/code-editor";
 import { SaveAsVariableMenu } from "./SaveAsVariable";
 import { ResponseEmpty } from "./ResponseEmpty";
@@ -56,7 +57,7 @@ export function ResponseBody({ response: r, tab }: ResponseBodyProps) {
   if (tab === "headers") {
     return (
       <SaveAsVariableMenu>
-        <div className="flex-1 overflow-auto p-3">
+        <div className="flex-1 overflow-hidden flex flex-col">
           <ResponseHeadersTable headers={r.headers} />
         </div>
       </SaveAsVariableMenu>
@@ -156,6 +157,7 @@ export function ResponseBody({ response: r, tab }: ResponseBodyProps) {
 function ResponseHeadersTable({ headers }: { headers: ResponseHeader[] }) {
   const t = useT();
   const showToast = useStore((s) => s.showToast);
+  const [query, setQuery] = useState("");
 
   const copy = (h: ResponseHeader) => {
     navigator.clipboard
@@ -163,32 +165,78 @@ function ResponseHeadersTable({ headers }: { headers: ResponseHeader[] }) {
       .then(() => showToast(t("response.headers.valueCopied", { name: h.k })));
   };
 
+  // Filter substring-matches against both the header name AND its
+  // value, case-insensitive. CDN responses regularly carry 30+
+  // headers — typing `cache` or `cors` narrows to the relevant ones
+  // without scrolling. Empty query (after trim) bypasses filtering.
+  const trimmed = query.trim().toLowerCase();
+  const filtered = useMemo(() => {
+    if (!trimmed) return headers;
+    return headers.filter(
+      (h) => h.k.toLowerCase().includes(trimmed) || h.v.toLowerCase().includes(trimmed)
+    );
+  }, [headers, trimmed]);
+
   return (
-    <table className="w-full border-collapse font-mono text-[11px] select-text">
-      <tbody>
-        {headers.map((h, i) => (
-          <tr key={i} className="group border-b border-[var(--color-border)]">
-            <td className="px-2.5 py-1.5 align-top text-[var(--color-fg-muted)] w-[30%] break-all">
-              {h.k}
-            </td>
-            <td className="px-2.5 py-1.5 align-top break-all">
-              <div className="flex items-start gap-2">
-                <span className="flex-1 break-all">{h.v}</span>
-                <button
-                  type="button"
-                  onClick={() => copy(h)}
-                  className="opacity-0 group-hover:opacity-100 shrink-0 p-0.5 rounded text-[var(--color-fg-muted)] hover:bg-[var(--color-bg-elev-2)] hover:text-[var(--color-fg)] transition-colors"
-                  aria-label={t("response.headers.copyValue", { name: h.k })}
-                  title={t("response.headers.copyValue", { name: h.k })}
-                >
-                  <Copy className="w-3 h-3" aria-hidden />
-                </button>
-              </div>
-            </td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
+    <>
+      <div className="px-3 pt-3 pb-2 shrink-0 relative">
+        <Search
+          className="absolute left-5 top-1/2 -translate-y-1/2 w-3 h-3 text-[var(--color-fg-muted)] pointer-events-none"
+          aria-hidden
+        />
+        <input
+          type="text"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder={t("response.headers.searchPlaceholder")}
+          aria-label={t("response.headers.searchAria")}
+          className="w-full bg-[var(--color-bg-elev-2)] border border-[var(--color-border)] rounded-md pl-7 pr-7 py-1 text-[11px] font-mono outline-none focus:border-[var(--color-accent)]"
+        />
+        {query && (
+          <button
+            type="button"
+            onClick={() => setQuery("")}
+            aria-label={t("collections.search.clear")}
+            className="absolute right-5 top-1/2 -translate-y-1/2 p-0.5 rounded text-[var(--color-fg-muted)] hover:bg-[var(--color-bg-elev)] hover:text-[var(--color-fg)]"
+          >
+            <X className="w-3 h-3" aria-hidden />
+          </button>
+        )}
+      </div>
+      <div className="flex-1 overflow-auto px-3 pb-3">
+        {filtered.length === 0 ? (
+          <div className="text-center text-[11px] text-[var(--color-fg-muted)] py-6">
+            {t("collections.search.empty")}
+          </div>
+        ) : (
+          <table className="w-full border-collapse font-mono text-[11px] select-text">
+            <tbody>
+              {filtered.map((h, i) => (
+                <tr key={i} className="group border-b border-[var(--color-border)]">
+                  <td className="px-2.5 py-1.5 align-top text-[var(--color-fg-muted)] w-[30%] break-all">
+                    {h.k}
+                  </td>
+                  <td className="px-2.5 py-1.5 align-top break-all">
+                    <div className="flex items-start gap-2">
+                      <span className="flex-1 break-all">{h.v}</span>
+                      <button
+                        type="button"
+                        onClick={() => copy(h)}
+                        className="opacity-0 group-hover:opacity-100 shrink-0 p-0.5 rounded text-[var(--color-fg-muted)] hover:bg-[var(--color-bg-elev-2)] hover:text-[var(--color-fg)] transition-colors"
+                        aria-label={t("response.headers.copyValue", { name: h.k })}
+                        title={t("response.headers.copyValue", { name: h.k })}
+                      >
+                        <Copy className="w-3 h-3" aria-hidden />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+    </>
   );
 }
 

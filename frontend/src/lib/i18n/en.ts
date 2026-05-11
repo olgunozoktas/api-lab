@@ -221,6 +221,8 @@ export const en: Dict = {
   "response.bodyDownloaded": "Body saved to file",
   "response.headers.copyValue": "Copy {name} value",
   "response.headers.valueCopied": "{name} copied to clipboard",
+  "response.headers.searchPlaceholder": "Filter headers... (e.g. cache, cors, x-)",
+  "response.headers.searchAria": "Filter response headers",
   "response.copyAs": "Copy as code",
   "response.copyAs.title": "Copy request as code",
   "response.tab.body": "Body",
