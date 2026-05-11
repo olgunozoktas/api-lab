@@ -137,6 +137,9 @@ export const en: Dict = {
 
   "tabs.new": "New tab",
   "tabs.close": "Close tab",
+  "tabs.closeOthers": "Close other tabs",
+  "tabs.closeToRight": "Close tabs to the right",
+  "tabs.duplicate": "Duplicate tab",
   "tabs.openInNewTab": "Open in new tab",
 
   "switcher.placeholder": "Search requests… (Esc cancels, ↑↓ navigate, ↵ open)",

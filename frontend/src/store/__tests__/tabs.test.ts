@@ -144,4 +144,58 @@ describe("tabs", () => {
     expect(s.ui.composerTab).toBe("headers");
     expect(s.ui.responseTab).toBe("raw");
   });
+
+  it("duplicateTab() copies the source request + activates the new tab", () => {
+    useStore.getState().setCurrent({ url: "https://orig.test", method: "PUT" });
+    const before = useStore.getState();
+    const srcId = before.activeTabId;
+    useStore.getState().duplicateTab(srcId);
+    const after = useStore.getState();
+    expect(after.tabs).toHaveLength(before.tabs.length + 1);
+    // New active tab is the duplicate, not the source
+    expect(after.activeTabId).not.toBe(srcId);
+    const dup = after.tabs.find((t) => t.id === after.activeTabId)!;
+    expect(dup.request.url).toBe("https://orig.test");
+    expect(dup.request.method).toBe("PUT");
+    // Source tab still exists alongside the duplicate
+    expect(after.tabs.some((t) => t.id === srcId)).toBe(true);
+  });
+
+  it("closeOtherTabs() keeps only the named tab + activates it", () => {
+    // Build 3 tabs
+    useStore.getState().newTab();
+    useStore.getState().newTab();
+    const s1 = useStore.getState();
+    expect(s1.tabs.length).toBeGreaterThanOrEqual(3);
+    const keepId = s1.tabs[1].id;
+    useStore.getState().closeOtherTabs(keepId);
+    const s2 = useStore.getState();
+    expect(s2.tabs).toHaveLength(1);
+    expect(s2.tabs[0].id).toBe(keepId);
+    expect(s2.activeTabId).toBe(keepId);
+  });
+
+  it("closeTabsToRight() removes every tab after the anchor", () => {
+    useStore.getState().newTab();
+    useStore.getState().newTab();
+    useStore.getState().newTab();
+    const s1 = useStore.getState();
+    expect(s1.tabs.length).toBeGreaterThanOrEqual(4);
+    const anchorIdx = 1;
+    const anchorId = s1.tabs[anchorIdx].id;
+    useStore.getState().closeTabsToRight(anchorId);
+    const s2 = useStore.getState();
+    expect(s2.tabs).toHaveLength(anchorIdx + 1);
+    expect(s2.tabs[anchorIdx].id).toBe(anchorId);
+  });
+
+  it("closeTabsToRight() on the rightmost tab is a no-op", () => {
+    useStore.getState().newTab();
+    const s1 = useStore.getState();
+    const rightmost = s1.tabs[s1.tabs.length - 1].id;
+    const lengthBefore = s1.tabs.length;
+    useStore.getState().closeTabsToRight(rightmost);
+    const s2 = useStore.getState();
+    expect(s2.tabs).toHaveLength(lengthBefore);
+  });
 });
