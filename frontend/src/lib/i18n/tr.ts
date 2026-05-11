@@ -43,6 +43,7 @@ export const tr = {
   "settings.shortcuts.new": "Yeni boş istek",
   "settings.shortcuts.tabNew": "Yeni sekme",
   "settings.shortcuts.tabClose": "Sekmeyi kapat",
+  "settings.shortcuts.tabReopen": "Son kapatılanı geri aç",
   "settings.shortcuts.tabJump": "N. sekmeye atla",
   "settings.shortcuts.switcher": "Hızlı geçiş (Quick Switcher)",
   "settings.shortcuts.focusUrl": "URL bar'a odaklan",

@@ -2,8 +2,23 @@ import type { StateCreator } from "zustand";
 import type { CollectionItem, ComposerTab, OpenTab, ResponseTab } from "../lib/types";
 import { emptyTab } from "../lib/types";
 import { uid } from "../lib/utils";
-import { clone, nextActiveAfterClose, snapshotActiveIntoTab } from "./internal";
+import {
+  clone,
+  nextActiveAfterClose,
+  snapshotActiveIntoTab,
+  RECENTLY_CLOSED_CAP,
+} from "./internal";
 import type { Store, StoreMutators } from "./types";
+
+// Push a closed tab onto the LIFO stack, capping the history depth.
+// Most-recent-closed lives at the END so `pop()` returns it.
+function pushClosed(stack: OpenTab[], tab: OpenTab): OpenTab[] {
+  const next = [...stack, tab];
+  if (next.length > RECENTLY_CLOSED_CAP) {
+    return next.slice(next.length - RECENTLY_CLOSED_CAP);
+  }
+  return next;
+}
 
 export type TabsActions = {
   newTab: () => void;
@@ -14,6 +29,9 @@ export type TabsActions = {
   closeOtherTabs: (keepId: string) => void;
   closeTabsToRight: (fromId: string) => void;
   duplicateTab: (id: string) => void;
+  // Pop the most-recently-closed tab back into the strip + activate it.
+  // No-op when the recently-closed stack is empty.
+  reopenLastClosedTab: () => void;
   setActiveTab: (id: string) => void;
   renameTab: (id: string, name: string) => void;
   reorderTabs: (fromIdx: number, toIdx: number) => void;
@@ -40,6 +58,13 @@ export const createTabsSlice: StateCreator<Store, StoreMutators, [], TabsActions
 
   closeTab: (id) =>
     set((s) => {
+      // Take the live mirror of the closing tab so an unsaved edit in
+      // the active tab gets captured in the reopen stack. Without this
+      // snapshot the user'd lose in-progress URL/body changes on
+      // ⌘+W → ⌘+Shift+T.
+      const snapshotted = snapshotActiveIntoTab(s);
+      const closing = snapshotted.find((t) => t.id === id);
+      const stack = closing ? pushClosed(s.recentlyClosed, closing) : s.recentlyClosed;
       if (s.tabs.length === 1) {
         const fresh = emptyTab(uid());
         return {
@@ -52,11 +77,12 @@ export const createTabsSlice: StateCreator<Store, StoreMutators, [], TabsActions
             composerTab: fresh.composerTab,
             responseTab: fresh.responseTab,
           },
+          recentlyClosed: stack,
         };
       }
-      const filtered = s.tabs.filter((t) => t.id !== id);
+      const filtered = snapshotted.filter((t) => t.id !== id);
       if (id === s.activeTabId) {
-        const nextId = nextActiveAfterClose(s.tabs, id);
+        const nextId = nextActiveAfterClose(snapshotted, id);
         const nextTab = filtered.find((t) => t.id === nextId) ?? filtered[0];
         return {
           tabs: filtered,
@@ -68,9 +94,10 @@ export const createTabsSlice: StateCreator<Store, StoreMutators, [], TabsActions
             composerTab: nextTab.composerTab,
             responseTab: nextTab.responseTab,
           },
+          recentlyClosed: stack,
         };
       }
-      return { tabs: filtered };
+      return { tabs: filtered, recentlyClosed: stack };
     }),
 
   closeOtherTabs: (keepId) =>
@@ -83,6 +110,14 @@ export const createTabsSlice: StateCreator<Store, StoreMutators, [], TabsActions
       // their mirror values).
       const snapshotted = snapshotActiveIntoTab(s);
       const survivor = snapshotted.find((t) => t.id === keepId) ?? keep;
+      // Push each victim onto the reopen stack (left-to-right) so the
+      // most-recent-by-position lands at the end of the LIFO. User's
+      // mental model after bulk close: the leftmost survivor is the
+      // "newest" reopen target.
+      let stack = s.recentlyClosed;
+      for (const t of snapshotted) {
+        if (t.id !== keepId) stack = pushClosed(stack, t);
+      }
       return {
         tabs: [survivor],
         activeTabId: survivor.id,
@@ -93,6 +128,7 @@ export const createTabsSlice: StateCreator<Store, StoreMutators, [], TabsActions
           composerTab: survivor.composerTab,
           responseTab: survivor.responseTab,
         },
+        recentlyClosed: stack,
       };
     }),
 
@@ -102,6 +138,12 @@ export const createTabsSlice: StateCreator<Store, StoreMutators, [], TabsActions
       if (idx < 0 || idx === s.tabs.length - 1) return {};
       const snapshotted = snapshotActiveIntoTab(s);
       const kept = snapshotted.slice(0, idx + 1);
+      const dropped = snapshotted.slice(idx + 1);
+      // Push every dropped tab onto the reopen stack in display order
+      // so ⌘+Shift+T pops the rightmost (which is the user's mental
+      // model after "close to the right").
+      let stack = s.recentlyClosed;
+      for (const t of dropped) stack = pushClosed(stack, t);
       // If the active tab was in the closed range, fall back to the
       // anchor tab (fromId). Otherwise active survives — keep it.
       const activeStillOpen = kept.some((t) => t.id === s.activeTabId);
@@ -118,6 +160,7 @@ export const createTabsSlice: StateCreator<Store, StoreMutators, [], TabsActions
           composerTab: nextActive.composerTab,
           responseTab: nextActive.responseTab,
         },
+        recentlyClosed: stack,
       };
     }),
 
@@ -147,6 +190,36 @@ export const createTabsSlice: StateCreator<Store, StoreMutators, [], TabsActions
           composerTab: dup.composerTab,
           responseTab: dup.responseTab,
         },
+      };
+    }),
+
+  reopenLastClosedTab: () =>
+    set((s) => {
+      if (s.recentlyClosed.length === 0) return {};
+      const popped = s.recentlyClosed[s.recentlyClosed.length - 1];
+      const remaining = s.recentlyClosed.slice(0, -1);
+      // Snapshot the current active tab so its mirror lands back in the
+      // tabs array before we tack on the popped tab + activate it.
+      const snapshotted = snapshotActiveIntoTab(s);
+      // The popped tab may have been closed while another tab with the
+      // same id (unlikely but possible after `loadCollectionInNewTab`
+      // collisions) is still open — mint a fresh id so React keys stay
+      // unique.
+      const restored: OpenTab = {
+        ...popped,
+        id: snapshotted.some((t) => t.id === popped.id) ? uid() : popped.id,
+      };
+      return {
+        tabs: [...snapshotted, restored],
+        activeTabId: restored.id,
+        current: clone(restored.request),
+        lastResponse: restored.lastResponse,
+        ui: {
+          ...s.ui,
+          composerTab: restored.composerTab,
+          responseTab: restored.responseTab,
+        },
+        recentlyClosed: remaining,
       };
     }),
 

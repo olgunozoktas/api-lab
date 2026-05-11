@@ -38,7 +38,16 @@ export type CoreState = {
   locale: Locale;
   defaults: RequestDefaults;
   toast: { msg: string; ts: number } | null;
+  // LIFO stack of recently-closed tabs (most recent at end). Powers
+  // `reopenLastClosedTab` (⌘+Shift+T). Intentionally NOT persisted —
+  // not listed in the store's `partialize` key set — so it lives only
+  // for the current session, matching browser behaviour.
+  recentlyClosed: OpenTab[];
 };
+
+// Cap for the recently-closed stack. Mirrors Chrome's "Recently
+// closed" footprint — beyond ~10 the user usually moves on.
+export const RECENTLY_CLOSED_CAP = 10;
 
 // Build the initial workspace with a single empty tab so `tabs[]` is
 // never empty (callers can always assume `activeTabId` resolves).
@@ -82,6 +91,7 @@ export function buildInitialState(): CoreState {
     locale: detectLocale("tr"),
     defaults: defaultRequestDefaults(),
     toast: null,
+    recentlyClosed: [],
   };
 }
 
@@ -157,6 +167,7 @@ export function migrateV1toV2(persisted: unknown): V2State {
     history: old.history ?? [],
     locale: old.locale ?? detectLocale("tr"),
     defaults: old.defaults ?? defaultRequestDefaults(),
+    recentlyClosed: old.recentlyClosed ?? [],
     toast: null,
   };
 }

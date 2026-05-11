@@ -198,4 +198,40 @@ describe("tabs", () => {
     const s2 = useStore.getState();
     expect(s2.tabs).toHaveLength(lengthBefore);
   });
+
+  it("closeTab() pushes the closed tab onto the recentlyClosed stack", () => {
+    useStore.getState().newTab();
+    useStore.getState().setCurrent({ url: "https://to-close.test", method: "DELETE" });
+    const target = useStore.getState().activeTabId;
+    useStore.getState().closeTab(target);
+    const s = useStore.getState();
+    expect(s.recentlyClosed.length).toBeGreaterThanOrEqual(1);
+    const last = s.recentlyClosed[s.recentlyClosed.length - 1];
+    expect(last.request.url).toBe("https://to-close.test");
+    expect(last.request.method).toBe("DELETE");
+  });
+
+  it("reopenLastClosedTab() restores the closed tab + makes it active", () => {
+    useStore.getState().newTab();
+    useStore.getState().setCurrent({ url: "https://restore-me.test", method: "PUT" });
+    const target = useStore.getState().activeTabId;
+    useStore.getState().closeTab(target);
+    const beforeReopen = useStore.getState();
+    expect(beforeReopen.activeTabId).not.toBe(target);
+    useStore.getState().reopenLastClosedTab();
+    const s = useStore.getState();
+    const active = s.tabs.find((t) => t.id === s.activeTabId)!;
+    expect(active.request.url).toBe("https://restore-me.test");
+    expect(active.request.method).toBe("PUT");
+    expect(s.recentlyClosed).toHaveLength(beforeReopen.recentlyClosed.length - 1);
+  });
+
+  it("reopenLastClosedTab() is a no-op when the stack is empty", () => {
+    useStore.setState({ recentlyClosed: [] });
+    const before = useStore.getState();
+    useStore.getState().reopenLastClosedTab();
+    const after = useStore.getState();
+    expect(after.tabs).toHaveLength(before.tabs.length);
+    expect(after.activeTabId).toBe(before.activeTabId);
+  });
 });
