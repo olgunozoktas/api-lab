@@ -220,6 +220,8 @@ export const tr = {
   "response.download.body": "İndir",
   "response.download.title": "Yanıt body'sini dosya olarak kaydet",
   "response.bodyDownloaded": "Body dosyaya kaydedildi",
+  "response.headers.copyValue": "{name} değerini kopyala",
+  "response.headers.valueCopied": "{name} panoya kopyalandı",
   "response.copyAs": "Kod Kopyala",
   "response.copyAs.title": "Kod olarak kopyala",
   "response.tab.body": "Body",

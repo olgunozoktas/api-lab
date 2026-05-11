@@ -219,6 +219,8 @@ export const en: Dict = {
   "response.download.body": "Download",
   "response.download.title": "Save the response body as a file",
   "response.bodyDownloaded": "Body saved to file",
+  "response.headers.copyValue": "Copy {name} value",
+  "response.headers.valueCopied": "{name} copied to clipboard",
   "response.copyAs": "Copy as code",
   "response.copyAs.title": "Copy request as code",
   "response.tab.body": "Body",
