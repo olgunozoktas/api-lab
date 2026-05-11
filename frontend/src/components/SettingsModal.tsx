@@ -157,7 +157,7 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
               <Shortcut keys={["⌘", "⇧", "T"]} label={t("settings.shortcuts.tabReopen")} />
               <Shortcut keys={["⌘", "1‒9"]} label={t("settings.shortcuts.tabJump")} />
               <Shortcut keys={["⌥", "⌘", "→/←"]} label={t("settings.shortcuts.tabCycle")} />
-              <Shortcut keys={["⌘", "P"]} label={t("settings.shortcuts.switcher")} />
+              <Shortcut keys={["⌘", "K / P"]} label={t("settings.shortcuts.switcher")} />
               <Shortcut keys={["⌘", "L"]} label={t("settings.shortcuts.focusUrl")} />
               <Shortcut keys={["⌘", "B"]} label={t("settings.shortcuts.toggleSidebar")} />
               <Shortcut keys={["⌘", "."]} label={t("settings.shortcuts.cancel")} />
