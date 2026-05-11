@@ -2,7 +2,7 @@ import { useRef, useState, useCallback, useEffect } from "react";
 import { useStore } from "../store";
 import { useT } from "../lib/i18n/useT";
 import type { CollectionItem, OpenTab } from "../lib/types";
-import { methodClass, statusPillClass, statusText } from "../lib/utils";
+import { displayTabName, methodClass, statusPillClass, statusText } from "../lib/utils";
 import { cn } from "../lib/cn";
 import { Plus, X, Copy as CopyIcon, ChevronsRight, Pin, PinOff, XCircle } from "lucide-react";
 import {
@@ -203,10 +203,23 @@ export function TabStripPresenter({
                   </span>
                 ) : null}
 
-                {/* Tab title — truncated */}
-                <span className="truncate flex-1 min-w-0" title={tab.name}>
-                  {tab.name || "Untitled"}
-                </span>
+                {/* Tab title — truncated. When the stored name is still
+                the placeholder ("Yeni istek" / "New request") AND the
+                tab has a URL, fall back to a `METHOD shortUrl` derived
+                label so a strip full of new tabs is readable at a
+                glance. The user's manual rename always wins. */}
+                {(() => {
+                  const label = displayTabName({
+                    name: tab.name,
+                    method: tab.request.method,
+                    url: tab.request.url,
+                  });
+                  return (
+                    <span className="truncate flex-1 min-w-0" title={label}>
+                      {label}
+                    </span>
+                  );
+                })()}
 
                 {/* Close button — replaced by an unsaved-dot when the tab
                 is dirty until the user hovers. Hover reveals the close
