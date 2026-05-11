@@ -85,10 +85,14 @@ export function HistoryList({ query = "" }: { query?: string }) {
 
   if (history.length === 0) {
     return (
-      <div className="flex-1 overflow-y-auto px-1.5 pb-3">
-        <div className="text-center text-[11px] text-[var(--color-fg-muted)] py-3">
-          {t("sidebar.empty.history")}
-        </div>
+      <div className="flex-1 overflow-y-auto px-3 py-4 text-[11px] text-[var(--color-fg-muted)] leading-relaxed space-y-3">
+        <p className="text-[var(--color-fg)] font-medium text-xs">{t("sidebar.empty.history")}</p>
+        <p>{t("sidebar.empty.history.intro")}</p>
+        <ul className="space-y-1.5 list-disc pl-4">
+          <li>{t("sidebar.empty.history.tip1")}</li>
+          <li>{t("sidebar.empty.history.tip2")}</li>
+          <li>{t("sidebar.empty.history.tip3")}</li>
+        </ul>
       </div>
     );
   }

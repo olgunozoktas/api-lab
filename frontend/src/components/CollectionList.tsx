@@ -80,10 +80,16 @@ export function CollectionList({ query = "" }: { query?: string }) {
 
   if (items.length === 0) {
     return (
-      <div className="px-1.5 pb-3">
-        <div className="text-center text-[11px] text-[var(--color-fg-muted)] py-3">
+      <div className="px-3 py-4 text-[11px] text-[var(--color-fg-muted)] leading-relaxed space-y-3">
+        <p className="text-[var(--color-fg)] font-medium text-xs">
           {t("sidebar.empty.collections")}
-        </div>
+        </p>
+        <p>{t("sidebar.empty.collections.intro")}</p>
+        <ul className="space-y-1.5 list-disc pl-4">
+          <li>{t("sidebar.empty.collections.tip1")}</li>
+          <li>{t("sidebar.empty.collections.tip2")}</li>
+          <li>{t("sidebar.empty.collections.tip3")}</li>
+        </ul>
       </div>
     );
   }

@@ -77,7 +77,21 @@ export const tr = {
   "sidebar.section.saved": "Kayıtlılar",
   "sidebar.section.recent": "Son istekler",
   "sidebar.empty.collections": "Henüz kayıtlı istek yok",
+  "sidebar.empty.collections.intro":
+    "Kayıtlı istekler tekrar açmanın en hızlı yoludur. Şu yollardan biriyle başlayın:",
+  "sidebar.empty.collections.tip1":
+    "URL'i yazıp Send'e basın, sonra ⌘ S ile kaydedin — ad otomatik `METHOD shortUrl` olarak türetilir.",
+  "sidebar.empty.collections.tip2":
+    "Üstteki + Folder ile klasör oluşturun, sonra klasöre sağ tık → New request.",
+  "sidebar.empty.collections.tip3":
+    "Mevcut bir Postman v2 koleksiyonunuz varsa Import butonu ile içeri aktarın.",
   "sidebar.empty.history": "Henüz geçmiş yok",
+  "sidebar.empty.history.intro": "İlk isteğinizi gönderdiğinizde geçmiş otomatik dolar. Geçmiş:",
+  "sidebar.empty.history.tip1": "Son 200 isteği yerelde saklar; hiçbir yere gönderilmez.",
+  "sidebar.empty.history.tip2":
+    "Tek tık aktif sekmeye yükler; sağ tık → Yeni sekmede aç ile karşılaştırma için ayrı bir sekmede açar.",
+  "sidebar.empty.history.tip3":
+    "Üstteki durum filtresi pilleri (2xx / 3xx / 4xx / 5xx) listeyi tek bir durum sınıfına daraltır.",
   "sidebar.newRequest": "+ Yeni İstek",
   "sidebar.newRequest.title": "Aktif sekmeyi sıfırla — sağ tık ile WS/SSE/gRPC seçebilirsin",
   "sidebar.clearHistory": "Temizle",
