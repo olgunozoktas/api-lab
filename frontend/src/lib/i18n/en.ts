@@ -71,6 +71,12 @@ export const en: Dict = {
   "settings.about.openGuides": "Guides",
   "settings.about.openChangelog": "Changelog",
   "settings.about.repo": "GitHub repo",
+  "settings.about.yourData": "Your data",
+  "settings.about.stat.requests": "Requests",
+  "settings.about.stat.folders": "Folders",
+  "settings.about.stat.history": "History",
+  "settings.about.stat.environments": "Environments",
+  "settings.about.stat.examples": "Examples",
   "settings.close": "Close",
 
   "sidebar.tab.collections": "Collections",

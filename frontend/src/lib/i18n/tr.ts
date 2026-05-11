@@ -70,6 +70,12 @@ export const tr = {
   "settings.about.openGuides": "Rehberler",
   "settings.about.openChangelog": "Değişiklikler",
   "settings.about.repo": "GitHub deposu",
+  "settings.about.yourData": "Verileriniz",
+  "settings.about.stat.requests": "İstek",
+  "settings.about.stat.folders": "Klasör",
+  "settings.about.stat.history": "Geçmiş",
+  "settings.about.stat.environments": "Ortam",
+  "settings.about.stat.examples": "Örnek",
   "settings.close": "Kapat",
 
   "sidebar.tab.collections": "Koleksiyon",
