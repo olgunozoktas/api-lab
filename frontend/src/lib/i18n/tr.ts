@@ -35,8 +35,14 @@ export const tr = {
   "settings.language": "Dil",
   "settings.section.defaults": "Varsayılan istek davranışı",
   "settings.timeoutMs": "Zaman aşımı (ms)",
+  "settings.timeoutMs.hint":
+    "Yanıt gelmezse isteğin başarısız sayılacağı süre (milisaniye). Varsayılan 60000 = 1 dakika.",
   "settings.followRedirects": "Yönlendirme limiti",
+  "settings.followRedirects.hint":
+    "3xx yönlendirme zincirinde maksimum hop sayısı. 0 = otomatik yönlendirmeyi tamamen kapatır.",
   "settings.insecure": "TLS doğrulamasını atla (insecure)",
+  "settings.insecure.hint":
+    "Sertifika geçerliliği kontrolünü atlar (curl'ün -k bayrağı). Self-signed dev API'leri için pratik; production'a karşı kullanmayın.",
   "settings.section.shortcuts": "Klavye kısayolları",
   "settings.shortcuts.send": "İstek gönder",
   "settings.shortcuts.save": "Kaydet",

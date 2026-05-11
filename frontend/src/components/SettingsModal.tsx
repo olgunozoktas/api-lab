@@ -87,7 +87,7 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
               {t("settings.section.defaults")}
             </h3>
             <div className="space-y-3">
-              <Field label={t("settings.timeoutMs")}>
+              <Field label={t("settings.timeoutMs")} hint={t("settings.timeoutMs.hint")}>
                 <input
                   type="number"
                   inputMode="numeric"
@@ -105,7 +105,10 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
                   )}
                 />
               </Field>
-              <Field label={t("settings.followRedirects")}>
+              <Field
+                label={t("settings.followRedirects")}
+                hint={t("settings.followRedirects.hint")}
+              >
                 <input
                   type="number"
                   inputMode="numeric"
@@ -125,7 +128,7 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
                   )}
                 />
               </Field>
-              <Field label={t("settings.insecure")} layout="row">
+              <Field label={t("settings.insecure")} hint={t("settings.insecure.hint")} layout="row">
                 <input
                   type="checkbox"
                   checked={defaults.insecure}
@@ -268,22 +271,40 @@ function AboutLink({
 
 function Field({
   label,
+  hint,
   children,
   layout = "stack",
 }: {
   label: string;
+  // Optional one-line description rendered under the input (or
+  // under the label-row in `row` layout). Keeps explainer text
+  // co-located with the control instead of pushing users to docs.
+  hint?: string;
   children: React.ReactNode;
   layout?: "stack" | "row";
 }) {
+  if (layout === "row") {
+    return (
+      <div>
+        <label className="flex items-center justify-between gap-4">
+          <span className="text-xs text-[var(--color-fg-muted)]">{label}</span>
+          <span>{children}</span>
+        </label>
+        {hint && (
+          <p className="text-[11px] text-[var(--color-fg-muted)] leading-relaxed mt-1">{hint}</p>
+        )}
+      </div>
+    );
+  }
   return (
-    <label
-      className={cn(
-        "block",
-        layout === "row" ? "flex items-center justify-between gap-4" : "space-y-1"
-      )}
-    >
+    <label className="block space-y-1">
       <span className="text-xs text-[var(--color-fg-muted)]">{label}</span>
-      <span>{children}</span>
+      <span className="block">{children}</span>
+      {hint && (
+        <span className="block text-[11px] text-[var(--color-fg-muted)] leading-relaxed">
+          {hint}
+        </span>
+      )}
     </label>
   );
 }
