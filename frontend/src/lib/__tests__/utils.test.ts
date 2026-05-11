@@ -1,5 +1,13 @@
 import { describe, it, expect } from "vitest";
-import { envSubst, statusText, humanSize, isProbablyJson, methodClass, timeAgo } from "../utils";
+import {
+  displayTabName,
+  envSubst,
+  humanSize,
+  isProbablyJson,
+  methodClass,
+  statusText,
+  timeAgo,
+} from "../utils";
 
 describe("envSubst", () => {
   it("substitutes a single placeholder", () => {
@@ -127,5 +135,42 @@ describe("timeAgo", () => {
   });
   it("clamps negative deltas to 'now'", () => {
     expect(timeAgo(NOW + 10_000, NOW)).toBe("now");
+  });
+});
+
+describe("displayTabName", () => {
+  it("returns the stored name when the user has renamed the tab", () => {
+    expect(displayTabName({ name: "Login flow", method: "GET", url: "https://api.test/x" })).toBe(
+      "Login flow"
+    );
+  });
+  it("derives METHOD + short URL for default-named tabs (TR)", () => {
+    expect(
+      displayTabName({
+        name: "Yeni istek",
+        method: "GET",
+        url: "https://api.github.com/users/octocat",
+      })
+    ).toBe("GET api.github.com/users/octocat");
+  });
+  it("derives METHOD + short URL for default-named tabs (EN)", () => {
+    expect(
+      displayTabName({ name: "New request", method: "POST", url: "https://x.test/login" })
+    ).toBe("POST x.test/login");
+  });
+  it("falls back to Untitled when default-named AND no URL", () => {
+    expect(displayTabName({ name: "Yeni istek", method: "GET", url: "" })).toBe("Yeni istek");
+    expect(displayTabName({ name: "", method: "GET", url: "" })).toBe("Untitled");
+  });
+  it("truncates very long URLs with an ellipsis", () => {
+    const long = "https://" + "x".repeat(80) + "/path";
+    const out = displayTabName({ name: "New request", method: "GET", url: long, maxUrl: 16 });
+    expect(out.endsWith("…")).toBe(true);
+    expect(out.length).toBeLessThanOrEqual(16 + 4); // "GET " + 16 chars
+  });
+  it("strips scheme + trailing slash", () => {
+    expect(displayTabName({ name: "Yeni istek", method: "GET", url: "http://example.com/" })).toBe(
+      "GET example.com"
+    );
   });
 });

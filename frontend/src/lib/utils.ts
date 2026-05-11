@@ -41,6 +41,34 @@ export function humanSize(b: number): string {
   return (b / (1024 * 1024)).toFixed(2) + " MB";
 }
 
+// Tab strip / sidebar default names — anything that matches one of
+// these is treated as "user hasn't named it yet", so `displayTabName`
+// can derive a more useful label from the URL.
+const DEFAULT_TAB_NAMES = new Set(["Yeni istek", "New request", "Untitled"]);
+
+// Compute the visible tab strip label. When the tab is still using
+// the default placeholder name AND a URL is set, fall back to a
+// `${METHOD} ${shortUrl}` derived form so a strip full of new tabs
+// shows what each one is about. Once the user renames the tab (or
+// loads a saved collection request) the stored name wins.
+export function displayTabName(opts: {
+  name: string;
+  method: string;
+  url: string;
+  maxUrl?: number;
+}): string {
+  const stored = (opts.name ?? "").trim();
+  if (stored && !DEFAULT_TAB_NAMES.has(stored)) return stored;
+  const url = (opts.url ?? "").trim();
+  if (!url) return stored || "Untitled";
+  const max = opts.maxUrl ?? 32;
+  // Strip scheme + trailing slash so the visible portion is the
+  // host + path — the part the user identifies the request by.
+  let shortUrl = url.replace(/^[a-z]+:\/\//i, "").replace(/\/$/, "");
+  if (shortUrl.length > max) shortUrl = shortUrl.slice(0, max - 1) + "…";
+  return `${opts.method.toUpperCase()} ${shortUrl}`;
+}
+
 export function timeAgo(ts: number, now: number = Date.now()): string {
   const seconds = Math.max(0, Math.round((now - ts) / 1000));
   if (seconds < 5) return "now";
