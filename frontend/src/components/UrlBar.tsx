@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useStore } from "../store";
 import { methodClass } from "../lib/utils";
 import { useT } from "../lib/i18n/useT";
@@ -24,6 +24,11 @@ export type UrlBarProps = {
   onCurlPaste?: (text: string) => boolean; // returns true if handled
 };
 
+// Custom event name dispatched by App.tsx's ⌘L handler. The UrlBar
+// listens globally so it can focus + select-all without prop-drilling
+// a ref through the App→RequestComposer→UrlBar chain.
+export const FOCUS_URL_EVENT = "apilab:focus-url";
+
 export function UrlBar({
   method,
   url,
@@ -37,6 +42,22 @@ export function UrlBar({
   onCurlPaste,
 }: UrlBarProps) {
   const t = useT();
+  const inputRef = useRef<HTMLInputElement | null>(null);
+
+  // ⌘L (browser address-bar standard) focuses + selects the URL. Each
+  // mounted UrlBar listens; in practice only the active tab's bar
+  // matters because that's the one in the DOM render tree.
+  useEffect(() => {
+    function onFocus() {
+      const el = inputRef.current;
+      if (!el) return;
+      el.focus();
+      el.select();
+    }
+    window.addEventListener(FOCUS_URL_EVENT, onFocus);
+    return () => window.removeEventListener(FOCUS_URL_EVENT, onFocus);
+  }, []);
+
   // While in-flight, the green Send morphs into a red Cancel that
   // calls the abort-controller wired up in App.tsx. Falls back to
   // the disabled-Send shape when no onCancel is wired (older callers).
@@ -61,6 +82,7 @@ export function UrlBar({
         </Select>
       )}
       <input
+        ref={inputRef}
         type="text"
         value={url}
         onChange={(e) => onUrlChange(e.target.value)}

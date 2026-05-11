@@ -151,6 +151,7 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
               <Shortcut keys={["⌘", "W"]} label={t("settings.shortcuts.tabClose")} />
               <Shortcut keys={["⌘", "1‒9"]} label={t("settings.shortcuts.tabJump")} />
               <Shortcut keys={["⌘", "P"]} label={t("settings.shortcuts.switcher")} />
+              <Shortcut keys={["⌘", "L"]} label={t("settings.shortcuts.focusUrl")} />
             </ul>
           </section>
         </div>

@@ -46,6 +46,7 @@ export const en: Dict = {
   "settings.shortcuts.tabClose": "Close tab",
   "settings.shortcuts.tabJump": "Jump to tab N",
   "settings.shortcuts.switcher": "Quick switcher",
+  "settings.shortcuts.focusUrl": "Focus URL bar",
   "settings.close": "Close",
 
   "sidebar.tab.collections": "Collections",
