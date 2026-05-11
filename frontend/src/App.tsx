@@ -173,6 +173,16 @@ export function App() {
         return;
       }
 
+      // ⌘L — focus + select-all on the URL bar (browser address-bar
+      // standard). Dispatched as a window event so UrlBar can listen
+      // without prop-drilling a ref. Active-tab's UrlBar is the only
+      // one in the DOM render tree, so a single listener is fine.
+      if (e.key === "l" || e.key === "L") {
+        e.preventDefault();
+        window.dispatchEvent(new CustomEvent("apilab:focus-url"));
+        return;
+      }
+
       // Cmd+1..9 — jump to tab N (or last if N > tabs.length)
       if (e.key >= "1" && e.key <= "9") {
         e.preventDefault();

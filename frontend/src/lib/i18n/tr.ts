@@ -45,6 +45,7 @@ export const tr = {
   "settings.shortcuts.tabClose": "Sekmeyi kapat",
   "settings.shortcuts.tabJump": "N. sekmeye atla",
   "settings.shortcuts.switcher": "Hızlı geçiş (Quick Switcher)",
+  "settings.shortcuts.focusUrl": "URL bar'a odaklan",
   "settings.close": "Kapat",
 
   "sidebar.tab.collections": "Koleksiyon",
