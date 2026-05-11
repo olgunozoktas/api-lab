@@ -1,5 +1,5 @@
 import { useStore } from "../store";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { EnvEditorModal } from "./EnvEditorModal";
 import { SettingsModal } from "./SettingsModal";
 import { ChangelogModal } from "./ChangelogModal";
@@ -27,6 +27,27 @@ export function TopBar() {
   // editable element so users can still type "?" into URLs / bodies).
   const openGuide = useCallback(() => setGuideOpen(true), []);
   useGuideShortcut(openGuide);
+
+  // Window-event channels so anywhere in the app (e.g. the About
+  // section in SettingsModal) can ask for these modals without
+  // prop-drilling through the tree. TopBar owns the open state, so
+  // it's the single listener.
+  useEffect(() => {
+    const onGuides = () => {
+      setEditingSettings(false);
+      setGuideOpen(true);
+    };
+    const onChangelog = () => {
+      setEditingSettings(false);
+      setChangelogOpen(true);
+    };
+    window.addEventListener("apilab:open-guides", onGuides);
+    window.addEventListener("apilab:open-changelog", onChangelog);
+    return () => {
+      window.removeEventListener("apilab:open-guides", onGuides);
+      window.removeEventListener("apilab:open-changelog", onChangelog);
+    };
+  }, [setChangelogOpen]);
 
   return (
     <>

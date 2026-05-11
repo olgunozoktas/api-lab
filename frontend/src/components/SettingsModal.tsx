@@ -3,7 +3,9 @@ import { useStore } from "../store";
 import { useT } from "../lib/i18n/useT";
 import { THEMES, type Theme } from "../lib/types";
 import { SUPPORTED_LOCALES, LOCALE_LABEL, type Locale } from "../lib/i18n";
+import { APP_VERSION } from "../lib/changelog";
 import { cn } from "../lib/cn";
+import { BookOpen, ClockArrowUp, ExternalLink } from "lucide-react";
 
 // =============================================================================
 // SettingsModal — central place for appearance + request defaults +
@@ -154,11 +156,111 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
               <Shortcut keys={["⌥", "⌘", "→/←"]} label={t("settings.shortcuts.tabCycle")} />
               <Shortcut keys={["⌘", "P"]} label={t("settings.shortcuts.switcher")} />
               <Shortcut keys={["⌘", "L"]} label={t("settings.shortcuts.focusUrl")} />
+              <Shortcut keys={["⌘", "B"]} label={t("settings.shortcuts.toggleSidebar")} />
+              <Shortcut keys={["⌘", "."]} label={t("settings.shortcuts.cancel")} />
+              <Shortcut keys={["?"]} label={t("settings.shortcuts.openGuides")} />
             </ul>
+          </section>
+
+          {/* ─── About ────────────────────────────────────────────────── */}
+          <section aria-labelledby="settings-about">
+            <h3
+              id="settings-about"
+              className="text-xs font-semibold uppercase tracking-wide text-[var(--color-fg-muted)] mb-3"
+            >
+              {t("settings.section.about")}
+            </h3>
+            <AboutCard onClose={() => onOpenChange(false)} />
           </section>
         </div>
       </DialogContent>
     </Dialog>
+  );
+}
+
+// "About" surface — version, what API Lab is, where to go for help.
+// The Guides / Changelog buttons dispatch window events that TopBar
+// listens for, so this stays prop-light and the modal can close itself
+// before the next one opens.
+function AboutCard({ onClose }: { onClose: () => void }) {
+  const t = useT();
+  const fireAndClose = (eventName: string) => () => {
+    onClose();
+    // Run on the next tick so the Dialog finishes its exit animation
+    // before the receiving modal mounts — avoids the brief "two open
+    // dialogs" flash when transitioning.
+    setTimeout(() => window.dispatchEvent(new CustomEvent(eventName)), 0);
+  };
+  return (
+    <div className="rounded-md border border-[var(--color-border)] bg-[var(--color-bg-elev)] p-3 space-y-3">
+      <div className="flex items-center gap-2">
+        <span className="w-3 h-3 rounded-[3px] bg-gradient-to-br from-[var(--color-accent)] to-[var(--color-purple)]" />
+        <span className="font-semibold text-sm">{t("settings.about.name")}</span>
+        <span
+          className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-[var(--color-bg-elev-2)] text-[var(--color-fg-muted)]"
+          aria-label={t("settings.about.versionAria", { version: APP_VERSION })}
+        >
+          v{APP_VERSION}
+        </span>
+      </div>
+      <p className="text-xs leading-relaxed text-[var(--color-fg-muted)]">
+        {t("settings.about.tagline")}
+      </p>
+      <dl className="text-[11px] grid grid-cols-[max-content_1fr] gap-x-3 gap-y-1">
+        <dt className="text-[var(--color-fg-muted)]">{t("settings.about.platform")}</dt>
+        <dd className="font-mono">macOS</dd>
+        <dt className="text-[var(--color-fg-muted)]">{t("settings.about.shell")}</dt>
+        <dd className="font-mono">zero-native (Zig + WebKit)</dd>
+        <dt className="text-[var(--color-fg-muted)]">{t("settings.about.frontend")}</dt>
+        <dd className="font-mono">Vite + React 19 + Tailwind v4</dd>
+        <dt className="text-[var(--color-fg-muted)]">{t("settings.about.storage")}</dt>
+        <dd className="font-mono">{t("settings.about.storageLocal")}</dd>
+      </dl>
+      <div className="flex flex-wrap gap-2 pt-1">
+        <AboutLink
+          onClick={fireAndClose("apilab:open-guides")}
+          icon={<BookOpen className="w-3 h-3" aria-hidden />}
+        >
+          {t("settings.about.openGuides")}
+        </AboutLink>
+        <AboutLink
+          onClick={fireAndClose("apilab:open-changelog")}
+          icon={<ClockArrowUp className="w-3 h-3" aria-hidden />}
+        >
+          {t("settings.about.openChangelog")}
+        </AboutLink>
+        <a
+          href="https://github.com/olgunozoktas/api-lab"
+          target="_blank"
+          rel="noreferrer"
+          className="inline-flex items-center gap-1.5 px-2 py-1 rounded border border-[var(--color-border)] text-[11px] hover:bg-[var(--color-bg-elev-2)] hover:text-[var(--color-fg)] text-[var(--color-fg-muted)]"
+        >
+          {t("settings.about.repo")}
+          <ExternalLink className="w-2.5 h-2.5 opacity-60" aria-hidden />
+        </a>
+      </div>
+    </div>
+  );
+}
+
+function AboutLink({
+  onClick,
+  icon,
+  children,
+}: {
+  onClick: () => void;
+  icon: React.ReactNode;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="inline-flex items-center gap-1.5 px-2 py-1 rounded border border-[var(--color-border)] text-[11px] hover:bg-[var(--color-bg-elev-2)] hover:text-[var(--color-fg)] text-[var(--color-fg-muted)]"
+    >
+      {icon}
+      {children}
+    </button>
   );
 }
 
