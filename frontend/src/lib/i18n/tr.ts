@@ -142,6 +142,8 @@ export const tr = {
   "tabs.closeOthers": "Diğer sekmeleri kapat",
   "tabs.closeToRight": "Sağdaki sekmeleri kapat",
   "tabs.duplicate": "Sekmeyi çoğalt",
+  "tabs.pin": "Sekmeyi sabitle",
+  "tabs.unpin": "Sabitlemeyi kaldır",
   "tabs.openInNewTab": "Yeni sekmede aç",
 
   "switcher.placeholder": "İstek ara… (Esc kapatır, ↑↓ gez, ↵ aç)",

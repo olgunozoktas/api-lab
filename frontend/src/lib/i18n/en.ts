@@ -141,6 +141,8 @@ export const en: Dict = {
   "tabs.closeOthers": "Close other tabs",
   "tabs.closeToRight": "Close tabs to the right",
   "tabs.duplicate": "Duplicate tab",
+  "tabs.pin": "Pin tab",
+  "tabs.unpin": "Unpin tab",
   "tabs.openInNewTab": "Open in new tab",
 
   "switcher.placeholder": "Search requests… (Esc cancels, ↑↓ navigate, ↵ open)",
