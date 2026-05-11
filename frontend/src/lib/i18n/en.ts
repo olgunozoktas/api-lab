@@ -88,6 +88,12 @@ export const en: Dict = {
   "collections.search.empty": "No matches",
   "collections.search.clear": "Clear",
   "history.search.placeholder": "Search... (e.g. GET 401 login)",
+  "history.filter.all": "All",
+  "history.filter.2xx": "2xx",
+  "history.filter.3xx": "3xx",
+  "history.filter.4xx": "4xx",
+  "history.filter.5xx": "5xx",
+  "history.filter.aria": "Filter by status",
   "layout.sidebar.aria": "Resize sidebar (drag to set, double-click to reset)",
   "layout.composer.aria": "Resize composer / response split (drag, double-click to reset)",
 
