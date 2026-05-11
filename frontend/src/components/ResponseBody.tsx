@@ -82,6 +82,29 @@ export function ResponseBody({ response: r, tab }: ResponseBodyProps) {
     );
   }
 
+  // Body tab — SVG preview when the response is image/svg+xml (or a
+  // body that begins with `<svg`). Rendered as `<img src="data:...">`
+  // — browsers explicitly don't execute scripts in SVG used as an
+  // image (image-context security model), so this is the safest
+  // rendering path without needing an iframe sandbox.
+  if (r.contentType.includes("image/svg") || /^\s*<svg[\s>]/i.test(r.body)) {
+    // Use UTF-8 data URL (no base64 round-trip). encodeURIComponent
+    // covers any character the curl body might surface that would
+    // break the URL grammar.
+    const svgUrl = `data:image/svg+xml;utf8,${encodeURIComponent(r.body)}`;
+    return (
+      <SaveAsVariableMenu>
+        <div className="flex-1 overflow-auto p-3 flex items-center justify-center bg-[var(--color-bg)]">
+          <img
+            src={svgUrl}
+            alt="response-svg-preview"
+            className="max-w-full max-h-full border border-[var(--color-border)] rounded bg-white"
+          />
+        </div>
+      </SaveAsVariableMenu>
+    );
+  }
+
   // Body tab — HTML preview if the response declares text/html.
   // Renders inside a fully-sandboxed iframe (sandbox="") so scripts /
   // forms / popups / top-nav / same-origin storage all stay off. Pure
