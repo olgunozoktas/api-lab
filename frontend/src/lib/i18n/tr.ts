@@ -184,6 +184,10 @@ export const tr = {
 
   "kv.addParam": "+ Param ekle",
   "kv.addHeader": "+ Header ekle",
+  "params.hint":
+    "Query string parametreleri. Etkin satırlar URL'ye `?key=value&key=value` olarak eklenir. Değerlerde {{var}} kullanabilirsiniz; istek atılırken aktif ortamla değiştirilir.",
+  "headers.hint":
+    "İstek header'ları olduğu gibi gönderilir. Auth & Body sekmesinin eklediği header'ları override edebilirsiniz (örn. `Content-Type`'ı kendiniz vermek için). Değerlerde {{var}} desteklenir.",
   "kv.addEnv": "+ Environment ekle",
   "kv.delete": "Sil",
   "kv.confirmDelete": "Silinsin mi?",

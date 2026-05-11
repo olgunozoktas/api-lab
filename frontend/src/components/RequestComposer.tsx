@@ -86,9 +86,11 @@ export function RequestComposer({
           ))}
         </TabsList>
         <TabsContent value="params" className="p-3 bg-[var(--color-bg)]">
+          <Hint i18nKey="params.hint" />
           <KvTable rows={params} onChange={onParamsChange} addLabelKey="kv.addParam" />
         </TabsContent>
         <TabsContent value="headers" className="p-3 bg-[var(--color-bg)]">
+          <Hint i18nKey="headers.hint" />
           <KvTable rows={headers} onChange={onHeadersChange} addLabelKey="kv.addHeader" />
         </TabsContent>
         <TabsContent value="auth" className="p-3 bg-[var(--color-bg)]">
@@ -113,6 +115,22 @@ function Badge({ n }: { n: number }) {
     <span className="bg-[var(--color-accent)] text-white text-[9px] px-1.5 py-0.5 rounded-full ml-1">
       {n}
     </span>
+  );
+}
+
+// Inline note rendered above a panel — mirrors the AuthTypeHint /
+// BodyModeHint look so every composer tab feels consistent. Keeps
+// short prose tied to whatever the user is about to edit, without
+// pushing them out to the Guide hub for context.
+function Hint({ i18nKey }: { i18nKey: import("../lib/i18n").TKey }) {
+  const t = useT();
+  return (
+    <div
+      role="note"
+      className="mb-3 rounded-md border border-[var(--color-border)] bg-[var(--color-bg-elev)] px-3 py-2 text-[11px] leading-relaxed text-[var(--color-fg-muted)]"
+    >
+      {t(i18nKey)}
+    </div>
   );
 }
 

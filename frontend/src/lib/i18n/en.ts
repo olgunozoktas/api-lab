@@ -183,6 +183,10 @@ export const en: Dict = {
 
   "kv.addParam": "+ Add param",
   "kv.addHeader": "+ Add header",
+  "params.hint":
+    "Query-string parameters. Enabled rows are appended to the URL as `?key=value&key=value`. Values support {{var}} references — substituted with the active environment at request time.",
+  "headers.hint":
+    "Request headers sent verbatim. You can override headers the Auth or Body tab would otherwise add (e.g. to set your own `Content-Type`). Values support {{var}} references.",
   "kv.addEnv": "+ Add environment",
   "kv.delete": "Delete",
   "kv.confirmDelete": "Delete this?",
