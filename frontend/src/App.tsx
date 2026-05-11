@@ -204,6 +204,21 @@ export function App() {
         setActiveTab(tabs[idx].id);
         return;
       }
+
+      // ⌥⌘→ / ⌥⌘← — cycle to next / previous tab (Safari standard).
+      // Wraps around at the boundary so power users can sweep through
+      // every tab without releasing the modifiers.
+      if (e.altKey && (e.key === "ArrowRight" || e.key === "ArrowLeft")) {
+        e.preventDefault();
+        const { tabs, activeTabId } = useStore.getState();
+        if (tabs.length <= 1) return;
+        const idx = tabs.findIndex((t) => t.id === activeTabId);
+        if (idx < 0) return;
+        const step = e.key === "ArrowRight" ? 1 : -1;
+        const next = (idx + step + tabs.length) % tabs.length;
+        setActiveTab(tabs[next].id);
+        return;
+      }
     };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
