@@ -228,6 +228,13 @@ export const en: Dict = {
   "body.mode.raw": "Raw",
   "body.prettyFormat": "Pretty format",
   "body.invalidJson": "Invalid JSON: {error}",
+  "body.hint.none": "No body sent. Use for GET / HEAD and other bodyless methods.",
+  "body.hint.json":
+    "Body is sent with `Content-Type: application/json`. The Pretty Format button reformats the JSON. {{var}} references are substituted at request time.",
+  "body.hint.form":
+    "`key1=value1&key2=value2` format, sent with `Content-Type: application/x-www-form-urlencoded`. Mimics HTML form posts.",
+  "body.hint.raw":
+    "Body is sent as-is; set the Content-Type yourself in the Headers tab (none added otherwise). Use for XML, plain text, custom formats.",
 
   "graphql.note": "Method is automatically POST; body sent as application/json.",
   "graphql.query": "Query",
