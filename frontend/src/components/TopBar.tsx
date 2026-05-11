@@ -67,11 +67,22 @@ export function TopBar() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {envs.map((e) => (
-                <SelectItem key={e.id} value={e.id}>
-                  {e.name}
-                </SelectItem>
-              ))}
+              {envs.map((e) => {
+                const count = Object.keys(e.vars).length;
+                return (
+                  <SelectItem key={e.id} value={e.id}>
+                    <span className="inline-flex items-center gap-2">
+                      <span>{e.name}</span>
+                      <span
+                        className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-[var(--color-bg-elev-2)] text-[var(--color-fg-muted)]"
+                        aria-label={t("env.varCount", { n: String(count) })}
+                      >
+                        {t("env.varCountShort", { n: String(count) })}
+                      </span>
+                    </span>
+                  </SelectItem>
+                );
+              })}
             </SelectContent>
           </Select>
         ) : null}
