@@ -194,6 +194,15 @@ export const tr = {
   "auth.basic": "Basic Auth",
   "auth.apikey": "API Key",
   "auth.oauth2": "OAuth 2.0",
+  "auth.hint.none": "Kimlik doğrulama header'ı eklenmez. Public endpoint'ler için kullanın.",
+  "auth.hint.bearer":
+    "İstek atılırken `Authorization: Bearer <token>` header'ı otomatik eklenir. Token değeri olarak {{var}} kullanabilirsiniz.",
+  "auth.hint.basic":
+    "Kullanıcı + parola, base64 ile kodlanıp `Authorization: Basic <user:pass>` olarak gönderilir. RFC 7617.",
+  "auth.hint.apikey":
+    "Header adını ve değerini siz belirlersiniz (ör. `X-API-Key: abc123`). İstek header'larına aynen eklenir.",
+  "auth.hint.oauth2":
+    "Authorization-code, client-credentials veya password grantı çalıştırır; token'ı saklayıp `Authorization: Bearer <token>` olarak ekler. Süresi dolduğunda refresh-token akışını otomatik tetikler.",
   "auth.user": "Kullanıcı",
   "auth.pass": "Parola",
   "auth.token": "Token",

@@ -43,6 +43,7 @@ export function AuthPanel({ value, onChange }: AuthPanelProps) {
           </SelectContent>
         </Select>
       </Row>
+      <AuthTypeHint type={value.type} />
       {value.type === "bearer" && (
         <Row labelKey="auth.token">
           <input
@@ -249,6 +250,23 @@ function Row({ labelKey, children }: { labelKey: TKey; children: React.ReactNode
     <div className="grid gap-2 mb-2 items-center" style={{ gridTemplateColumns: "150px 1fr" }}>
       <label className="text-xs text-[var(--color-fg-muted)]">{t(labelKey)}</label>
       {children}
+    </div>
+  );
+}
+
+// One-line explanation of what the selected auth type produces on
+// the wire — shown directly under the type select so users don't
+// have to reach for the guides to know "Bearer" adds an
+// `Authorization: Bearer <token>` header.
+function AuthTypeHint({ type }: { type: AuthType }) {
+  const t = useT();
+  const hintKey: TKey = `auth.hint.${type}` as TKey;
+  return (
+    <div
+      className="mb-3 rounded-md border border-[var(--color-border)] bg-[var(--color-bg-elev)] px-3 py-2 text-[11px] leading-relaxed text-[var(--color-fg-muted)]"
+      role="note"
+    >
+      {t(hintKey)}
     </div>
   );
 }

@@ -193,6 +193,15 @@ export const en: Dict = {
   "auth.basic": "Basic Auth",
   "auth.apikey": "API Key",
   "auth.oauth2": "OAuth 2.0",
+  "auth.hint.none": "No authentication header added. Use for public endpoints.",
+  "auth.hint.bearer":
+    "Adds `Authorization: Bearer <token>` to the request automatically. The token value can be a {{var}} reference.",
+  "auth.hint.basic":
+    "User + password are base64-encoded and sent as `Authorization: Basic <user:pass>`. RFC 7617.",
+  "auth.hint.apikey":
+    "You pick the header name and value (e.g. `X-API-Key: abc123`). Appended to the request headers as-is.",
+  "auth.hint.oauth2":
+    "Runs the authorization-code, client-credentials, or password grant; caches the token and attaches it as `Authorization: Bearer <token>`. Auto-refreshes via refresh-token when expired.",
   "auth.user": "User",
   "auth.pass": "Password",
   "auth.token": "Token",
