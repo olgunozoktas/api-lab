@@ -5,7 +5,7 @@
 
 import { useState } from "react";
 import { useStore } from "../store";
-import { methodClass } from "../lib/utils";
+import { displayTabName, methodClass } from "../lib/utils";
 import { useT } from "../lib/i18n/useT";
 import { useConfirm } from "../lib/dialogs";
 import { cn } from "../lib/cn";
@@ -248,6 +248,13 @@ export function RequestRow({ item, depth }: { item: CollectionItem; depth: numbe
           }}
           onDoubleClick={(e) => {
             e.stopPropagation();
+            // Pre-fill the rename input with the displayed label so a
+            // user editing a still-default item starts from the
+            // auto-derived `METHOD shortUrl` they actually see, not
+            // from "New request".
+            setDraftName(
+              displayTabName({ name: item.name, method: m, url: item.request?.url ?? "" })
+            );
             setRenaming(true);
           }}
           draggable
@@ -286,7 +293,24 @@ export function RequestRow({ item, depth }: { item: CollectionItem; depth: numbe
               className="flex-1 bg-[var(--color-bg)] border border-[var(--color-border)] rounded px-1 text-xs"
             />
           ) : (
-            <span className="flex-1 truncate">{item.name || "—"}</span>
+            <span
+              className="flex-1 truncate"
+              title={
+                item.name || displayTabName({ name: "", method: m, url: item.request?.url ?? "" })
+              }
+            >
+              {/* Mirrors the tab strip pattern: if the user hasn't
+                  renamed yet (placeholder name) and a URL is set,
+                  show a derived `METHOD shortUrl` label so a folder
+                  with several "New request" siblings stays readable.
+                  The stored name is unchanged — rename via double-
+                  click wins as soon as the user opts in. */}
+              {displayTabName({
+                name: item.name,
+                method: m,
+                url: item.request?.url ?? "",
+              }) || "—"}
+            </span>
           )}
           <button
             aria-label={t("kv.delete")}
