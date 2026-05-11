@@ -11,6 +11,7 @@ export type HistoryActions = {
     elapsedMs: number
   ) => void;
   clearHistory: () => void;
+  removeHistoryItem: (id: string) => void;
 };
 
 export const createHistorySlice: StateCreator<Store, StoreMutators, [], HistoryActions> = (
@@ -30,4 +31,6 @@ export const createHistorySlice: StateCreator<Store, StoreMutators, [], HistoryA
     }),
 
   clearHistory: () => set({ history: [] }),
+
+  removeHistoryItem: (id) => set((s) => ({ history: s.history.filter((h) => h.id !== id) })),
 });

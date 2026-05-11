@@ -94,6 +94,11 @@ export const tr = {
   "history.filter.4xx": "4xx",
   "history.filter.5xx": "5xx",
   "history.filter.aria": "Duruma göre filtrele",
+  "history.context.replay": "Tekrar oynat",
+  "history.context.openInNewTab": "Yeni sekmede aç",
+  "history.context.copyUrl": "URL'yi kopyala",
+  "history.context.delete": "Sil",
+  "history.context.urlCopied": "URL panoya kopyalandı",
   "layout.sidebar.aria": "Yan menü genişliğini ayarla (sürükle, çift-tıkla = sıfırla)",
   "layout.composer.aria": "Composer/Yanıt oranını ayarla (sürükle, çift-tıkla = sıfırla)",
 

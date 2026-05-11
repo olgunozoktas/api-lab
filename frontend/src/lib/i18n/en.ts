@@ -94,6 +94,11 @@ export const en: Dict = {
   "history.filter.4xx": "4xx",
   "history.filter.5xx": "5xx",
   "history.filter.aria": "Filter by status",
+  "history.context.replay": "Replay",
+  "history.context.openInNewTab": "Open in new tab",
+  "history.context.copyUrl": "Copy URL",
+  "history.context.delete": "Delete",
+  "history.context.urlCopied": "URL copied to clipboard",
   "layout.sidebar.aria": "Resize sidebar (drag to set, double-click to reset)",
   "layout.composer.aria": "Resize composer / response split (drag, double-click to reset)",
 

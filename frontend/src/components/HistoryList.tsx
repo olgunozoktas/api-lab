@@ -4,6 +4,15 @@ import { methodClass } from "../lib/utils";
 import { useT } from "../lib/i18n/useT";
 import { type TKey } from "../lib/i18n";
 import { filterHistory } from "../lib/historyFilter";
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuSeparator,
+  ContextMenuTrigger,
+} from "./ui/context-menu";
+import { Copy, ExternalLink, Play, Trash2 } from "lucide-react";
+import type { HistoryItem } from "../lib/types";
 
 type StatusClass = null | 200 | 300 | 400 | 500;
 
@@ -23,8 +32,16 @@ function inStatusClass(status: number, cls: StatusClass): boolean {
 export function HistoryList({ query = "" }: { query?: string }) {
   const history = useStore((s) => s.history);
   const loadHistoryItem = useStore((s) => s.loadHistoryItem);
+  const openHistoryItemInNewTab = useStore((s) => s.openHistoryItemInNewTab);
+  const removeHistoryItem = useStore((s) => s.removeHistoryItem);
+  const showToast = useStore((s) => s.showToast);
   const t = useT();
   const [statusFilter, setStatusFilter] = useState<StatusClass>(null);
+
+  const onCopyUrl = (h: HistoryItem) => {
+    const url = h.request.url || "";
+    navigator.clipboard.writeText(url).then(() => showToast(t("history.context.urlCopied")));
+  };
 
   const trimmedQuery = query.trim();
   const queryFiltering = trimmedQuery.length > 0;
@@ -104,25 +121,47 @@ export function HistoryList({ query = "" }: { query?: string }) {
                   ? "var(--color-success)"
                   : "var(--color-fg-muted)";
           return (
-            <div
-              key={h.id}
-              onClick={() => loadHistoryItem(h)}
-              className="flex items-center gap-2 px-2 py-1.5 rounded-md cursor-pointer text-xs hover:bg-[var(--color-bg-elev-2)]"
-            >
-              <span
-                className={
-                  "font-mono font-bold w-9 flex-shrink-0 text-[10px] " +
-                  methodClass(h.request.method)
-                }
-              >
-                {h.request.method}
-              </span>
-              <span className="flex-1 truncate">{h.request.url || "—"}</span>
-              <span
-                className="w-1.5 h-1.5 rounded-full flex-shrink-0"
-                style={{ background: dot }}
-              />
-            </div>
+            <ContextMenu key={h.id}>
+              <ContextMenuTrigger asChild>
+                <div
+                  onClick={() => loadHistoryItem(h)}
+                  className="flex items-center gap-2 px-2 py-1.5 rounded-md cursor-pointer text-xs hover:bg-[var(--color-bg-elev-2)]"
+                >
+                  <span
+                    className={
+                      "font-mono font-bold w-9 flex-shrink-0 text-[10px] " +
+                      methodClass(h.request.method)
+                    }
+                  >
+                    {h.request.method}
+                  </span>
+                  <span className="flex-1 truncate">{h.request.url || "—"}</span>
+                  <span
+                    className="w-1.5 h-1.5 rounded-full flex-shrink-0"
+                    style={{ background: dot }}
+                  />
+                </div>
+              </ContextMenuTrigger>
+              <ContextMenuContent>
+                <ContextMenuItem onSelect={() => loadHistoryItem(h)}>
+                  <Play className="w-3.5 h-3.5" aria-hidden />
+                  {t("history.context.replay")}
+                </ContextMenuItem>
+                <ContextMenuItem onSelect={() => openHistoryItemInNewTab(h)}>
+                  <ExternalLink className="w-3.5 h-3.5" aria-hidden />
+                  {t("history.context.openInNewTab")}
+                </ContextMenuItem>
+                <ContextMenuItem onSelect={() => onCopyUrl(h)}>
+                  <Copy className="w-3.5 h-3.5" aria-hidden />
+                  {t("history.context.copyUrl")}
+                </ContextMenuItem>
+                <ContextMenuSeparator />
+                <ContextMenuItem onSelect={() => removeHistoryItem(h.id)}>
+                  <Trash2 className="w-3.5 h-3.5" aria-hidden />
+                  {t("history.context.delete")}
+                </ContextMenuItem>
+              </ContextMenuContent>
+            </ContextMenu>
           );
         })}
       </div>
