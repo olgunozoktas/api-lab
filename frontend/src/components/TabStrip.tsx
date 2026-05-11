@@ -4,7 +4,14 @@ import { useT } from "../lib/i18n/useT";
 import type { CollectionItem, OpenTab } from "../lib/types";
 import { methodClass, statusPillClass, statusText } from "../lib/utils";
 import { cn } from "../lib/cn";
-import { Plus, X } from "lucide-react";
+import { Plus, X, Copy as CopyIcon, ChevronsRight, XCircle } from "lucide-react";
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuSeparator,
+  ContextMenuTrigger,
+} from "./ui/context-menu";
 
 // Compare a tab's editable request to its corresponding saved Collection
 // (matched by request.id). True iff a real divergence exists. For unsaved
@@ -50,10 +57,19 @@ export type TabStripPresenterProps = {
   dirty?: Record<string, boolean>;
   onActivate: (id: string) => void;
   onClose: (id: string) => void;
+  /** Right-click context-menu actions. Optional so older callers/tests
+      still mount the presenter without wiring them. */
+  onCloseOthers?: (id: string) => void;
+  onCloseToRight?: (id: string) => void;
+  onDuplicate?: (id: string) => void;
   onNewTab: () => void;
   onReorder: (fromIdx: number, toIdx: number) => void;
   newTabLabel?: string;
   closeTabLabel?: string;
+  /** Localised strings for the context menu items. */
+  closeOthersLabel?: string;
+  closeToRightLabel?: string;
+  duplicateLabel?: string;
   className?: string;
 };
 
@@ -63,10 +79,16 @@ export function TabStripPresenter({
   dirty,
   onActivate,
   onClose,
+  onCloseOthers,
+  onCloseToRight,
+  onDuplicate,
   onNewTab,
   onReorder,
   newTabLabel = "New tab",
   closeTabLabel = "Close tab",
+  closeOthersLabel = "Close others",
+  closeToRightLabel = "Close tabs to the right",
+  duplicateLabel = "Duplicate tab",
   className,
 }: TabStripPresenterProps) {
   const [dragFromIdx, setDragFromIdx] = useState<number | null>(null);
@@ -85,140 +107,171 @@ export function TabStripPresenter({
         const active = tab.id === activeTabId;
         const isDropTarget = dragOverIdx === idx && dragFromIdx !== null && dragFromIdx !== idx;
         return (
-          <div
-            key={tab.id}
-            role="tab"
-            aria-selected={active}
-            tabIndex={0}
-            draggable
-            onDragStart={(e) => {
-              setDragFromIdx(idx);
-              e.dataTransfer.effectAllowed = "move";
-              // Firefox needs setData for drag to fire.
-              e.dataTransfer.setData("text/plain", String(idx));
-            }}
-            onDragOver={(e) => {
-              if (dragFromIdx === null) return;
-              e.preventDefault();
-              e.dataTransfer.dropEffect = "move";
-              setDragOverIdx(idx);
-            }}
-            onDragEnd={() => {
-              setDragFromIdx(null);
-              setDragOverIdx(null);
-            }}
-            onDrop={(e) => {
-              e.preventDefault();
-              if (dragFromIdx !== null && dragFromIdx !== idx) {
-                onReorder(dragFromIdx, idx);
-              }
-              setDragFromIdx(null);
-              setDragOverIdx(null);
-            }}
-            onMouseDown={(e) => {
-              // Middle-click closes (button === 1)
-              if (e.button === 1) {
-                e.preventDefault();
-                onClose(tab.id);
-              }
-            }}
-            onClick={() => onActivate(tab.id)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" || e.key === " ") {
-                e.preventDefault();
-                onActivate(tab.id);
-              }
-            }}
-            className={cn(
-              "group relative flex items-center gap-2 px-3 min-w-0 max-w-[220px] cursor-pointer select-none",
-              "border-r border-[var(--color-border)] text-xs",
-              "transition-colors duration-100",
-              active
-                ? "bg-[var(--color-bg-elev)] text-[var(--color-fg)]"
-                : "bg-transparent text-[var(--color-fg-muted)] hover:bg-[var(--color-bg-elev)]/60 hover:text-[var(--color-fg)]",
-              isDropTarget && "bg-[var(--color-accent)]/15"
-            )}
-          >
-            {/* Method-color indicator */}
-            <span
-              className={cn(
-                "text-[10px] font-mono font-semibold uppercase tracking-tight shrink-0",
-                methodClass(tab.request.method)
-              )}
-            >
-              {tab.request.method}
-            </span>
-
-            {/* Last-response status pill — colored by 2xx/3xx/4xx/5xx
-                so a glance across the tab strip shows which tabs
-                succeeded vs erred. Empty when no response yet. */}
-            {tab.lastResponse ? (
-              <span
-                className={cn(
-                  "text-[9px] font-mono font-semibold leading-none px-1 py-0.5 rounded shrink-0",
-                  statusPillClass(tab.lastResponse.status)
-                )}
-                title={`${tab.lastResponse.status} ${statusText(tab.lastResponse.status)}`}
-                aria-label={`Last response: ${tab.lastResponse.status} ${statusText(tab.lastResponse.status)}`}
-              >
-                {tab.lastResponse.status || "—"}
-              </span>
-            ) : null}
-
-            {/* Tab title — truncated */}
-            <span className="truncate flex-1 min-w-0" title={tab.name}>
-              {tab.name || "Untitled"}
-            </span>
-
-            {/* Close button — replaced by an unsaved-dot when the tab
-                is dirty until the user hovers. Hover reveals the close
-                button so the user can still close a dirty tab in one click. */}
-            <span className="shrink-0 w-4 h-4 grid place-items-center relative">
-              {dirty?.[tab.id] && (
-                <span
-                  aria-label="Unsaved changes"
-                  className={cn(
-                    "absolute w-1.5 h-1.5 rounded-full bg-[var(--color-accent)]",
-                    "transition-opacity duration-100",
-                    "group-hover:opacity-0",
-                    active ? "opacity-100" : "opacity-70"
-                  )}
-                />
-              )}
-              <button
-                type="button"
-                aria-label={closeTabLabel}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onClose(tab.id);
+          <ContextMenu key={tab.id}>
+            <ContextMenuTrigger asChild>
+              <div
+                role="tab"
+                aria-selected={active}
+                tabIndex={0}
+                draggable
+                onDragStart={(e) => {
+                  setDragFromIdx(idx);
+                  e.dataTransfer.effectAllowed = "move";
+                  // Firefox needs setData for drag to fire.
+                  e.dataTransfer.setData("text/plain", String(idx));
+                }}
+                onDragOver={(e) => {
+                  if (dragFromIdx === null) return;
+                  e.preventDefault();
+                  e.dataTransfer.dropEffect = "move";
+                  setDragOverIdx(idx);
+                }}
+                onDragEnd={() => {
+                  setDragFromIdx(null);
+                  setDragOverIdx(null);
+                }}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  if (dragFromIdx !== null && dragFromIdx !== idx) {
+                    onReorder(dragFromIdx, idx);
+                  }
+                  setDragFromIdx(null);
+                  setDragOverIdx(null);
+                }}
+                onMouseDown={(e) => {
+                  // Middle-click closes (button === 1)
+                  if (e.button === 1) {
+                    e.preventDefault();
+                    onClose(tab.id);
+                  }
+                }}
+                onClick={() => onActivate(tab.id)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    onActivate(tab.id);
+                  }
                 }}
                 className={cn(
-                  "w-4 h-4 rounded grid place-items-center",
-                  "text-[var(--color-fg-muted)] hover:text-[var(--color-fg)]",
-                  "hover:bg-[var(--color-border)]/60",
-                  "transition-opacity duration-100",
-                  // Show the X if active OR on hover; if dirty, ALSO need the
-                  // explicit hover-reveal so the dot doesn't permanently
-                  // block close access.
-                  dirty?.[tab.id]
-                    ? "opacity-0 group-hover:opacity-90 focus:opacity-100"
-                    : active
-                      ? "opacity-70"
-                      : "opacity-0 group-hover:opacity-70 focus:opacity-100"
+                  "group relative flex items-center gap-2 px-3 min-w-0 max-w-[220px] cursor-pointer select-none",
+                  "border-r border-[var(--color-border)] text-xs",
+                  "transition-colors duration-100",
+                  active
+                    ? "bg-[var(--color-bg-elev)] text-[var(--color-fg)]"
+                    : "bg-transparent text-[var(--color-fg-muted)] hover:bg-[var(--color-bg-elev)]/60 hover:text-[var(--color-fg)]",
+                  isDropTarget && "bg-[var(--color-accent)]/15"
                 )}
               >
-                <X className="w-3 h-3" />
-              </button>
-            </span>
+                {/* Method-color indicator */}
+                <span
+                  className={cn(
+                    "text-[10px] font-mono font-semibold uppercase tracking-tight shrink-0",
+                    methodClass(tab.request.method)
+                  )}
+                >
+                  {tab.request.method}
+                </span>
 
-            {/* Active accent — bottom border */}
-            {active && (
-              <span
-                className="absolute left-0 right-0 bottom-0 h-[2px] bg-[var(--color-accent)]"
-                aria-hidden
-              />
-            )}
-          </div>
+                {/* Last-response status pill — colored by 2xx/3xx/4xx/5xx
+                so a glance across the tab strip shows which tabs
+                succeeded vs erred. Empty when no response yet. */}
+                {tab.lastResponse ? (
+                  <span
+                    className={cn(
+                      "text-[9px] font-mono font-semibold leading-none px-1 py-0.5 rounded shrink-0",
+                      statusPillClass(tab.lastResponse.status)
+                    )}
+                    title={`${tab.lastResponse.status} ${statusText(tab.lastResponse.status)}`}
+                    aria-label={`Last response: ${tab.lastResponse.status} ${statusText(tab.lastResponse.status)}`}
+                  >
+                    {tab.lastResponse.status || "—"}
+                  </span>
+                ) : null}
+
+                {/* Tab title — truncated */}
+                <span className="truncate flex-1 min-w-0" title={tab.name}>
+                  {tab.name || "Untitled"}
+                </span>
+
+                {/* Close button — replaced by an unsaved-dot when the tab
+                is dirty until the user hovers. Hover reveals the close
+                button so the user can still close a dirty tab in one click. */}
+                <span className="shrink-0 w-4 h-4 grid place-items-center relative">
+                  {dirty?.[tab.id] && (
+                    <span
+                      aria-label="Unsaved changes"
+                      className={cn(
+                        "absolute w-1.5 h-1.5 rounded-full bg-[var(--color-accent)]",
+                        "transition-opacity duration-100",
+                        "group-hover:opacity-0",
+                        active ? "opacity-100" : "opacity-70"
+                      )}
+                    />
+                  )}
+                  <button
+                    type="button"
+                    aria-label={closeTabLabel}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onClose(tab.id);
+                    }}
+                    className={cn(
+                      "w-4 h-4 rounded grid place-items-center",
+                      "text-[var(--color-fg-muted)] hover:text-[var(--color-fg)]",
+                      "hover:bg-[var(--color-border)]/60",
+                      "transition-opacity duration-100",
+                      // Show the X if active OR on hover; if dirty, ALSO need the
+                      // explicit hover-reveal so the dot doesn't permanently
+                      // block close access.
+                      dirty?.[tab.id]
+                        ? "opacity-0 group-hover:opacity-90 focus:opacity-100"
+                        : active
+                          ? "opacity-70"
+                          : "opacity-0 group-hover:opacity-70 focus:opacity-100"
+                    )}
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </span>
+
+                {/* Active accent — bottom border */}
+                {active && (
+                  <span
+                    className="absolute left-0 right-0 bottom-0 h-[2px] bg-[var(--color-accent)]"
+                    aria-hidden
+                  />
+                )}
+              </div>
+            </ContextMenuTrigger>
+            <ContextMenuContent>
+              <ContextMenuItem onSelect={() => onClose(tab.id)}>
+                <X className="w-3.5 h-3.5" aria-hidden />
+                {closeTabLabel}
+              </ContextMenuItem>
+              {onDuplicate ? (
+                <ContextMenuItem onSelect={() => onDuplicate(tab.id)}>
+                  <CopyIcon className="w-3.5 h-3.5" aria-hidden />
+                  {duplicateLabel}
+                </ContextMenuItem>
+              ) : null}
+              {(onCloseOthers || onCloseToRight) && <ContextMenuSeparator />}
+              {onCloseOthers ? (
+                <ContextMenuItem onSelect={() => onCloseOthers(tab.id)} disabled={tabs.length <= 1}>
+                  <XCircle className="w-3.5 h-3.5" aria-hidden />
+                  {closeOthersLabel}
+                </ContextMenuItem>
+              ) : null}
+              {onCloseToRight ? (
+                <ContextMenuItem
+                  onSelect={() => onCloseToRight(tab.id)}
+                  disabled={idx === tabs.length - 1}
+                >
+                  <ChevronsRight className="w-3.5 h-3.5" aria-hidden />
+                  {closeToRightLabel}
+                </ContextMenuItem>
+              ) : null}
+            </ContextMenuContent>
+          </ContextMenu>
         );
       })}
 
@@ -249,6 +302,9 @@ export function TabStripContainer() {
   const collections = useStore((s) => s.collectionItems);
   const setActiveTab = useStore((s) => s.setActiveTab);
   const closeTab = useStore((s) => s.closeTab);
+  const closeOtherTabs = useStore((s) => s.closeOtherTabs);
+  const closeTabsToRight = useStore((s) => s.closeTabsToRight);
+  const duplicateTab = useStore((s) => s.duplicateTab);
   const newTab = useStore((s) => s.newTab);
   const reorderTabs = useStore((s) => s.reorderTabs);
   const t = useT();
@@ -271,6 +327,9 @@ export function TabStripContainer() {
 
   const onActivate = useCallback((id: string) => setActiveTab(id), [setActiveTab]);
   const onClose = useCallback((id: string) => closeTab(id), [closeTab]);
+  const onCloseOthers = useCallback((id: string) => closeOtherTabs(id), [closeOtherTabs]);
+  const onCloseToRight = useCallback((id: string) => closeTabsToRight(id), [closeTabsToRight]);
+  const onDuplicate = useCallback((id: string) => duplicateTab(id), [duplicateTab]);
   const onNewTab = useCallback(() => newTab(), [newTab]);
   const onReorder = useCallback(
     (fromIdx: number, toIdx: number) => reorderTabs(fromIdx, toIdx),
@@ -284,10 +343,16 @@ export function TabStripContainer() {
       dirty={dirty}
       onActivate={onActivate}
       onClose={onClose}
+      onCloseOthers={onCloseOthers}
+      onCloseToRight={onCloseToRight}
+      onDuplicate={onDuplicate}
       onNewTab={onNewTab}
       onReorder={onReorder}
       newTabLabel={t("tabs.new")}
       closeTabLabel={t("tabs.close")}
+      closeOthersLabel={t("tabs.closeOthers")}
+      closeToRightLabel={t("tabs.closeToRight")}
+      duplicateLabel={t("tabs.duplicate")}
     />
   );
 }

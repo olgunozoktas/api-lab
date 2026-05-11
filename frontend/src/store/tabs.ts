@@ -8,6 +8,12 @@ import type { Store, StoreMutators } from "./types";
 export type TabsActions = {
   newTab: () => void;
   closeTab: (id: string) => void;
+  // Right-click context-menu actions. `keepId` stays open, everything
+  // else gets closed; same activation rule as closeTab (active stays
+  // active if it survives, otherwise nearest neighbor wins).
+  closeOtherTabs: (keepId: string) => void;
+  closeTabsToRight: (fromId: string) => void;
+  duplicateTab: (id: string) => void;
   setActiveTab: (id: string) => void;
   renameTab: (id: string, name: string) => void;
   reorderTabs: (fromIdx: number, toIdx: number) => void;
@@ -65,6 +71,83 @@ export const createTabsSlice: StateCreator<Store, StoreMutators, [], TabsActions
         };
       }
       return { tabs: filtered };
+    }),
+
+  closeOtherTabs: (keepId) =>
+    set((s) => {
+      const keep = s.tabs.find((t) => t.id === keepId);
+      if (!keep) return {};
+      if (s.tabs.length === 1) return {};
+      // Snapshot the kept tab's live mirror in case it's the active
+      // one (otherwise unsaved edits in the active tab would lose
+      // their mirror values).
+      const snapshotted = snapshotActiveIntoTab(s);
+      const survivor = snapshotted.find((t) => t.id === keepId) ?? keep;
+      return {
+        tabs: [survivor],
+        activeTabId: survivor.id,
+        current: clone(survivor.request),
+        lastResponse: survivor.lastResponse,
+        ui: {
+          ...s.ui,
+          composerTab: survivor.composerTab,
+          responseTab: survivor.responseTab,
+        },
+      };
+    }),
+
+  closeTabsToRight: (fromId) =>
+    set((s) => {
+      const idx = s.tabs.findIndex((t) => t.id === fromId);
+      if (idx < 0 || idx === s.tabs.length - 1) return {};
+      const snapshotted = snapshotActiveIntoTab(s);
+      const kept = snapshotted.slice(0, idx + 1);
+      // If the active tab was in the closed range, fall back to the
+      // anchor tab (fromId). Otherwise active survives — keep it.
+      const activeStillOpen = kept.some((t) => t.id === s.activeTabId);
+      const nextActive = activeStillOpen
+        ? kept.find((t) => t.id === s.activeTabId)!
+        : kept[kept.length - 1];
+      return {
+        tabs: kept,
+        activeTabId: nextActive.id,
+        current: clone(nextActive.request),
+        lastResponse: nextActive.lastResponse,
+        ui: {
+          ...s.ui,
+          composerTab: nextActive.composerTab,
+          responseTab: nextActive.responseTab,
+        },
+      };
+    }),
+
+  duplicateTab: (id) =>
+    set((s) => {
+      const idx = s.tabs.findIndex((t) => t.id === id);
+      if (idx < 0) return {};
+      // Snapshot live mirror first so an in-flight active edit
+      // duplicates with the edited content rather than the persisted
+      // tab snapshot (which can lag behind by an active-mutation).
+      const snapshotted = snapshotActiveIntoTab(s);
+      const source = snapshotted[idx];
+      const dup: OpenTab = {
+        ...source,
+        id: uid(),
+        request: clone(source.request),
+        lastResponse: source.lastResponse ? clone(source.lastResponse) : null,
+      };
+      const next = [...snapshotted.slice(0, idx + 1), dup, ...snapshotted.slice(idx + 1)];
+      return {
+        tabs: next,
+        activeTabId: dup.id,
+        current: clone(dup.request),
+        lastResponse: dup.lastResponse,
+        ui: {
+          ...s.ui,
+          composerTab: dup.composerTab,
+          responseTab: dup.responseTab,
+        },
+      };
     }),
 
   setActiveTab: (id) =>
