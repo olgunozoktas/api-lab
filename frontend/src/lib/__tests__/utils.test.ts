@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { envSubst, statusText, humanSize, isProbablyJson, methodClass } from "../utils";
+import { envSubst, statusText, humanSize, isProbablyJson, methodClass, timeAgo } from "../utils";
 
 describe("envSubst", () => {
   it("substitutes a single placeholder", () => {
@@ -98,5 +98,34 @@ describe("methodClass", () => {
   it("falls back to a muted token for unknown methods", () => {
     expect(methodClass("HEAD")).toBe("text-[var(--color-fg-muted)]");
     expect(methodClass("")).toBe("text-[var(--color-fg-muted)]");
+  });
+});
+
+describe("timeAgo", () => {
+  const NOW = 1_700_000_000_000;
+  it("returns 'now' for very recent timestamps", () => {
+    expect(timeAgo(NOW - 1_000, NOW)).toBe("now");
+    expect(timeAgo(NOW - 4_000, NOW)).toBe("now");
+  });
+  it("returns seconds when < 60s", () => {
+    expect(timeAgo(NOW - 30_000, NOW)).toBe("30s");
+    expect(timeAgo(NOW - 59_000, NOW)).toBe("59s");
+  });
+  it("returns minutes when < 1h", () => {
+    expect(timeAgo(NOW - 5 * 60_000, NOW)).toBe("5m");
+    expect(timeAgo(NOW - 59 * 60_000, NOW)).toBe("59m");
+  });
+  it("returns hours when < 24h", () => {
+    expect(timeAgo(NOW - 3 * 3600_000, NOW)).toBe("3h");
+  });
+  it("returns days when < 30d", () => {
+    expect(timeAgo(NOW - 5 * 86400_000, NOW)).toBe("5d");
+  });
+  it("returns months / years for older timestamps", () => {
+    expect(timeAgo(NOW - 60 * 86400_000, NOW)).toBe("2mo");
+    expect(timeAgo(NOW - 400 * 86400_000, NOW)).toBe("1y");
+  });
+  it("clamps negative deltas to 'now'", () => {
+    expect(timeAgo(NOW + 10_000, NOW)).toBe("now");
   });
 });

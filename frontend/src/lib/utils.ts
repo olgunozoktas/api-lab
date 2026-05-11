@@ -1,7 +1,6 @@
 // Pure utility functions — no React, no zustand.
 
-export const uid = () =>
-  Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+export const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
 
 export function envSubst(s: string | null | undefined, vars: Record<string, string>): string {
   if (s == null) return "";
@@ -10,11 +9,28 @@ export function envSubst(s: string | null | undefined, vars: Record<string, stri
 
 export function statusText(code: number): string {
   const T: Record<number, string> = {
-    200: "OK", 201: "Created", 202: "Accepted", 204: "No Content",
-    301: "Moved", 302: "Found", 304: "Not Modified", 307: "Temp Redirect", 308: "Perm Redirect",
-    400: "Bad Request", 401: "Unauthorized", 403: "Forbidden", 404: "Not Found",
-    405: "Method Not Allowed", 409: "Conflict", 410: "Gone", 422: "Unprocessable", 429: "Too Many",
-    500: "Server Error", 502: "Bad Gateway", 503: "Unavailable", 504: "Timeout",
+    200: "OK",
+    201: "Created",
+    202: "Accepted",
+    204: "No Content",
+    301: "Moved",
+    302: "Found",
+    304: "Not Modified",
+    307: "Temp Redirect",
+    308: "Perm Redirect",
+    400: "Bad Request",
+    401: "Unauthorized",
+    403: "Forbidden",
+    404: "Not Found",
+    405: "Method Not Allowed",
+    409: "Conflict",
+    410: "Gone",
+    422: "Unprocessable",
+    429: "Too Many",
+    500: "Server Error",
+    502: "Bad Gateway",
+    503: "Unavailable",
+    504: "Timeout",
   };
   return T[code] ?? "";
 }
@@ -23,6 +39,21 @@ export function humanSize(b: number): string {
   if (b < 1024) return b + " B";
   if (b < 1024 * 1024) return (b / 1024).toFixed(1) + " KB";
   return (b / (1024 * 1024)).toFixed(2) + " MB";
+}
+
+export function timeAgo(ts: number, now: number = Date.now()): string {
+  const seconds = Math.max(0, Math.round((now - ts) / 1000));
+  if (seconds < 5) return "now";
+  if (seconds < 60) return `${seconds}s`;
+  const minutes = Math.round(seconds / 60);
+  if (minutes < 60) return `${minutes}m`;
+  const hours = Math.round(minutes / 60);
+  if (hours < 24) return `${hours}h`;
+  const days = Math.round(hours / 24);
+  if (days < 30) return `${days}d`;
+  const months = Math.round(days / 30);
+  if (months < 12) return `${months}mo`;
+  return `${Math.round(months / 12)}y`;
 }
 
 export function isProbablyJson(s: string): boolean {
@@ -39,11 +70,17 @@ export function statusPillClass(code: number): string {
 
 export function methodClass(method: string): string {
   switch (method) {
-    case "GET":     return "text-green-500";
-    case "POST":    return "text-orange-500";
-    case "PUT":     return "text-sky-500";
-    case "PATCH":   return "text-purple-500";
-    case "DELETE":  return "text-red-500";
-    default:        return "text-[var(--color-fg-muted)]";
+    case "GET":
+      return "text-green-500";
+    case "POST":
+      return "text-orange-500";
+    case "PUT":
+      return "text-sky-500";
+    case "PATCH":
+      return "text-purple-500";
+    case "DELETE":
+      return "text-red-500";
+    default:
+      return "text-[var(--color-fg-muted)]";
   }
 }
