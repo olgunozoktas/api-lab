@@ -7,6 +7,19 @@ export function envSubst(s: string | null | undefined, vars: Record<string, stri
   return String(s).replace(/\{\{\s*([\w.-]+)\s*\}\}/g, (_, k) => vars[k] ?? `{{${k}}}`);
 }
 
+// Bucket a status code into its RFC 9110 class. `other` covers
+// edge cases (0 = no response, negative, > 599) that shouldn't ship
+// a class description.
+export type StatusClassKey = "1xx" | "2xx" | "3xx" | "4xx" | "5xx" | "other";
+export function statusClass(code: number): StatusClassKey {
+  if (code >= 100 && code < 200) return "1xx";
+  if (code >= 200 && code < 300) return "2xx";
+  if (code >= 300 && code < 400) return "3xx";
+  if (code >= 400 && code < 500) return "4xx";
+  if (code >= 500 && code < 600) return "5xx";
+  return "other";
+}
+
 export function statusText(code: number): string {
   const T: Record<number, string> = {
     200: "OK",

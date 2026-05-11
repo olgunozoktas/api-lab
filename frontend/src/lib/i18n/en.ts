@@ -305,6 +305,16 @@ export const en: Dict = {
   "response.timing.connect": "TCP / TLS handshake",
   "response.timing.ttfb": "TTFB (first byte)",
   "response.timing.total": "Total",
+  "response.status.class.1xx":
+    "Informational (1xx) — the server got the request and is still processing. The real response is yet to come.",
+  "response.status.class.2xx":
+    "Success (2xx) — the request was received, understood, and accepted.",
+  "response.status.class.3xx":
+    "Redirect (3xx) — the resource has moved. curl auto-follows up to the Max redirects setting.",
+  "response.status.class.4xx":
+    "Client error (4xx) — the request is wrong (missing auth, bad URL, no permission…). Fix it on your side.",
+  "response.status.class.5xx":
+    "Server error (5xx) — the server accepted the request but failed while producing a response. Check the server logs / oncall.",
 
   "ws.connect": "Connect",
   "ws.disconnect": "Disconnect",

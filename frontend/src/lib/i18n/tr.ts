@@ -305,6 +305,15 @@ export const tr = {
   "response.timing.connect": "TCP / TLS handshake",
   "response.timing.ttfb": "TTFB (ilk byte)",
   "response.timing.total": "Toplam",
+  "response.status.class.1xx":
+    "Bilgilendirme (1xx) — sunucu isteği aldı, işleme devam ediyor. Asıl yanıt henüz gelmedi.",
+  "response.status.class.2xx": "Başarılı (2xx) — istek alındı, anlaşıldı ve kabul edildi.",
+  "response.status.class.3xx":
+    "Yönlendirme (3xx) — kaynağın yeri değişmiş. curl, Settings → Max redirects sınırı içinde otomatik takip eder.",
+  "response.status.class.4xx":
+    "İstemci hatası (4xx) — istek hatalı (eksik auth, kötü URL, izin yok…). Düzeltmek için isteği değiştirin.",
+  "response.status.class.5xx":
+    "Sunucu hatası (5xx) — sunucu isteği kabul etti ama yanıt üretirken başarısız oldu. Sunucu logu / oncall durumu kontrol edin.",
 
   "ws.connect": "Bağlan",
   "ws.disconnect": "Bağlantıyı Kes",

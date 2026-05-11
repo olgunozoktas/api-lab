@@ -1,7 +1,8 @@
 import type { ReactNode } from "react";
 import { useStore } from "../store";
 import { useT } from "../lib/i18n/useT";
-import { humanSize, statusPillClass, statusText } from "../lib/utils";
+import { humanSize, statusClass, statusPillClass, statusText } from "../lib/utils";
+import type { TKey } from "../lib/i18n";
 import { downloadResponseBody } from "../lib/responseDownload";
 import { Button } from "./ui/button";
 import { Copy, BookmarkPlus, Download } from "lucide-react";
@@ -26,14 +27,23 @@ export function ResponseHead({
   copyAsSlot,
 }: ResponseHeadProps) {
   const t = useT();
+  // Plain-English description of the status class — gives newcomers
+  // context for what "401" or "503" actually means without leaving the
+  // app. `other` (e.g. 0 = no response) produces no tooltip.
+  const klass = statusClass(r.status);
+  const classDesc = klass === "other" ? "" : t(`response.status.class.${klass}` as TKey);
+  const statusLabel = `${r.status} ${r.statusText || statusText(r.status)}`;
+  const tooltip = classDesc ? `${statusLabel}\n\n${classDesc}` : statusLabel;
   return (
     <div className="px-3 py-2.5 bg-[var(--color-bg-elev)] border-b border-[var(--color-border)] flex items-center gap-3 flex-wrap">
       <span
         className={
-          "font-mono font-bold text-xs px-2.5 py-0.5 rounded-full " + statusPillClass(r.status)
+          "font-mono font-bold text-xs px-2.5 py-0.5 rounded-full cursor-help " +
+          statusPillClass(r.status)
         }
         aria-live="polite"
         aria-atomic="true"
+        title={tooltip}
         aria-label={t("response.statusAriaLabel", {
           status: String(r.status),
           text: r.statusText || statusText(r.status),
