@@ -36,6 +36,7 @@ export function App() {
   const resetCurrent = useStore((s) => s.resetCurrent);
   const newTab = useStore((s) => s.newTab);
   const closeTab = useStore((s) => s.closeTab);
+  const reopenLastClosedTab = useStore((s) => s.reopenLastClosedTab);
   const setActiveTab = useStore((s) => s.setActiveTab);
   const ui = useStore((s) => s.ui);
   const vars = useActiveVars();
@@ -159,6 +160,16 @@ export function App() {
       // Tab management
       if (e.key === "t" || e.key === "T") {
         e.preventDefault();
+        // ⌘+Shift+T — reopen last closed tab (browser standard).
+        // Falls through to ⌘+T newTab when the reopen stack is empty,
+        // so a single-shortcut muscle memory still creates a tab.
+        if (e.shiftKey) {
+          const had = useStore.getState().recentlyClosed.length > 0;
+          if (had) {
+            reopenLastClosedTab();
+            return;
+          }
+        }
         newTab();
         return;
       }
@@ -196,7 +207,16 @@ export function App() {
     };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
-  }, [onSend, onCancel, saveCurrent, resetCurrent, newTab, closeTab, setActiveTab]);
+  }, [
+    onSend,
+    onCancel,
+    saveCurrent,
+    resetCurrent,
+    newTab,
+    closeTab,
+    reopenLastClosedTab,
+    setActiveTab,
+  ]);
 
   const activeTabId = useStore((s) => s.activeTabId);
   const substitutedUrl = envSubst(current.url, vars);
