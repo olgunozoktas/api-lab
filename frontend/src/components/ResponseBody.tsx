@@ -82,6 +82,26 @@ export function ResponseBody({ response: r, tab }: ResponseBodyProps) {
     );
   }
 
+  // Body tab — HTML preview if the response declares text/html.
+  // Renders inside a fully-sandboxed iframe (sandbox="") so scripts /
+  // forms / popups / top-nav / same-origin storage all stay off. Pure
+  // visual preview; the source view is still one click away in the
+  // Raw tab.
+  if (r.contentType.includes("text/html") || /^\s*<!doctype html|^\s*<html/i.test(r.body)) {
+    return (
+      <SaveAsVariableMenu>
+        <div className="flex-1 overflow-hidden p-3">
+          <iframe
+            title="response-html-preview"
+            sandbox=""
+            srcDoc={r.body}
+            className="w-full h-full border border-[var(--color-border)] rounded bg-white"
+          />
+        </div>
+      </SaveAsVariableMenu>
+    );
+  }
+
   // Body tab
   if (r.contentType.includes("application/json") || isProbablyJson(r.body)) {
     try {
