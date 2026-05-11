@@ -1,10 +1,12 @@
 import { useStore } from "../store";
+import { useT } from "../lib/i18n/useT";
 import { isProbablyJson } from "../lib/utils";
 import JsonView from "@uiw/react-json-view";
+import { Copy } from "lucide-react";
 import { CodeEditor } from "./ui/code-editor";
 import { SaveAsVariableMenu } from "./SaveAsVariable";
 import { ResponseEmpty } from "./ResponseEmpty";
-import type { ResponseSnapshot, ResponseTab } from "../lib/types";
+import type { ResponseHeader, ResponseSnapshot, ResponseTab } from "../lib/types";
 
 // Theme tokens fed to JsonView. Reads CSS variables so light/dark switch live.
 const treeStyle: Record<string, string> = {
@@ -55,18 +57,7 @@ export function ResponseBody({ response: r, tab }: ResponseBodyProps) {
     return (
       <SaveAsVariableMenu>
         <div className="flex-1 overflow-auto p-3">
-          <table className="w-full border-collapse font-mono text-[11px] select-text">
-            <tbody>
-              {r.headers.map((h, i) => (
-                <tr key={i} className="border-b border-[var(--color-border)]">
-                  <td className="px-2.5 py-1.5 align-top text-[var(--color-fg-muted)] w-[30%] break-all">
-                    {h.k}
-                  </td>
-                  <td className="px-2.5 py-1.5 align-top break-all">{h.v}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <ResponseHeadersTable headers={r.headers} />
         </div>
       </SaveAsVariableMenu>
     );
@@ -155,6 +146,49 @@ export function ResponseBody({ response: r, tab }: ResponseBodyProps) {
         </pre>
       </div>
     </SaveAsVariableMenu>
+  );
+}
+
+// Response Headers table with click-to-copy on each row. Clicking the
+// value cell (or the hover-revealed Copy icon) puts the header value
+// onto the clipboard — useful for grabbing Authorization, Location,
+// Set-Cookie, X-Request-Id, etc. without text-selecting through wrap.
+function ResponseHeadersTable({ headers }: { headers: ResponseHeader[] }) {
+  const t = useT();
+  const showToast = useStore((s) => s.showToast);
+
+  const copy = (h: ResponseHeader) => {
+    navigator.clipboard
+      .writeText(h.v)
+      .then(() => showToast(t("response.headers.valueCopied", { name: h.k })));
+  };
+
+  return (
+    <table className="w-full border-collapse font-mono text-[11px] select-text">
+      <tbody>
+        {headers.map((h, i) => (
+          <tr key={i} className="group border-b border-[var(--color-border)]">
+            <td className="px-2.5 py-1.5 align-top text-[var(--color-fg-muted)] w-[30%] break-all">
+              {h.k}
+            </td>
+            <td className="px-2.5 py-1.5 align-top break-all">
+              <div className="flex items-start gap-2">
+                <span className="flex-1 break-all">{h.v}</span>
+                <button
+                  type="button"
+                  onClick={() => copy(h)}
+                  className="opacity-0 group-hover:opacity-100 shrink-0 p-0.5 rounded text-[var(--color-fg-muted)] hover:bg-[var(--color-bg-elev-2)] hover:text-[var(--color-fg)] transition-colors"
+                  aria-label={t("response.headers.copyValue", { name: h.k })}
+                  title={t("response.headers.copyValue", { name: h.k })}
+                >
+                  <Copy className="w-3 h-3" aria-hidden />
+                </button>
+              </div>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
   );
 }
 
