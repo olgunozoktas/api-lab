@@ -375,6 +375,11 @@ export const tr = {
   "grpc.status.missing": "GRPCURL YOK",
 
   "env.modal.title": "Environments",
+  "env.modal.hint":
+    "Her ortam bir key/value listesidir. URL, header veya body içinde {{name}} kullanın — istek atılırken aktif ortamın değeriyle değiştirilir. TopBar'daki ortam seçici ile aktif ortamı belirleyin.",
+  "env.varCount": "{n} değişken",
+  "env.varCountShort": "{n} var",
+  "env.activeBadge": "aktif",
   "env.minRequired": "En az 1 environment olmalı",
   "env.placeholderText": "key=value\nbase_url=https://api.example.com\ntoken=abc123",
   "env.saved": "Environments kaydedildi",
