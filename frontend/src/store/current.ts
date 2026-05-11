@@ -7,7 +7,7 @@ import type {
   RequestSnapshot,
 } from "../lib/types";
 import { emptyRequest } from "../lib/types";
-import { uid } from "../lib/utils";
+import { displayTabName, uid } from "../lib/utils";
 import { clone, nextOrder } from "./internal";
 import type { Store, StoreMutators } from "./types";
 import type { NewRequestKind } from "./collections";
@@ -132,7 +132,17 @@ export const createCurrentSlice: StateCreator<Store, StoreMutators, [], CurrentA
 
   saveCurrent: () => {
     const cur = get().current;
-    const name = cur.name?.trim() || "(adsız)";
+    // When the user still has the placeholder name AND a URL is set,
+    // commit the auto-derived `METHOD shortUrl` label on save — same
+    // logic the tab strip + sidebar already display. They can rename
+    // afterwards; the goal is "Save shouldn't leave you with three
+    // 'New request' rows you can't tell apart".
+    const derived = displayTabName({
+      name: cur.name ?? "",
+      method: cur.method,
+      url: cur.url ?? "",
+    });
+    const name = (derived || "").trim() || "(adsız)";
     const isGraphql = get().ui.composerTab === "graphql";
     const snap: RequestSnapshot = {
       method: cur.method,
