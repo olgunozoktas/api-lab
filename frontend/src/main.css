@@ -164,3 +164,31 @@ textarea,
 ::-webkit-scrollbar-track {
   background: transparent;
 }
+
+/* Thin scrollbar — for compact horizontal strips (tabs, pill rows)
+   where the default 10px gutter eats too much vertical space. The
+   thumb stays visible on hover so the user can still grab it. */
+.scrollbar-thin::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: transparent;
+  border-radius: 2px;
+}
+.scrollbar-thin:hover::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+}
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: var(--color-fg-muted);
+}
+
+/* Hidden scrollbar — still scrollable via wheel / trackpad swipe.
+   Used on the tab strip where a visible bar fights the native-tab
+   illusion (Safari / Chrome strip the bar too on their tab strips). */
+.scrollbar-none {
+  scrollbar-width: none; /* Firefox */
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
