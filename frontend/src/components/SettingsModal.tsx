@@ -187,6 +187,18 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
 // before the next one opens.
 function AboutCard({ onClose }: { onClose: () => void }) {
   const t = useT();
+  // Quick "your data" stats. Folders and requests are split out of the
+  // single CollectionItem tree by `kind`; examples are nested inside
+  // each request's snapshot, so they're summed across all requests.
+  const items = useStore((s) => s.collectionItems);
+  const history = useStore((s) => s.history);
+  const envs = useStore((s) => s.envs);
+  const requestCount = items.filter((i) => i.kind === "request").length;
+  const folderCount = items.length - requestCount;
+  const exampleCount = items.reduce(
+    (sum, i) => sum + (i.kind === "request" ? (i.request?.examples?.length ?? 0) : 0),
+    0
+  );
   const fireAndClose = (eventName: string) => () => {
     onClose();
     // Run on the next tick so the Dialog finishes its exit animation
@@ -219,6 +231,18 @@ function AboutCard({ onClose }: { onClose: () => void }) {
         <dt className="text-[var(--color-fg-muted)]">{t("settings.about.storage")}</dt>
         <dd className="font-mono">{t("settings.about.storageLocal")}</dd>
       </dl>
+      <div>
+        <p className="text-[10px] uppercase tracking-wide font-semibold text-[var(--color-fg-muted)] mb-1.5">
+          {t("settings.about.yourData")}
+        </p>
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+          <StatTile label={t("settings.about.stat.requests")} value={requestCount} />
+          <StatTile label={t("settings.about.stat.folders")} value={folderCount} />
+          <StatTile label={t("settings.about.stat.history")} value={history.length} />
+          <StatTile label={t("settings.about.stat.environments")} value={envs.length} />
+          <StatTile label={t("settings.about.stat.examples")} value={exampleCount} />
+        </div>
+      </div>
       <div className="flex flex-wrap gap-2 pt-1">
         <AboutLink
           onClick={fireAndClose("apilab:open-guides")}
@@ -264,6 +288,18 @@ function AboutLink({
       {icon}
       {children}
     </button>
+  );
+}
+
+// Small numeric tile for the "Your data" block — large value on top,
+// muted label below. All five tiles share the same min-width via the
+// parent grid so the row stays visually balanced.
+function StatTile({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="rounded border border-[var(--color-border)] bg-[var(--color-bg)] px-2 py-1.5 text-center">
+      <div className="text-sm font-mono tabular-nums text-[var(--color-fg)]">{value}</div>
+      <div className="text-[10px] text-[var(--color-fg-muted)] mt-0.5">{label}</div>
+    </div>
   );
 }
 
