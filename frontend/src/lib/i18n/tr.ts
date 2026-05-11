@@ -229,6 +229,13 @@ export const tr = {
   "body.mode.raw": "Raw",
   "body.prettyFormat": "Pretty Format",
   "body.invalidJson": "Geçersiz JSON: {error}",
+  "body.hint.none": "Body gönderilmez. GET / HEAD gibi gövdesiz metodlar için kullanın.",
+  "body.hint.json":
+    "Body, `Content-Type: application/json` ile gönderilir. Pretty Format butonu (veya editör içinde) JSON'ı yeniden biçimlendirir. {{var}} referansları istek atılırken değiştirilir.",
+  "body.hint.form":
+    "`key1=value1&key2=value2` formatı, `Content-Type: application/x-www-form-urlencoded` ile gönderilir. HTML form post'larını taklit eder.",
+  "body.hint.raw":
+    "Body olduğu gibi gönderilir; Content-Type'ı Headers sekmesinden siz belirleyin (yoksa eklenmez). XML, plain text, custom format için uygundur.",
 
   "graphql.note": "Method otomatik POST, body application/json olarak gönderilir.",
   "graphql.query": "Query",

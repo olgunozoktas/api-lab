@@ -1,9 +1,7 @@
 import { useStore } from "../store";
 import { useT } from "../lib/i18n/useT";
 import { Button } from "./ui/button";
-import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from "./ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { CodeEditor } from "./ui/code-editor";
 import { Wand2 } from "lucide-react";
 import type { Body, BodyMode } from "../lib/types";
@@ -51,6 +49,7 @@ export function BodyPanel({ value, onChange, onInvalidJson }: BodyPanelProps) {
           </Button>
         )}
       </div>
+      <BodyModeHint mode={value.mode} />
       {value.mode === "json" ? (
         <CodeEditor
           value={value.text}
@@ -73,6 +72,22 @@ export function BodyPanel({ value, onChange, onInvalidJson }: BodyPanelProps) {
           }
         />
       )}
+    </div>
+  );
+}
+
+// One-line note explaining what the selected body mode sends — what
+// content-type the request will carry and how the editor's text is
+// interpreted on the wire.
+function BodyModeHint({ mode }: { mode: BodyMode }) {
+  const t = useT();
+  const hintKey = `body.hint.${mode}` as import("../lib/i18n").TKey;
+  return (
+    <div
+      className="mb-2 rounded-md border border-[var(--color-border)] bg-[var(--color-bg-elev)] px-3 py-2 text-[11px] leading-relaxed text-[var(--color-fg-muted)]"
+      role="note"
+    >
+      {t(hintKey)}
     </div>
   );
 }
