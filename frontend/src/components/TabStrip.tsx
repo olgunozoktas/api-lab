@@ -118,7 +118,11 @@ export function TabStripPresenter({
       role="tablist"
       aria-label="Open requests"
       className={cn(
-        "flex items-stretch h-9 bg-[var(--color-bg)] border-b border-[var(--color-border)] overflow-x-auto flex-shrink-0",
+        // `scrollbar-none` hides the horizontal scrollbar entirely —
+        // tabs still scroll via trackpad swipe / wheel, matching the
+        // native Safari / Chrome tab strip illusion (no visible bar).
+        // Class is defined in main.css.
+        "flex items-stretch h-9 bg-[var(--color-bg)] border-b border-[var(--color-border)] overflow-x-auto flex-shrink-0 scrollbar-none",
         className
       )}
     >
