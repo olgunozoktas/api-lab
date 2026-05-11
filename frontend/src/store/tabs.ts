@@ -1,5 +1,5 @@
 import type { StateCreator } from "zustand";
-import type { CollectionItem, ComposerTab, OpenTab, ResponseTab } from "../lib/types";
+import type { CollectionItem, ComposerTab, HistoryItem, OpenTab, ResponseTab } from "../lib/types";
 import { emptyTab } from "../lib/types";
 import { uid } from "../lib/utils";
 import {
@@ -42,6 +42,11 @@ export type TabsActions = {
   renameTab: (id: string, name: string) => void;
   reorderTabs: (fromIdx: number, toIdx: number) => void;
   loadCollectionInNewTab: (c: CollectionItem) => void;
+  // Replay a history entry in a new tab. Same shape as
+  // `loadCollectionInNewTab` but for the `HistoryItem` source — keeps
+  // the current tab untouched so the user can compare the original
+  // vs the replayed request side-by-side.
+  openHistoryItemInNewTab: (h: HistoryItem) => void;
 };
 
 export const createTabsSlice: StateCreator<Store, StoreMutators, [], TabsActions> = (set) => ({
@@ -316,6 +321,43 @@ export const createTabsSlice: StateCreator<Store, StoreMutators, [], TabsActions
           auth: clone(r.auth ?? { type: "none" }),
           body: clone(r.body ?? { mode: "none", text: "" }),
           gql: clone(r.gql ?? { query: "", vars: "" }),
+        },
+        lastResponse: null,
+        composerTab,
+        responseTab,
+      };
+      return {
+        tabs: [...tabs, fresh],
+        activeTabId: fresh.id,
+        current: clone(fresh.request),
+        lastResponse: null,
+        ui: { ...s.ui, composerTab, responseTab },
+      };
+    }),
+
+  openHistoryItemInNewTab: (h) =>
+    set((s) => {
+      const r = h.request;
+      const tabs = snapshotActiveIntoTab(s);
+      const composerTab: ComposerTab = r.isGraphql ? "graphql" : "params";
+      const responseTab: ResponseTab = "body";
+      // Tab name: short method + URL slug. Keeps the strip readable
+      // when several history replays are open at once.
+      const urlShort = r.url ? r.url.replace(/^https?:\/\//, "").slice(0, 32) : "—";
+      const name = `${r.method} ${urlShort}`;
+      const fresh: OpenTab = {
+        id: uid(),
+        name,
+        request: {
+          id: null,
+          name,
+          method: r.method,
+          url: r.url,
+          params: clone(r.params),
+          headers: clone(r.headers),
+          auth: clone(r.auth),
+          body: clone(r.body),
+          gql: clone(r.gql),
         },
         lastResponse: null,
         composerTab,
