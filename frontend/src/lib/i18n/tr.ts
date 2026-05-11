@@ -88,6 +88,12 @@ export const tr = {
   "collections.search.empty": "Eşleşme yok",
   "collections.search.clear": "Temizle",
   "history.search.placeholder": "Ara... (örn: GET 401 login)",
+  "history.filter.all": "Hepsi",
+  "history.filter.2xx": "2xx",
+  "history.filter.3xx": "3xx",
+  "history.filter.4xx": "4xx",
+  "history.filter.5xx": "5xx",
+  "history.filter.aria": "Duruma göre filtrele",
   "layout.sidebar.aria": "Yan menü genişliğini ayarla (sürükle, çift-tıkla = sıfırla)",
   "layout.composer.aria": "Composer/Yanıt oranını ayarla (sürükle, çift-tıkla = sıfırla)",
 
