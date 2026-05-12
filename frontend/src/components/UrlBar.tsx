@@ -5,7 +5,7 @@ import { envSubst, methodClass, tokenizeUnresolvedVars, hasUnresolvedVars } from
 import { useT } from "../lib/i18n/useT";
 import { Button } from "./ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
-import { Send, Wand2, X } from "lucide-react";
+import { AlertTriangle, Send, Wand2, X } from "lucide-react";
 import { looksLikeCurl, parseCurl } from "../lib/curlParse";
 import type { CurrentRequest } from "../lib/types";
 
@@ -133,9 +133,20 @@ export function UrlBar({
             variant="primary"
             onClick={onSend}
             disabled={busy}
-            title={t("composer.send.title")}
+            title={
+              someUnresolved
+                ? `${t("composer.send.title")}\n\n⚠ ${t("composer.url.unresolvedHint")}`
+                : t("composer.send.title")
+            }
           >
-            <Send className="w-3.5 h-3.5" />
+            {someUnresolved && !busy ? (
+              <AlertTriangle
+                className="w-3.5 h-3.5 text-[var(--color-warning)]"
+                aria-label={t("composer.url.unresolvedHint")}
+              />
+            ) : (
+              <Send className="w-3.5 h-3.5" />
+            )}
             {busy ? t("composer.sending") : t("composer.send")}
             {!busy && <KbdHint>⌘ ↵</KbdHint>}
           </Button>
