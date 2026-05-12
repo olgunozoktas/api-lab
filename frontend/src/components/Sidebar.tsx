@@ -23,6 +23,12 @@ export function Sidebar() {
   const setUi = useStore((s) => s.setUi);
   const resetCurrent = useStore((s) => s.resetCurrent);
   const t = useT();
+  // Section-header counts — requests only (folders are container nodes
+  // in the same `collectionItems` tree, but we count them separately
+  // since "12 saved" reading as "12 requests" is the user's expectation).
+  const collectionItems = useStore((s) => s.collectionItems);
+  const requestCount = collectionItems.filter((i) => i.kind === "request").length;
+  const historyCount = useStore((s) => s.history.length);
   // Per-tab search state. Switching tabs preserves each tab's filter
   // — feels nicer than wiping when the user toggles back and forth.
   const [collectionsQuery, setCollectionsQuery] = useState("");
@@ -53,6 +59,7 @@ export function Sidebar() {
       {ui.sidebarTab === "collections" ? (
         <>
           <SectionHeader
+            count={requestCount}
             rightSlot={
               <div className="flex gap-1">
                 <ImportPostmanButton />
@@ -111,7 +118,7 @@ export function Sidebar() {
         </>
       ) : (
         <>
-          <SectionHeader rightSlot={<ClearHistoryButton />}>
+          <SectionHeader count={historyCount} rightSlot={<ClearHistoryButton />}>
             {t("sidebar.section.recent")}
           </SectionHeader>
           <SearchInput
@@ -130,14 +137,26 @@ export function Sidebar() {
 
 function SectionHeader({
   children,
+  count,
   rightSlot,
 }: {
   children: React.ReactNode;
+  // Optional item count shown as a small tabular-nums pill after the
+  // title — keeps the eye anchored on "do I have anything here?"
+  // without scrolling the list.
+  count?: number;
   rightSlot?: React.ReactNode;
 }) {
   return (
     <div className="px-3 py-2 flex items-center justify-between text-[11px] uppercase tracking-wider text-[var(--color-fg-muted)]">
-      <span>{children}</span>
+      <span className="flex items-center gap-1.5">
+        <span>{children}</span>
+        {typeof count === "number" && (
+          <span className="text-[10px] font-mono normal-case tracking-normal tabular-nums px-1 py-0 rounded bg-[var(--color-bg-elev-2)] text-[var(--color-fg-muted)]">
+            {count}
+          </span>
+        )}
+      </span>
       {rightSlot}
     </div>
   );
