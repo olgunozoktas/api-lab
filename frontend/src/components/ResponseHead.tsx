@@ -15,7 +15,8 @@ import {
 import type { TKey } from "../lib/i18n";
 import { downloadResponseBody } from "../lib/responseDownload";
 import { Button } from "./ui/button";
-import { Copy, BookmarkPlus, Download, Terminal, Globe } from "lucide-react";
+import { Check, Copy, BookmarkPlus, Download, Terminal, Globe } from "lucide-react";
+import { useCopyFeedback } from "../lib/useCopyFeedback";
 import { CopyAsMenuContainer } from "./CopyAsMenu";
 import type { ResponseSnapshot } from "../lib/types";
 import { exampleFromResponse, suggestExampleName } from "../lib/examples";
@@ -44,6 +45,9 @@ export function ResponseHead({
   const classDesc = klass === "other" ? "" : t(`response.status.class.${klass}` as TKey);
   const statusLabel = `${r.status} ${r.statusText || statusText(r.status)}`;
   const tooltip = classDesc ? `${statusLabel}\n\n${classDesc}` : statusLabel;
+  // Brief Copy→Check icon flip after a successful clipboard write —
+  // the action feels instant before the toast even renders.
+  const { copied, flash } = useCopyFeedback();
   return (
     <div className="px-3 py-2.5 bg-[var(--color-bg-elev)] border-b border-[var(--color-border)] flex items-center gap-3 flex-wrap">
       <span
@@ -72,9 +76,21 @@ export function ResponseHead({
           {t("examples.save")}
         </Button>
       )}
-      <Button variant="ghost" size="sm" onClick={onCopyBody}>
-        <Copy className="w-3 h-3" />
-        {t("response.copy.body")}
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={() => {
+          onCopyBody();
+          flash();
+        }}
+        aria-live="polite"
+      >
+        {copied ? (
+          <Check className="w-3 h-3 text-[var(--color-success)]" aria-hidden />
+        ) : (
+          <Copy className="w-3 h-3" aria-hidden />
+        )}
+        {copied ? t("response.copy.bodyDone") : t("response.copy.body")}
       </Button>
       <Button
         variant="ghost"

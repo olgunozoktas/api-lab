@@ -304,6 +304,7 @@ export const en: Dict = {
   "response.empty.pickHint": "Load this request into the active tab",
   "response.empty.sentCount": "Sent {n} times",
   "response.copy.body": "Copy body",
+  "response.copy.bodyDone": "Copied",
   "response.download.body": "Download",
   "response.download.title": "Save the response body as a file",
   "response.bodyDownloaded": "Body saved to file",
