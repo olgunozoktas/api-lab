@@ -5,7 +5,7 @@ import { Dialog, DialogOverlay, DialogPortal } from "./ui/dialog";
 import { useStore } from "../store";
 import { useT } from "../lib/i18n/useT";
 import { cn } from "../lib/cn";
-import { methodClass } from "../lib/utils";
+import { methodClass, statusPillClass, statusText } from "../lib/utils";
 import type { CollectionItem, HistoryItem, OpenTab } from "../lib/types";
 import { History, FolderOpen, LayoutGrid } from "lucide-react";
 
@@ -236,13 +236,27 @@ export function QuickSwitcher({ open, onOpenChange }: QuickSwitcherProps) {
                           : item.entry.request.url || "(empty)"}
                     </span>
 
-                    <span className="shrink-0 text-[10px] text-[var(--color-fg-muted)] truncate max-w-[200px]">
-                      {item.kind === "tab"
-                        ? item.tab.request.url
-                        : item.kind === "collection"
-                          ? item.col.request!.url
-                          : `${item.entry.response.status}`}
-                    </span>
+                    {item.kind === "history" ? (
+                      <span
+                        className={
+                          "shrink-0 font-mono text-[10px] font-bold px-1.5 py-0.5 rounded " +
+                          statusPillClass(item.entry.response.status)
+                        }
+                        title={
+                          item.entry.response.status > 0
+                            ? `${item.entry.response.status} ${statusText(
+                                item.entry.response.status
+                              )}`.trim()
+                            : undefined
+                        }
+                      >
+                        {item.entry.response.status > 0 ? item.entry.response.status : "—"}
+                      </span>
+                    ) : (
+                      <span className="shrink-0 text-[10px] text-[var(--color-fg-muted)] truncate max-w-[200px]">
+                        {item.kind === "tab" ? item.tab.request.url : item.col.request!.url}
+                      </span>
+                    )}
                   </button>
                 );
               })
