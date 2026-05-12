@@ -62,6 +62,7 @@ export const en: Dict = {
   "settings.shortcuts.toggleSidebar": "Toggle sidebar",
   "settings.shortcuts.cancel": "Cancel in-flight request",
   "settings.shortcuts.openGuides": "Open Guide hub",
+  "settings.shortcuts.openSettings": "Open Settings",
   "settings.section.about": "About",
   "settings.about.name": "API Lab",
   "settings.about.versionAria": "Version {version}",

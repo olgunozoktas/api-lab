@@ -8,6 +8,7 @@ import { GuideHub } from "./GuideHub";
 import { useChangelogAutoOpen } from "../lib/changelog_gate";
 import { APP_VERSION, formatBuildDate } from "../lib/changelog";
 import { useGuideShortcut } from "../lib/guides_shortcut";
+import { useSettingsShortcut } from "../lib/settings_shortcut";
 import { useT } from "../lib/i18n/useT";
 import { Button } from "./ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
@@ -29,6 +30,11 @@ export function TopBar() {
   // editable element so users can still type "?" into URLs / bodies).
   const openGuide = useCallback(() => setGuideOpen(true), []);
   useGuideShortcut(openGuide);
+  // ⌘+, → open Settings (macOS standard for Preferences). Works
+  // anywhere, including while typing in inputs, since the keystroke
+  // never produces a useful character.
+  const openSettings = useCallback(() => setEditingSettings(true), []);
+  useSettingsShortcut(openSettings);
 
   // Window-event channels so anywhere in the app (e.g. the About
   // section in SettingsModal) can ask for these modals without
@@ -137,6 +143,7 @@ export function TopBar() {
           size="sm"
           onClick={() => setEditingSettings(true)}
           aria-label={t("topbar.settings")}
+          title={t("topbar.settings") + "  ⌘,"}
         >
           <Settings className="w-3.5 h-3.5" />
           {t("topbar.settings")}
