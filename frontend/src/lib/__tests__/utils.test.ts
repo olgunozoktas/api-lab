@@ -3,11 +3,13 @@ import { describe, it, expect } from "vitest";
 import {
   displayTabName,
   envSubst,
+  hasUnresolvedVars,
   humanSize,
   isProbablyJson,
   methodClass,
   statusText,
   timeAgo,
+  tokenizeUnresolvedVars,
 } from "../utils";
 
 describe("envSubst", () => {
@@ -173,5 +175,47 @@ describe("displayTabName", () => {
     expect(displayTabName({ name: "Yeni istek", method: "GET", url: "http://example.com/" })).toBe(
       "GET example.com"
     );
+  });
+});
+
+describe("tokenizeUnresolvedVars", () => {
+  it("returns a single text token when no vars are present", () => {
+    expect(tokenizeUnresolvedVars("https://api.test/users")).toEqual([
+      { kind: "text", value: "https://api.test/users" },
+    ]);
+  });
+  it("splits an unresolved var in the middle of a URL", () => {
+    expect(tokenizeUnresolvedVars("https://api.test/{{userId}}/profile")).toEqual([
+      { kind: "text", value: "https://api.test/" },
+      { kind: "unresolved", name: "userId" },
+      { kind: "text", value: "/profile" },
+    ]);
+  });
+  it("emits an unresolved token when the URL starts with a var", () => {
+    expect(tokenizeUnresolvedVars("{{base}}/x")).toEqual([
+      { kind: "unresolved", name: "base" },
+      { kind: "text", value: "/x" },
+    ]);
+  });
+  it("emits multiple unresolved tokens when several refs are missing", () => {
+    expect(tokenizeUnresolvedVars("{{a}}/{{b}}")).toEqual([
+      { kind: "unresolved", name: "a" },
+      { kind: "text", value: "/" },
+      { kind: "unresolved", name: "b" },
+    ]);
+  });
+  it("strips whitespace inside braces", () => {
+    expect(tokenizeUnresolvedVars("{{  x  }}")).toEqual([{ kind: "unresolved", name: "x" }]);
+  });
+});
+
+describe("hasUnresolvedVars", () => {
+  it("returns true when at least one var ref remains", () => {
+    expect(hasUnresolvedVars("https://api.test/{{userId}}")).toBe(true);
+    expect(hasUnresolvedVars("{{a}}")).toBe(true);
+  });
+  it("returns false on plain strings", () => {
+    expect(hasUnresolvedVars("https://api.test/x")).toBe(false);
+    expect(hasUnresolvedVars("")).toBe(false);
   });
 });

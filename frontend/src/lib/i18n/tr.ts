@@ -183,6 +183,10 @@ export const tr = {
   "composer.urlPlaceholder": "https://api.example.com/path  (env: {{vars}})",
   "composer.url.resolvesTo": "→",
   "composer.url.resolvedAria": "URL'nin aktif ortam değişkenleriyle çözümlenmiş hâli",
+  "composer.url.unresolvedLabel": "⚠",
+  "composer.url.unresolvedHint":
+    "Kırmızıyla işaretli {{var}} ifadeleri aktif ortamda yok — yazım hatası olabilir veya değişkeni eklemen gerekebilir.",
+  "composer.url.unresolvedVarTitle": "Aktif ortamda yok: {{name}}",
   "composer.tab.params": "Params",
   "composer.tab.headers": "Headers",
   "composer.tab.auth": "Auth",

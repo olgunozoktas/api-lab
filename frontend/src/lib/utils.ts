@@ -8,6 +8,29 @@ export function envSubst(s: string | null | undefined, vars: Record<string, stri
   return String(s).replace(/\{\{\s*([\w.-]+)\s*\}\}/g, (_, k) => vars[k] ?? `{{${k}}}`);
 }
 
+// Tokenize a (post-envSubst) string so the renderer can highlight any
+// remaining `{{var}}` chunks — those are vars envSubst couldn't resolve
+// against the active environment, almost always typos or missing keys.
+export type UrlVarToken = { kind: "text"; value: string } | { kind: "unresolved"; name: string };
+
+export function tokenizeUnresolvedVars(s: string): UrlVarToken[] {
+  const tokens: UrlVarToken[] = [];
+  const re = /\{\{\s*([\w.-]+)\s*\}\}/g;
+  let last = 0;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(s)) !== null) {
+    if (m.index > last) tokens.push({ kind: "text", value: s.slice(last, m.index) });
+    tokens.push({ kind: "unresolved", name: m[1] });
+    last = re.lastIndex;
+  }
+  if (last < s.length) tokens.push({ kind: "text", value: s.slice(last) });
+  return tokens;
+}
+
+export function hasUnresolvedVars(s: string): boolean {
+  return /\{\{\s*[\w.-]+\s*\}\}/.test(s);
+}
+
 // Bucket a status code into its RFC 9110 class. `other` covers
 // edge cases (0 = no response, negative, > 599) that shouldn't ship
 // a class description.
