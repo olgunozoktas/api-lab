@@ -184,6 +184,10 @@ export const en: Dict = {
   "composer.urlPlaceholder": "https://api.example.com/path  (env: {{vars}})",
   "composer.url.resolvesTo": "→",
   "composer.url.resolvedAria": "URL resolved with the active environment",
+  "composer.url.unresolvedLabel": "⚠",
+  "composer.url.unresolvedHint":
+    "Variables shown in red aren't defined in the active environment — likely a typo or a missing key.",
+  "composer.url.unresolvedVarTitle": "Not in active environment: {{name}}",
   "composer.tab.params": "Params",
   "composer.tab.headers": "Headers",
   "composer.tab.auth": "Auth",

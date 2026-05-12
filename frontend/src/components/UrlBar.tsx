@@ -1,7 +1,7 @@
 /** Olgun Özoktaş geliştirdi · API Lab */
 import { useEffect, useRef, useState } from "react";
 import { useStore, useActiveVars } from "../store";
-import { envSubst, methodClass } from "../lib/utils";
+import { envSubst, methodClass, tokenizeUnresolvedVars, hasUnresolvedVars } from "../lib/utils";
 import { useT } from "../lib/i18n/useT";
 import { Button } from "./ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
@@ -69,11 +69,14 @@ export function UrlBar({
   // calls the abort-controller wired up in App.tsx. Falls back to
   // the disabled-Send shape when no onCancel is wired (older callers).
   const showCancel = busy && !!onCancel;
-  // Show the resolved-URL preview only when the user actually has
-  // `{{var}}` references AND substitution changes the visible string.
-  // Avoids confusing "preview matches" duplication on plain URLs and
-  // hides the row entirely while substitution is a no-op.
-  const showResolved = !!resolvedUrl && resolvedUrl !== url && /\{\{/.test(url);
+  // Show the resolved-URL preview whenever the user has `{{var}}`
+  // references AND either substitution changes the string OR some refs
+  // are unresolved (typo / missing-key warning). Hidden entirely on
+  // plain URLs.
+  const hasRefs = /\{\{/.test(url);
+  const someUnresolved = !!resolvedUrl && hasUnresolvedVars(resolvedUrl);
+  const showResolved = hasRefs && !!resolvedUrl && (resolvedUrl !== url || someUnresolved);
+  const resolvedTokens = showResolved ? tokenizeUnresolvedVars(resolvedUrl!) : [];
   return (
     <div className="bg-[var(--color-bg-elev)] border-b border-[var(--color-border)]">
       <div className="flex gap-1.5 px-3 pt-2.5 pb-1.5">
@@ -141,11 +144,29 @@ export function UrlBar({
       {showResolved && (
         <div
           className="px-3 pb-2 -mt-0.5 font-mono text-[10px] text-[var(--color-fg-muted)] truncate"
-          title={resolvedUrl}
+          title={
+            someUnresolved ? `${resolvedUrl}\n\n${t("composer.url.unresolvedHint")}` : resolvedUrl
+          }
           aria-label={t("composer.url.resolvedAria")}
         >
-          <span className="opacity-70">{t("composer.url.resolvesTo")}</span>{" "}
-          <span className="text-[var(--color-fg)]">{resolvedUrl}</span>
+          <span className="opacity-70">
+            {someUnresolved ? t("composer.url.unresolvedLabel") : t("composer.url.resolvesTo")}
+          </span>{" "}
+          {resolvedTokens.map((tok, i) =>
+            tok.kind === "text" ? (
+              <span key={i} className="text-[var(--color-fg)]">
+                {tok.value}
+              </span>
+            ) : (
+              <span
+                key={i}
+                className="text-red-400 bg-red-500/10 rounded px-1"
+                title={t("composer.url.unresolvedVarTitle", { name: tok.name })}
+              >
+                {"{{" + tok.name + "}}"}
+              </span>
+            )
+          )}
         </div>
       )}
     </div>
