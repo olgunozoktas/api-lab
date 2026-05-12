@@ -62,6 +62,39 @@ export function timingClass(ms: number): string {
   }
 }
 
+// Bucket a response payload size (bytes) into a perceptual band so the
+// size pill can mirror the timing pill's at-a-glance colour signal.
+// Thresholds tuned to "normal API response" expectations:
+//   tiny   (<10 KB)  — typical JSON
+//   normal (<100 KB) — chunky but fine
+//   large  (<1 MB)   — start noticing
+//   huge   (≥1 MB)   — heavy payload; possible code smell
+export type SizeBand = "tiny" | "normal" | "large" | "huge";
+const KB = 1024;
+const MB = 1024 * 1024;
+export function sizeBand(bytes: number): SizeBand {
+  if (!Number.isFinite(bytes) || bytes < 0) return "normal";
+  if (bytes < 10 * KB) return "tiny";
+  if (bytes < 100 * KB) return "normal";
+  if (bytes < MB) return "large";
+  return "huge";
+}
+
+// Mirror `timingClass` palette so the two pills agree visually. `tiny`
+// and `normal` both stay muted — only "large" and "huge" lift the eye.
+export function sizeClass(bytes: number): string {
+  switch (sizeBand(bytes)) {
+    case "large":
+      return "text-[var(--color-warning)]";
+    case "huge":
+      return "text-[var(--color-danger)]";
+    case "tiny":
+    case "normal":
+    default:
+      return "text-[var(--color-fg-muted)]";
+  }
+}
+
 // Bucket a status code into its RFC 9110 class. `other` covers
 // edge cases (0 = no response, negative, > 599) that shouldn't ship
 // a class description.

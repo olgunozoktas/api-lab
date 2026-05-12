@@ -4,6 +4,8 @@ import { useStore } from "../store";
 import { useT } from "../lib/i18n/useT";
 import {
   humanSize,
+  sizeBand,
+  sizeClass,
   statusClass,
   statusPillClass,
   statusText,
@@ -60,7 +62,7 @@ export function ResponseHead({
         {r.status} {r.statusText || statusText(r.status)}
       </span>
       <TimingBadge response={r} />
-      <span className="text-xs text-[var(--color-fg-muted)]">{humanSize(r.sizeBytes)}</span>
+      <SizeBadge bytes={r.sizeBytes} />
       <span
         className={
           "text-xs " +
@@ -123,6 +125,26 @@ function TimingBadge({ response: r }: { response: ResponseSnapshot }) {
       aria-label={tooltip.replace(/\n/g, " · ")}
     >
       {r.elapsedMs} ms
+    </span>
+  );
+}
+
+// Payload size badge — mirrors the timing badge's perceptual-band
+// colour palette so large/huge responses stand out without stealing
+// focus from the status pill.
+function SizeBadge({ bytes }: { bytes: number }) {
+  const t = useT();
+  const band = sizeBand(bytes);
+  const bandLabel = t(`response.size.band.${band}` as TKey);
+  const exact = t("response.size.bytes", { bytes: bytes.toLocaleString() });
+  const tooltip = `${bandLabel}\n\n${exact}`;
+  return (
+    <span
+      className={"text-xs font-medium cursor-help " + sizeClass(bytes)}
+      title={tooltip}
+      aria-label={tooltip.replace(/\n/g, " · ")}
+    >
+      {humanSize(bytes)}
     </span>
   );
 }
