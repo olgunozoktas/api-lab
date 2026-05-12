@@ -284,6 +284,8 @@ export const tr = {
   "body.mode.raw": "Raw",
   "body.prettyFormat": "Pretty Format",
   "body.invalidJson": "Geçersiz JSON: {error}",
+  "body.status.validJson": "Geçerli JSON",
+  "body.status.invalidJson": "Geçersiz JSON · {error}",
   "body.hint.none": "Body gönderilmez. GET / HEAD gibi gövdesiz metodlar için kullanın.",
   "body.hint.json":
     "Body, `Content-Type: application/json` ile gönderilir. Pretty Format butonu (veya editör içinde) JSON'ı yeniden biçimlendirir. {{var}} referansları istek atılırken değiştirilir.",

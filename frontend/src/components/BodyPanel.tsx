@@ -1,10 +1,12 @@
 /** Olgun Özoktaş geliştirdi · API Lab */
+import { useMemo } from "react";
 import { useStore } from "../store";
 import { useT } from "../lib/i18n/useT";
 import { Button } from "./ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { CodeEditor } from "./ui/code-editor";
-import { Wand2 } from "lucide-react";
+import { humanSize, sizeClass } from "../lib/utils";
+import { AlertTriangle, Check, Wand2 } from "lucide-react";
 import type { Body, BodyMode } from "../lib/types";
 
 // Presenter — pure props in / events out. No store.
@@ -73,6 +75,50 @@ export function BodyPanel({ value, onChange, onInvalidJson }: BodyPanelProps) {
           }
         />
       )}
+      <BodyStatusLine value={value} />
+    </div>
+  );
+}
+
+// Small footer beneath the body editor — shows live byte count and,
+// for JSON mode, a parse-validity chip. Hidden entirely when the
+// body is empty so an empty None-mode panel doesn't carry a stub.
+function BodyStatusLine({ value }: { value: Body }) {
+  const t = useT();
+  const bytes = useMemo(() => new TextEncoder().encode(value.text).length, [value.text]);
+  const jsonStatus = useMemo<null | { ok: true } | { ok: false; error: string }>(() => {
+    if (value.mode !== "json") return null;
+    const trimmed = value.text.trim();
+    if (!trimmed) return null;
+    try {
+      JSON.parse(trimmed);
+      return { ok: true };
+    } catch (e) {
+      return { ok: false, error: (e as Error).message };
+    }
+  }, [value.mode, value.text]);
+  if (value.mode === "none" || (bytes === 0 && !jsonStatus)) return null;
+  return (
+    <div className="mt-1.5 flex items-center gap-3 px-0.5 text-[10px] font-mono">
+      <span className={sizeClass(bytes)}>{humanSize(bytes)}</span>
+      {jsonStatus &&
+        (jsonStatus.ok ? (
+          <span
+            className="inline-flex items-center gap-1 text-[var(--color-success)]"
+            title={t("body.status.validJson")}
+          >
+            <Check className="w-3 h-3" aria-hidden />
+            {t("body.status.validJson")}
+          </span>
+        ) : (
+          <span
+            className="inline-flex items-center gap-1 text-[var(--color-warning)] cursor-help"
+            title={t("body.status.invalidJson", { error: jsonStatus.error })}
+          >
+            <AlertTriangle className="w-3 h-3" aria-hidden />
+            {t("body.status.invalidJson", { error: jsonStatus.error })}
+          </span>
+        ))}
     </div>
   );
 }
