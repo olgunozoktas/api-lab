@@ -1,6 +1,6 @@
 /** Olgun Özoktaş geliştirdi · API Lab */
 import { useMemo, useState } from "react";
-import { useStore } from "../store";
+import { useActiveVars, useStore } from "../store";
 import {
   methodClass,
   statusPillClass,
@@ -12,6 +12,8 @@ import {
 import { useT } from "../lib/i18n/useT";
 import { type TKey } from "../lib/i18n";
 import { filterHistory } from "../lib/historyFilter";
+import { buildBody, buildHeadersList, buildUrl, effectiveContentType } from "../lib/sendRequest";
+import { toCurl } from "../lib/codegen/curl";
 import {
   ContextMenu,
   ContextMenuContent,
@@ -19,8 +21,8 @@ import {
   ContextMenuSeparator,
   ContextMenuTrigger,
 } from "./ui/context-menu";
-import { Copy, ExternalLink, Play, Trash2 } from "lucide-react";
-import type { HistoryItem } from "../lib/types";
+import { Copy, ExternalLink, Play, Terminal, Trash2 } from "lucide-react";
+import type { CurrentRequest, HistoryItem } from "../lib/types";
 
 type StatusClass = null | 200 | 300 | 400 | 500;
 
@@ -46,9 +48,32 @@ export function HistoryList({ query = "" }: { query?: string }) {
   const t = useT();
   const [statusFilter, setStatusFilter] = useState<StatusClass>(null);
 
+  const vars = useActiveVars();
+
   const onCopyUrl = (h: HistoryItem) => {
     const url = h.request.url || "";
     navigator.clipboard.writeText(url).then(() => showToast(t("history.context.urlCopied")));
+  };
+
+  // Re-build the wire-level cURL command for a historical request the
+  // same way CopyAsMenu does for the live composer: substitute env
+  // vars, fold auth into headers, attach the body (skipped for
+  // GET/HEAD), and set content-type. RequestSnapshot is widened to
+  // CurrentRequest by stubbing the two extra fields buildUrl never
+  // reads.
+  const onCopyCurl = (h: HistoryItem) => {
+    const req = { ...h.request, id: null, name: "" } as CurrentRequest;
+    const isGraphql = !!h.request.isGraphql;
+    const url = buildUrl(req, vars);
+    const method = isGraphql ? "POST" : h.request.method;
+    const headers = buildHeadersList(req, vars);
+    effectiveContentType(req, isGraphql, headers);
+    const body =
+      method === "GET" || method === "HEAD" ? null : (buildBody(req, isGraphql, vars) ?? null);
+    const headersArr: { name: string; value: string }[] = [];
+    headers.forEach((v, k) => headersArr.push({ name: k, value: v }));
+    const code = toCurl({ method, url, headers: headersArr, body });
+    navigator.clipboard.writeText(code).then(() => showToast(t("history.context.curlCopied")));
   };
 
   const trimmedQuery = query.trim();
@@ -191,6 +216,10 @@ export function HistoryList({ query = "" }: { query?: string }) {
                 <ContextMenuItem onSelect={() => onCopyUrl(h)}>
                   <Copy className="w-3.5 h-3.5" aria-hidden />
                   {t("history.context.copyUrl")}
+                </ContextMenuItem>
+                <ContextMenuItem onSelect={() => onCopyCurl(h)}>
+                  <Terminal className="w-3.5 h-3.5" aria-hidden />
+                  {t("history.context.copyCurl")}
                 </ContextMenuItem>
                 <ContextMenuSeparator />
                 <ContextMenuItem onSelect={() => removeHistoryItem(h.id)}>

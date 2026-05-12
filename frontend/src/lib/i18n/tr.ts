@@ -145,8 +145,10 @@ export const tr = {
   "history.context.replay": "Tekrar oynat",
   "history.context.openInNewTab": "Yeni sekmede aç",
   "history.context.copyUrl": "URL'yi kopyala",
+  "history.context.copyCurl": "cURL olarak kopyala",
   "history.context.delete": "Sil",
   "history.context.urlCopied": "URL panoya kopyalandı",
+  "history.context.curlCopied": "cURL komutu panoya kopyalandı",
   "layout.sidebar.aria": "Yan menü genişliğini ayarla (sürükle, çift-tıkla = sıfırla)",
   "layout.composer.aria": "Composer/Yanıt oranını ayarla (sürükle, çift-tıkla = sıfırla)",
 

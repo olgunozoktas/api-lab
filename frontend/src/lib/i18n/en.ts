@@ -146,8 +146,10 @@ export const en: Dict = {
   "history.context.replay": "Replay",
   "history.context.openInNewTab": "Open in new tab",
   "history.context.copyUrl": "Copy URL",
+  "history.context.copyCurl": "Copy as cURL",
   "history.context.delete": "Delete",
   "history.context.urlCopied": "URL copied to clipboard",
+  "history.context.curlCopied": "cURL command copied to clipboard",
   "layout.sidebar.aria": "Resize sidebar (drag to set, double-click to reset)",
   "layout.composer.aria": "Resize composer / response split (drag, double-click to reset)",
 
