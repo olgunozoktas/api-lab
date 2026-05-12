@@ -191,6 +191,43 @@ yield zero entries (the in-app modal would render an empty state). Same
 reason `APP_VERSION` reads from `frontend/package.json` rather than a
 top-level `VERSION` file.
 
+**Version bump: every user-visible change bumps the app version.**
+The `version` field in `frontend/package.json` is the single source of
+truth — it feeds `__APP_VERSION__` (Vite define), the TopBar badge, the
+Settings → About card, and the changelog auto-open gate. Any commit /
+PR that drops a markdown entry under `frontend/changelog/unreleased/`
+MUST bump the version in the same commit. Internal-only refactors (no
+changelog entry) do NOT bump.
+
+Bump policy (semver-ish):
+
+- **Patch** (`0.1.0 → 0.1.1`) — small UX polish, copy tweaks, single
+  panel hints. Most slices.
+- **Minor** (`0.1.0 → 0.2.0`) — new feature surfaces or several
+  patches combined (new modal, new protocol, new tab type).
+- **Major** (`0.x → 1.0`) — reserved for genuine API / behaviour
+  breakage. None planned pre-1.0.
+
+Two ways to bump:
+
+```bash
+# Option 1 — convenience script (preferred). Increments patch, prints
+# the new version, leaves the change unstaged so you can commit it
+# alongside the rest of the slice.
+bash scripts/bump-version.sh           # patch (default)
+bash scripts/bump-version.sh patch
+bash scripts/bump-version.sh minor
+bash scripts/bump-version.sh major
+
+# Option 2 — hand-edit `frontend/package.json` `version` field. Same
+# result; the script just avoids typos.
+```
+
+The TopBar version badge auto-opens the changelog modal on first
+launch after a bump (via `useChangelogAutoOpen` comparing
+`APP_VERSION` against the IDB-persisted `lastSeen`). Forgetting to
+bump means users miss the "what's new" prompt for that release.
+
 ## Secrets policy (HARD RULE — never violated)
 
 **Never commit secrets, credentials, or anything that grants access to a system.** This applies to every commit, every PR, every workflow file, every test fixture, every code comment, every doc page — no exceptions, in any project context.
