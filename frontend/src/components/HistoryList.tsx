@@ -1,7 +1,14 @@
 /** Olgun Özoktaş geliştirdi · API Lab */
 import { useMemo, useState } from "react";
 import { useStore } from "../store";
-import { methodClass, statusPillClass, statusText, timingBand, timingClass } from "../lib/utils";
+import {
+  methodClass,
+  statusPillClass,
+  statusText,
+  timeAgo,
+  timingBand,
+  timingClass,
+} from "../lib/utils";
 import { useT } from "../lib/i18n/useT";
 import { type TKey } from "../lib/i18n";
 import { filterHistory } from "../lib/historyFilter";
@@ -124,6 +131,8 @@ export function HistoryList({ query = "" }: { query?: string }) {
           const timingTitle = hasTiming
             ? t(`response.timing.band.${timingBand(elapsed)}` as TKey)
             : undefined;
+          const hasTs = typeof h.ts === "number" && h.ts > 0;
+          const tsTitle = hasTs ? new Date(h.ts).toLocaleString() : undefined;
           return (
             <ContextMenu key={h.id}>
               <ContextMenuTrigger asChild>
@@ -140,6 +149,14 @@ export function HistoryList({ query = "" }: { query?: string }) {
                     {h.request.method}
                   </span>
                   <span className="flex-1 truncate">{h.request.url || "—"}</span>
+                  {hasTs && (
+                    <span
+                      className="font-mono text-[10px] text-[var(--color-fg-muted)] flex-shrink-0 cursor-help"
+                      title={tsTitle}
+                    >
+                      {timeAgo(h.ts)}
+                    </span>
+                  )}
                   {hasTiming && (
                     <span
                       className={
