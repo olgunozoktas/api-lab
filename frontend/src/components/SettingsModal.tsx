@@ -167,6 +167,7 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
               <Shortcut keys={["⌘", "B"]} label={t("settings.shortcuts.toggleSidebar")} />
               <Shortcut keys={["⌘", "."]} label={t("settings.shortcuts.cancel")} />
               <Shortcut keys={["⌘", ","]} label={t("settings.shortcuts.openSettings")} />
+              <Shortcut keys={["⌘", "⇧", "E"]} label={t("settings.shortcuts.openEnv")} />
               <Shortcut keys={["?"]} label={t("settings.shortcuts.openGuides")} />
             </ul>
           </section>

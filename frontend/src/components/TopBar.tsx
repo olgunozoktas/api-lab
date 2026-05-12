@@ -9,6 +9,7 @@ import { useChangelogAutoOpen } from "../lib/changelog_gate";
 import { APP_VERSION, formatBuildDate } from "../lib/changelog";
 import { useGuideShortcut } from "../lib/guides_shortcut";
 import { useSettingsShortcut } from "../lib/settings_shortcut";
+import { useEnvEditorShortcut } from "../lib/env_editor_shortcut";
 import { useT } from "../lib/i18n/useT";
 import { Button } from "./ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
@@ -35,6 +36,10 @@ export function TopBar() {
   // never produces a useful character.
   const openSettings = useCallback(() => setEditingSettings(true), []);
   useSettingsShortcut(openSettings);
+  // ⌘+Shift+E → open Environments editor. Shift-prefixed to dodge
+  // WebKit-native ⌘+E ("Use Selection for Find") in text fields.
+  const openEnvEditor = useCallback(() => setEditingEnv(true), []);
+  useEnvEditorShortcut(openEnvEditor);
 
   // Window-event channels so anywhere in the app (e.g. the About
   // section in SettingsModal) can ask for these modals without
@@ -116,7 +121,12 @@ export function TopBar() {
           <SingleEnvBadge />
         )}
 
-        <Button variant="ghost" size="sm" onClick={() => setEditingEnv(true)}>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setEditingEnv(true)}
+          title={t("topbar.envEdit") + "  ⌘⇧E"}
+        >
           <Settings2 className="w-3.5 h-3.5" />
           {t("topbar.envEdit")}
         </Button>
