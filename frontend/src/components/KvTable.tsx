@@ -1,3 +1,4 @@
+/** Olgun Özoktaş geliştirdi · API Lab */
 import type { KvRow } from "../lib/types";
 import { useT } from "../lib/i18n/useT";
 import type { TKey } from "../lib/i18n";
@@ -53,7 +54,12 @@ export function KvTable({ rows, onChange, addLabelKey }: Props) {
               onChange={(e) => update(i, { v: e.target.value })}
               className={inputCls}
             />
-            <Button variant="ghost" size="icon" onClick={() => remove(i)} aria-label={t("kv.delete")}>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => remove(i)}
+              aria-label={t("kv.delete")}
+            >
               <Trash2 className="w-3 h-3" />
             </Button>
           </div>

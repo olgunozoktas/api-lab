@@ -1,3 +1,15 @@
+/**
+ * API Lab — native macOS Postman-style API tester.
+ *
+ * Author:  Olgun Özoktaş <https://github.com/olgunozoktas>
+ * Repo:    https://github.com/olgunozoktas/api-lab
+ * License: PolyForm Noncommercial 1.0.0 + attribution addendum (see LICENSE)
+ *
+ * App.tsx — top-level shell: 3-pane layout (sidebar / composer / response),
+ * theme effect, global keyboard shortcuts (⌘+Enter / ⌘+S / ⌘+T / ⌘+W /
+ * ⌘+1..9 / ⌥⌘→← / ⌘+K / ⌘+P / ⌘+L / ⌘+B / ⌘+. / ⌘+Shift+T), HTTP↔WS↔SSE↔gRPC
+ * URL-prefix routing.
+ */
 import { useCallback, useEffect, useRef, useState } from "react";
 import { TopBar } from "./components/TopBar";
 import { Sidebar } from "./components/Sidebar";

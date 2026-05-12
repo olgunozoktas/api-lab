@@ -1,3 +1,4 @@
+/** Olgun Özoktaş geliştirdi · API Lab */
 // OAuth 2.0 helpers — pure functions used by the AuthPanel OAuth sub-panel
 // and (eventually) the popup flow once zero-native gains the primitive.
 //

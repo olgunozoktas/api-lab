@@ -1,3 +1,4 @@
+// Olgun Özoktaş geliştirdi · API Lab
 // gRPC unary handler — shells out to `grpcurl` (the canonical gRPC CLI).
 //
 // Mirrors the http.zig pattern: pure `buildArgv` + parser helpers (testable),

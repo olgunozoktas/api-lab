@@ -1,3 +1,4 @@
+/** Olgun Özoktaş geliştirdi · API Lab */
 import type { StateCreator } from "zustand";
 import type { OpenTab, RequestDefaults, UiState } from "../lib/types";
 import type { Locale } from "../lib/i18n";

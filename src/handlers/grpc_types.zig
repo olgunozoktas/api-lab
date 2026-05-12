@@ -1,3 +1,4 @@
+// Olgun Özoktaş geliştirdi · API Lab
 // Shared types for the gRPC bridge. Extracted so `grpc.zig` and the
 // argv builder (`grpc_argv.zig`) can both reference them without
 // circular import — the unidirectional shape is

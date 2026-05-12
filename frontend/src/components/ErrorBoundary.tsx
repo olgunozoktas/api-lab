@@ -1,3 +1,4 @@
+/** Olgun Özoktaş geliştirdi · API Lab */
 import { Component, type ReactNode } from "react";
 import {
   resolveStackSafe,

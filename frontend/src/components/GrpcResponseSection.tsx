@@ -1,3 +1,4 @@
+/** Olgun Özoktaş geliştirdi · API Lab */
 // Response section + status pill for the gRPC composer. Split out of
 // GrpcPanel.tsx to stay under the 400-LOC cap (CLAUDE.md hard rule).
 

@@ -1,3 +1,4 @@
+/** Olgun Özoktaş geliştirdi · API Lab */
 // Turkish translations. SOURCE OF TRUTH for translation keys — every other
 // locale must mirror its key set (TypeScript fails the build on missing keys).
 

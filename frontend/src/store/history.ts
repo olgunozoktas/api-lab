@@ -1,3 +1,4 @@
+/** Olgun Özoktaş geliştirdi · API Lab */
 import type { StateCreator } from "zustand";
 import type { HistoryItem, RequestSnapshot } from "../lib/types";
 import { uid } from "../lib/utils";

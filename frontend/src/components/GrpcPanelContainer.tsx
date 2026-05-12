@@ -1,3 +1,4 @@
+/** Olgun Özoktaş geliştirdi · API Lab */
 // Wires GrpcPanel to the store. Owns:
 //   * gRPC unary call lifecycle (status / response / durationMs)
 //   * reqTab (controlled — needed so the reflection picker can jump to

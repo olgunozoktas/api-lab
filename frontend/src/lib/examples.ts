@@ -1,3 +1,4 @@
+/** Olgun Özoktaş geliştirdi · API Lab */
 // Helpers for the saved-response examples feature.
 // The Zig mock-server sidecar that consumes these is a backlog
 // follow-up — these helpers ship now so collections + Postman imports

@@ -1,3 +1,4 @@
+/** Olgun Özoktaş geliştirdi · API Lab */
 // zero-native JS↔Zig bridge wrapper.
 // Calls window.zero.invoke(command, payload) when available.
 

@@ -1,3 +1,4 @@
+/** Olgun Özoktaş geliştirdi · API Lab */
 // Internal helpers extracted from store/index.ts to keep that file under
 // the 400-line cap. None of these are part of the public API; they're
 // imported only by store/index.ts. Adding new actions? Define helpers

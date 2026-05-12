@@ -1,3 +1,4 @@
+/** Olgun Özoktaş geliştirdi · API Lab */
 import type { StateCreator } from "zustand";
 import type { CollectionItem, ComposerTab, HistoryItem, OpenTab, ResponseTab } from "../lib/types";
 import { emptyTab } from "../lib/types";

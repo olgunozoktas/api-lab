@@ -1,3 +1,4 @@
+/** Olgun Özoktaş geliştirdi · API Lab */
 import { describe, it, expect } from "vitest";
 import { migrateV1toV2, migrateV2toV3 } from "../internal";
 import type { CoreState } from "../internal";

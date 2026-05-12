@@ -1,3 +1,4 @@
+/** Olgun Özoktaş geliştirdi · API Lab */
 // FolderRow + RequestRow — the leaf renderers used by CollectionList's
 // TreeNode walker. Split out of CollectionList.tsx to stay under the
 // 400-LOC cap (CLAUDE.md hard rule). Each row carries its own context

@@ -1,3 +1,4 @@
+/** Olgun Özoktaş geliştirdi · API Lab */
 import { useStore } from "../store";
 import { ResponseHeadContainer } from "./ResponseHead";
 import { ResponseBodyContainer } from "./ResponseBody";

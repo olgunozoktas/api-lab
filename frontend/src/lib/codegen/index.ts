@@ -1,3 +1,4 @@
+/** Olgun Özoktaş geliştirdi · API Lab */
 import type { CodegenInput, CodegenLang, Formatter } from "./types";
 import { toCurl } from "./curl";
 import { toFetch } from "./fetch";

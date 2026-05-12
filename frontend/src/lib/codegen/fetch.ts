@@ -1,3 +1,4 @@
+/** Olgun Özoktaş geliştirdi · API Lab */
 import type { CodegenInput } from "./types";
 import { methodHasBody } from "./types";
 

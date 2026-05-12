@@ -1,3 +1,4 @@
+/** Olgun Özoktaş geliştirdi · API Lab */
 import { useEffect, useMemo, useRef } from "react";
 import { EditorState, Compartment, type Extension } from "@codemirror/state";
 import { EditorView, keymap, placeholder as placeholderExt, lineNumbers } from "@codemirror/view";

@@ -1,3 +1,4 @@
+// Olgun Özoktaş geliştirdi · API Lab
 // gRPC TLS helpers — tmpfile lifecycle for the cert PEMs that grpcurl
 // needs as on-disk paths (`-cacert`, `-cert`, `-key`). Extracted from
 // `grpc.zig` to keep that file under the 400-LOC cap (CLAUDE.md hard rule).

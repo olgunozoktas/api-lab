@@ -1,3 +1,4 @@
+/** Olgun Özoktaş geliştirdi · API Lab */
 // Pick a sensible file extension from the response's Content-Type
 // header. Order matters: more specific MIME types come first so e.g.
 // `application/vnd.api+json` lands on `.json` rather than the

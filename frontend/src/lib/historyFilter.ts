@@ -1,3 +1,4 @@
+/** Olgun Özoktaş geliştirdi · API Lab */
 // Smart-parse the History tab's search query into structured filters:
 // HTTP method (leading verb), status code (3-digit number), URL substring.
 // Pure helpers — no DOM, no React; unit-tested in __tests__/historyFilter.test.ts.

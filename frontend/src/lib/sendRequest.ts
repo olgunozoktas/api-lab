@@ -1,3 +1,4 @@
+/** Olgun Özoktaş geliştirdi · API Lab */
 import { bridge } from "./bridge";
 import type { HttpHeader, HttpResponse } from "./bridge";
 import type { CurrentRequest, RequestDefaults, ResponseSnapshot } from "./types";

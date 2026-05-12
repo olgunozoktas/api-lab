@@ -1,3 +1,4 @@
+/** Olgun Özoktaş geliştirdi · API Lab */
 import { splitFrontmatter } from "./markdown";
 import type { Locale } from "./i18n";
 

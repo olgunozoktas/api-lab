@@ -1,3 +1,4 @@
+/** Olgun Özoktaş geliştirdi · API Lab */
 // gRPC helpers — URL detection + scheme-derived flags + target extraction.
 // Pure / framework-free so the helpers stay unit-testable. Connection
 // lifecycle lives in the GrpcPanel container; the bridge call itself

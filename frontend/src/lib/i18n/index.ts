@@ -1,3 +1,4 @@
+/** Olgun Özoktaş geliştirdi · API Lab */
 // Minimal i18n. Adding a new language:
 //   1. Create lib/i18n/<code>.ts that exports `<code>: Dict`
 //   2. Register it in `locales` below
@@ -31,11 +32,7 @@ export function detectLocale(fallback: Locale = "tr"): Locale {
   return fallback;
 }
 
-export function t(
-  locale: Locale,
-  key: TKey,
-  params?: Record<string, string | number>,
-): string {
+export function t(locale: Locale, key: TKey, params?: Record<string, string | number>): string {
   const dict = locales[locale] as Dict;
   let str: string = dict[key] ?? locales.tr[key] ?? key;
   if (params) {

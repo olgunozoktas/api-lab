@@ -1,3 +1,14 @@
+/**
+ * API Lab — native macOS Postman-style API tester.
+ *
+ * Author:  Olgun Özoktaş <https://github.com/olgunozoktas>
+ * Repo:    https://github.com/olgunozoktas/api-lab
+ * License: PolyForm Noncommercial 1.0.0 + attribution addendum (see LICENSE)
+ *
+ * main.tsx — React mount + global fatal-error banner. The banner is
+ * injected directly into <body> so users see crashes even when the React
+ * tree never gets a chance to render.
+ */
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { App } from "./App";

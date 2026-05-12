@@ -1,3 +1,4 @@
+/** Olgun Özoktaş geliştirdi · API Lab */
 import { describe, it, expect } from "vitest";
 import { groupGuides, searchGuides, selectGuides, _internal, type GuideEntry } from "../guides";
 

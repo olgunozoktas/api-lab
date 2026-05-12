@@ -1,3 +1,4 @@
+/** Olgun Özoktaş geliştirdi · API Lab */
 import type { StateCreator } from "zustand";
 import type { Environment } from "../lib/types";
 import type { Store, StoreMutators } from "./types";

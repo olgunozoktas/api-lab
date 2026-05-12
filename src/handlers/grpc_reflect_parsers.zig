@@ -1,3 +1,4 @@
+// Olgun Özoktaş geliştirdi · API Lab
 // Pure parsers for `grpcurl <target> list` + `grpcurl describe …`
 // stdout. State-machine line walks — no regex dependency.
 //

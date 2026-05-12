@@ -1,3 +1,4 @@
+/** Olgun Özoktaş geliştirdi · API Lab */
 import { useStore } from "../store";
 import { KbdHint, UrlBarContainer } from "./UrlBar";
 import { KvTable } from "./KvTable";

@@ -1,3 +1,4 @@
+/** Olgun Özoktaş geliştirdi · API Lab */
 // Lazy-loaded reflection browser. Lives inside GrpcPanel's Proto tab.
 // User clicks "Browse services" → bridge fans out (one `grpcurl list`
 // + N `grpcurl describe` calls), the tree renders, and clicking a

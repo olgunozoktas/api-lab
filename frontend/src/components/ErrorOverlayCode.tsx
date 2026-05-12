@@ -1,3 +1,4 @@
+/** Olgun Özoktaş geliştirdi · API Lab */
 // Source-frame + stack rendering for the ErrorBoundary overlay. Split
 // out of ErrorBoundary.tsx to honor the 400-LOC cap (CLAUDE.md hard
 // rule). Holds the Astro-style "blame frame" with syntax highlighting,

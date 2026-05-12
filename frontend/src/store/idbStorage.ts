@@ -1,3 +1,4 @@
+/** Olgun Özoktaş geliştirdi · API Lab */
 import { openDB, type IDBPDatabase } from "idb";
 import type { StateStorage } from "zustand/middleware";
 

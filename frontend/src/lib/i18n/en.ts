@@ -1,3 +1,4 @@
+/** Olgun Özoktaş geliştirdi · API Lab */
 // English translations. Must mirror the key set defined in tr.ts.
 
 import type { Dict } from "./index";

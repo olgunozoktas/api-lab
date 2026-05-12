@@ -1,3 +1,4 @@
+// Olgun Özoktaş geliştirdi · API Lab
 // MessageIter — brace-balanced JSON splitter used by grpc.zig to break
 // grpcurl's stdout into individual top-level messages. Extracted into
 // its own file to keep grpc.zig under the 400-LOC project cap

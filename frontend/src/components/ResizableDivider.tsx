@@ -1,3 +1,4 @@
+/** Olgun Özoktaş geliştirdi · API Lab */
 // Pointer-driven drag handle that sits between two grid columns and
 // lets the user resize the column to its left. Pixel-based — pass the
 // current column width in `value` and update via `onChange`. Caller

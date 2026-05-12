@@ -1,3 +1,13 @@
+// API Lab — native macOS Postman-style API tester.
+//
+// Author:  Olgun Özoktaş <https://github.com/olgunozoktas>
+// Repo:    https://github.com/olgunozoktas/api-lab
+// License: PolyForm Noncommercial 1.0.0 + attribution addendum (see LICENSE)
+//
+// main.zig — Zig entry point. Wires the zero-native runner with the
+// `http.request` / `grpc.*` bridge handlers, then yields the WebView
+// host. The `app.zon` manifest in this directory carries the runtime
+// permissions + window config.
 const std = @import("std");
 const runner = @import("runner");
 const zero_native = @import("zero-native");
