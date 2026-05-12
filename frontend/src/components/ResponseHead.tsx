@@ -15,7 +15,7 @@ import {
 import type { TKey } from "../lib/i18n";
 import { downloadResponseBody } from "../lib/responseDownload";
 import { Button } from "./ui/button";
-import { Copy, BookmarkPlus, Download } from "lucide-react";
+import { Copy, BookmarkPlus, Download, Terminal, Globe } from "lucide-react";
 import { CopyAsMenuContainer } from "./CopyAsMenu";
 import type { ResponseSnapshot } from "../lib/types";
 import { exampleFromResponse, suggestExampleName } from "../lib/examples";
@@ -63,17 +63,8 @@ export function ResponseHead({
       </span>
       <TimingBadge response={r} />
       <SizeBadge bytes={r.sizeBytes} />
-      <span
-        className={
-          "text-xs " +
-          (r.transport === "native"
-            ? "text-[var(--color-success)]"
-            : "text-[var(--color-fg-muted)]")
-        }
-        title={t("response.transport.title")}
-      >
-        {r.transport}
-      </span>
+      <TransportChip transport={r.transport} />
+
       <div className="flex-1" />
       {onSaveExample && (
         <Button variant="ghost" size="sm" onClick={onSaveExample} title={t("examples.saveTitle")}>
@@ -145,6 +136,35 @@ function SizeBadge({ bytes }: { bytes: number }) {
       aria-label={tooltip.replace(/\n/g, " · ")}
     >
       {humanSize(bytes)}
+    </span>
+  );
+}
+
+// Transport indicator chip — `native` means the request went through
+// the Zig curl bridge (CORS-free, full headers); `fetch` is the
+// browser fallback. Icon + tooltip explains the difference without
+// hijacking text density.
+function TransportChip({ transport }: { transport: "native" | "fetch" }) {
+  const t = useT();
+  const isNative = transport === "native";
+  const Icon = isNative ? Terminal : Globe;
+  const labelKey: TKey = isNative ? "response.transport.native" : "response.transport.fetch";
+  const titleKey: TKey = isNative
+    ? "response.transport.native.title"
+    : "response.transport.fetch.title";
+  return (
+    <span
+      className={
+        "inline-flex items-center gap-1 text-[10px] font-mono px-1.5 py-0.5 rounded cursor-help " +
+        (isNative
+          ? "bg-green-500/15 text-[var(--color-success)]"
+          : "bg-[var(--color-bg-elev-2)] text-[var(--color-fg-muted)]")
+      }
+      title={t(titleKey)}
+      aria-label={t(titleKey)}
+    >
+      <Icon className="w-3 h-3" aria-hidden />
+      {t(labelKey)}
     </span>
   );
 }

@@ -324,6 +324,12 @@ export const tr = {
   "response.bodyCopied": "Body kopyalandı",
   "response.codeCopied": "{lang} kopyalandı",
   "response.transport.title": "HTTP transport",
+  "response.transport.native": "native",
+  "response.transport.fetch": "fetch",
+  "response.transport.native.title":
+    "Native bridge — istek Zig curl alt sürecinden geçti (CORS yok, gerçek başlıklar)",
+  "response.transport.fetch.title":
+    "Browser fetch — yedek yol; CORS kuralları ve sansürlü başlıklar geçerli",
   "response.timing.elapsed": "Geçen süre: {ms} ms",
   "response.timing.dns": "DNS",
   "response.timing.connect": "TCP / TLS handshake",
