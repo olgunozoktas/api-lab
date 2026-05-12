@@ -7,6 +7,8 @@ import {
   humanSize,
   isProbablyJson,
   methodClass,
+  sizeBand,
+  sizeClass,
   statusText,
   timeAgo,
   timingBand,
@@ -235,6 +237,46 @@ describe("timingBand", () => {
     expect(timingBand(NaN)).toBe("ok");
     expect(timingBand(-5)).toBe("ok");
     expect(timingBand(Infinity)).toBe("ok");
+  });
+});
+
+describe("sizeBand", () => {
+  it("buckets <10KB as tiny", () => {
+    expect(sizeBand(0)).toBe("tiny");
+    expect(sizeBand(5000)).toBe("tiny");
+    expect(sizeBand(10 * 1024 - 1)).toBe("tiny");
+  });
+  it("buckets 10KB–100KB as normal", () => {
+    expect(sizeBand(10 * 1024)).toBe("normal");
+    expect(sizeBand(50 * 1024)).toBe("normal");
+    expect(sizeBand(100 * 1024 - 1)).toBe("normal");
+  });
+  it("buckets 100KB–1MB as large", () => {
+    expect(sizeBand(100 * 1024)).toBe("large");
+    expect(sizeBand(500 * 1024)).toBe("large");
+    expect(sizeBand(1024 * 1024 - 1)).toBe("large");
+  });
+  it("buckets ≥1MB as huge", () => {
+    expect(sizeBand(1024 * 1024)).toBe("huge");
+    expect(sizeBand(50 * 1024 * 1024)).toBe("huge");
+  });
+  it("returns normal for NaN / negative / Infinity", () => {
+    expect(sizeBand(NaN)).toBe("normal");
+    expect(sizeBand(-100)).toBe("normal");
+    expect(sizeBand(Infinity)).toBe("normal");
+  });
+});
+
+describe("sizeClass", () => {
+  it("muted for tiny and normal", () => {
+    expect(sizeClass(500)).toBe("text-[var(--color-fg-muted)]");
+    expect(sizeClass(50 * 1024)).toBe("text-[var(--color-fg-muted)]");
+  });
+  it("warning for large", () => {
+    expect(sizeClass(500 * 1024)).toBe("text-[var(--color-warning)]");
+  });
+  it("danger for huge", () => {
+    expect(sizeClass(5 * 1024 * 1024)).toBe("text-[var(--color-danger)]");
   });
 });
 

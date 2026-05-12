@@ -326,6 +326,11 @@ export const en: Dict = {
   "response.timing.band.ok": "Normal (200–700 ms)",
   "response.timing.band.slow": "Slow (700 ms – 2 s)",
   "response.timing.band.bad": "Very slow (≥ 2 s)",
+  "response.size.band.tiny": "Tiny (<10 KB) — typical JSON",
+  "response.size.band.normal": "Normal (10–100 KB)",
+  "response.size.band.large": "Large (100 KB – 1 MB)",
+  "response.size.band.huge": "Huge (≥ 1 MB) — heavy payload",
+  "response.size.bytes": "{bytes} bytes",
   "response.status.class.1xx":
     "Informational (1xx) — the server got the request and is still processing. The real response is yet to come.",
   "response.status.class.2xx":
