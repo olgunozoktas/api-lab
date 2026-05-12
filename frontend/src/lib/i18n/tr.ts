@@ -193,6 +193,13 @@ export const tr = {
   "composer.tab.body": "Body",
   "composer.tab.graphql": "GraphQL",
   "composer.tab.scripts": "Scripts",
+  "composer.tabBadge.auth.bearer": "Bearer",
+  "composer.tabBadge.auth.basic": "Basic",
+  "composer.tabBadge.auth.apikey": "Key",
+  "composer.tabBadge.auth.oauth2": "OAuth",
+  "composer.tabBadge.body.json": "JSON",
+  "composer.tabBadge.body.form": "Form",
+  "composer.tabBadge.body.raw": "Raw",
 
   "scripts.preLabel": "Pre-request Script",
   "scripts.preHelp": "İstekten önce çalışır — request + env değiştirilebilir",

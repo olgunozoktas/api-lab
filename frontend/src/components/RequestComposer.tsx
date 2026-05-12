@@ -10,7 +10,7 @@ import { useT } from "../lib/i18n/useT";
 import { displayTabName, isDefaultTabName } from "../lib/utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { Button } from "./ui/button";
-import type { ComposerTab, KvRow } from "../lib/types";
+import type { AuthType, BodyMode, ComposerTab, KvRow } from "../lib/types";
 import type { TKey } from "../lib/i18n";
 
 const TABS: { id: ComposerTab; key: TKey }[] = [
@@ -37,6 +37,12 @@ export type RequestComposerProps = {
   url: string;
   params: KvRow[];
   headers: KvRow[];
+  // Lightweight indicators so each tab carries an at-a-glance sign of
+  // "this tab has content" — feeds the Badge slots in the TabsTrigger.
+  authType: AuthType;
+  bodyMode: BodyMode;
+  hasGraphqlQuery: boolean;
+  scriptCount: number;
   composerTab: ComposerTab;
   onNameChange: (n: string) => void;
   onParamsChange: (rows: KvRow[]) => void;
@@ -54,6 +60,10 @@ export function RequestComposer({
   url,
   params,
   headers,
+  authType,
+  bodyMode,
+  hasGraphqlQuery,
+  scriptCount,
   composerTab,
   onNameChange,
   onParamsChange,
@@ -64,6 +74,8 @@ export function RequestComposer({
   const t = useT();
   const pCount = params.filter((r) => r.enabled && r.k).length;
   const hCount = headers.filter((r) => r.enabled && r.k).length;
+  const authBadge = authType !== "none" ? t(`composer.tabBadge.auth.${authType}` as TKey) : null;
+  const bodyBadge = bodyMode !== "none" ? t(`composer.tabBadge.body.${bodyMode}` as TKey) : null;
   // Render the input as empty + show derived `METHOD shortUrl` (or
   // the request-name placeholder) when the tab is still using a
   // default name. The store can hold "Yeni istek" — but presenting
@@ -106,8 +118,12 @@ export function RequestComposer({
           {TABS.map((tab) => (
             <TabsTrigger key={tab.id} value={tab.id}>
               {t(tab.key)}
-              {tab.id === "params" && pCount > 0 && <Badge n={pCount} />}
-              {tab.id === "headers" && hCount > 0 && <Badge n={hCount} />}
+              {tab.id === "params" && pCount > 0 && <Badge>{pCount}</Badge>}
+              {tab.id === "headers" && hCount > 0 && <Badge>{hCount}</Badge>}
+              {tab.id === "auth" && authBadge && <Badge>{authBadge}</Badge>}
+              {tab.id === "body" && bodyBadge && <Badge>{bodyBadge}</Badge>}
+              {tab.id === "graphql" && hasGraphqlQuery && <Badge>•</Badge>}
+              {tab.id === "scripts" && scriptCount > 0 && <Badge>{scriptCount}</Badge>}
             </TabsTrigger>
           ))}
         </TabsList>
@@ -136,10 +152,10 @@ export function RequestComposer({
   );
 }
 
-function Badge({ n }: { n: number }) {
+function Badge({ children }: { children: React.ReactNode }) {
   return (
-    <span className="bg-[var(--color-accent)] text-white text-[9px] px-1.5 py-0.5 rounded-full ml-1">
-      {n}
+    <span className="bg-[var(--color-accent)] text-white text-[9px] uppercase tracking-wide px-1.5 py-0.5 rounded-full ml-1">
+      {children}
     </span>
   );
 }
@@ -177,10 +193,16 @@ export function RequestComposerContainer({
   const url = useStore((s) => s.current.url);
   const params = useStore((s) => s.current.params);
   const headers = useStore((s) => s.current.headers);
+  const authType = useStore((s) => s.current.auth.type);
+  const bodyMode = useStore((s) => s.current.body.mode);
+  const gqlQuery = useStore((s) => s.current.gql.query);
+  const preScript = useStore((s) => s.current.preScript);
+  const postScript = useStore((s) => s.current.postScript);
   const composerTab = useStore((s) => s.ui.composerTab);
   const setCurrent = useStore((s) => s.setCurrent);
   const setUi = useStore((s) => s.setUi);
   const saveCurrent = useStore((s) => s.saveCurrent);
+  const scriptCount = (preScript?.trim() ? 1 : 0) + (postScript?.trim() ? 1 : 0);
 
   return (
     <RequestComposer
@@ -192,6 +214,10 @@ export function RequestComposerContainer({
       url={url}
       params={params}
       headers={headers}
+      authType={authType}
+      bodyMode={bodyMode}
+      hasGraphqlQuery={gqlQuery.trim().length > 0}
+      scriptCount={scriptCount}
       composerTab={composerTab}
       onNameChange={(name) => setCurrent({ name })}
       onParamsChange={(params) => setCurrent({ params })}
