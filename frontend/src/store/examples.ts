@@ -1,3 +1,4 @@
+/** Olgun Özoktaş geliştirdi · API Lab */
 import type { StateCreator } from "zustand";
 import type { CurrentRequest, Example } from "../lib/types";
 import { clone } from "./internal";

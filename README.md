@@ -3,6 +3,8 @@
 [![CI](https://github.com/olgunozoktas/api-lab/actions/workflows/ci.yml/badge.svg)](https://github.com/olgunozoktas/api-lab/actions/workflows/ci.yml)
 [![Release](https://github.com/olgunozoktas/api-lab/actions/workflows/release.yml/badge.svg)](https://github.com/olgunozoktas/api-lab/actions/workflows/release.yml)
 
+> Designed, built and maintained by **[Olgun Özoktaş](https://github.com/olgunozoktas)**.
+
 A tiny native macOS API tester. Postman-style request composer with native HTTP transport (CORS-free), under **3 MB** binary, instant cold start.
 
 Built on top of **[vercel-labs/zero-native](https://github.com/vercel-labs/zero-native)** — a Zig-based native shell (WebKit on macOS, WebKitGTK on Linux, WebView2 on Windows). Frontend is React 19 + Vite + TypeScript + Tailwind CSS v4 + Zustand + Radix-based shadcn primitives + CodeMirror 6 + lucide-react. Multi-language UI (TR + EN; more in 3 mechanical steps).
@@ -11,27 +13,28 @@ Built on top of **[vercel-labs/zero-native](https://github.com/vercel-labs/zero-
 
 ## Features
 
-- **Multi-request workspace** — open as many tabs as you want, each with its own state. ⌘+T new, ⌘+W close, ⌘+1..9 jump, ⌘+P fuzzy switcher across tabs + collections + history. Drag to reorder, middle-click to close, dirty indicator when a tab diverges from its saved state.
+- **Multi-request workspace** — open as many tabs as you want, each with its own state. ⌘+T new, ⌘+W close, ⌘+1..9 jump, ⌥⌘→/← cycle, ⌘+Shift+T reopen last closed, ⌘+K / ⌘+P fuzzy switcher across tabs + collections + history. Drag to reorder, middle-click to close, pin to survive bulk-close, right-click context menu, dirty dot when a tab diverges from its saved state. Tabs auto-name themselves from the URL when you haven't renamed them (`GET api.github.com/users/octocat` instead of three indistinguishable "New request" tabs). Strip scrolls horizontally when full (no visible scrollbar), and switching tabs auto-scrolls the active one into view.
 - **REST + GraphQL composer** with method picker, params/headers/auth/body/graphql tabs
 - **WebSocket workspace** — type `ws://` or `wss://` and the layout swaps to a full WS workbench: status pill, message log with timestamps + direction icons + JSON pretty-print + JSON detection badge, send box with ⌘+Enter, ping helper. Browser-native `WebSocket` API (no CORS for ws/wss).
 - **Server-Sent Events panel** — `sse://` / `sses://` URLs activate a one-way stream tab with auto-reconnect, named-event tags, and last-event-id cursor capture.
 - **gRPC panel** with reflection — `grpc://` / `grpcs://` URLs route through `grpcurl`. Reflection-cached service browser (5-min TTL per target), unary + server-streaming, paste-in mTLS credentials with hardened `0o700`/`0o600` per-call temp files.
 - **Right-click → New request with protocol picker** — pick HTTP / GraphQL / WebSocket / SSE / gRPC when creating an entry under any folder; the URL prefix + composer tab pre-fill so you don't have to type `wss://` manually.
 - **"Copy as code" generator** — emit the live request as cURL / JavaScript fetch / JavaScript axios / Python `requests` / Go `net/http` / Node.js `https`. Generated snippets carry the env-substituted URL, headers, body, and auth — copy-paste-runnable.
-- **Native HTTP** via Zig handler that shells out to `curl` — sidesteps WebView CORS, exposes timing breakdown (DNS / connect / TTFB / total)
+- **Native HTTP** via Zig handler that shells out to `curl` — sidesteps WebView CORS, exposes timing breakdown (DNS / connect / TTFB / total). Hover the elapsed-ms badge in the response head to see the breakdown; hover the status pill to see a plain-English description of the status class (1xx / 2xx / 3xx / 4xx / 5xx).
 - **Request cancellation** — Send button morphs to a red Cancel; `⌘+.` (canonical macOS abort) fires the same handler. AbortSignal threaded through the fetch path.
 - **Pre / post-request scripts** — QuickJS sandbox with a `pm.*` API subset (5s CPU / 10MB heap, no fetch/XHR). pm.test pass/fail tally + console output rendered inline.
 - **Auth helpers**: Bearer, Basic, API Key (header), OAuth 2.0 helper variant (paste-token + Refresh)
 - **JSON & GraphQL editor** powered by CodeMirror 6 (auto-close brackets, auto-indent, search, fold gutter, line numbers)
 - **JSON tree response viewer** powered by `@uiw/react-json-view` (expand/collapse, copy-path)
 - **Save as variable** — right-click any value in the response viewer to extract it into an environment variable (`{{access_token}}` etc.) for later requests.
-- **Environments** with `{{var}}` substitution. Single-env users see a clean top bar; the env switcher only appears once a second environment exists.
-- **Collections** + history (last 200 requests) — persisted via IndexedDB (uncaps the old localStorage 5 MB ceiling) with v1→v2→v3 migrations.
+- **Environments** with `{{var}}` substitution. URL bar shows a faded `→ resolved` preview below the input whenever the URL contains a `{{var}}`. Top-bar env switcher hides when there's only one; when multiple exist, each entry shows its `N vars` count badge. Single-env users see a clean top bar; the env switcher only appears once a second environment exists.
+- **Collections** + history (last 200 requests) — persisted via IndexedDB with v1→v2→v3 migrations. Saved requests + history rows have right-click context menus (Replay / Open in new tab / Copy URL / Delete). History sidebar has status-class filter pills (All / 2xx / 3xx / 4xx / 5xx) on top, and the search box stacks with them. Collection items auto-name themselves from the URL like tabs do; ⌘+S commits the derived name so a folder of saved requests is never just three "New request" rows.
 - **Postman v2.1 import** — drag-drop a collection JSON to bring the whole tree + variables over.
-- **History suggestions in the empty response pane** — when a fresh request hasn't been sent, the right pane lists the 6 most-recent history items as one-click loads.
+- **Recent history suggestions in the empty response pane** — when a fresh request hasn't been sent, the right pane lists deduped (`method + url`) recent calls as one-click loads with colored status pills, relative time, response size, and right-click context menu.
+- **Richer empty states + per-panel hints** — the composer's Params / Headers / Auth / Body tabs each lead with a one-line "what this sends on the wire" note. The Environments modal greets you with a `{{name}}` explainer. Collection + History sidebars walk you through 2-3 concrete ways to populate them when empty.
 - **In-app feature guides** — press `?` (or click the help-circle icon) for 14 curated walkthroughs (Quick start, Environments, Collections, Body modes, Auth, gRPC, Cancellation, Streaming, Examples, Scripts, Save as variable, Copy as code, Postman import, Quick switcher). Live search across title / group / body. Localized in TR + EN; falls back to EN per slug if a translation is missing.
 - **In-app changelog** — top-bar clock-history icon opens "What's new". Auto-opens once on first launch after a version bump; manual opens don't touch lastSeen. Markdown bodies (incl. GFM tables) bundled at build time. Localized in TR + EN.
-- **Settings hub** — single modal for theme, language, request defaults (timeout, redirect cap, TLS-skip toggle)
+- **Settings hub** — single modal for theme, language, request defaults (per-field hints + "Reset to defaults" appears when anything differs from baseline), keyboard shortcut reference, and an **About** card showing app version + stack (Platform / Native shell / Frontend / Storage) + quick-link buttons (Guides / Changelog / GitHub) + a **Your data** stats grid (Requests / Folders / History / Environments / Examples). ⌘+B toggles the sidebar.
 - **Themes** — auto / light / dark / Tokyo Night (dark) / GitHub Light / high-contrast, applied via `:root[data-theme="..."]` CSS variable swaps
 - **i18n** — TR + EN today; adding a new language is 3 mechanical steps. Guide / changelog content also localized as `<slug>.<lang>.md` markdown.
 - **Keyboard shortcuts** — see the [Keyboard reference](#keyboard-reference) below
@@ -165,14 +168,20 @@ Each panel that depends on app state is split into a presenter (pure props) + co
 | Shortcut | Action |
 |---|---|
 | ⌘+Enter | Send request |
-| ⌘+S | Save current request as collection |
+| ⌘+. | Cancel the in-flight request (macOS-canonical abort) |
+| ⌘+S | Save current request to the active folder (auto-names `METHOD shortUrl` for default-named requests) |
 | ⌘+N | Reset current request to a fresh empty one |
+| ⌘+L | Focus + select-all on the URL bar (browser address-bar standard) |
+| ⌘+B | Toggle the sidebar (Collections / History) |
 | ⌘+T | Open a new tab |
+| ⌘+Shift+T | Reopen the most recently closed tab |
 | ⌘+W | Close the current tab |
 | ⌘+1 … ⌘+8 | Jump to tab N |
 | ⌘+9 | Jump to the LAST tab (Postman / VSCode convention) |
-| ⌘+P | Open the quick switcher (fuzzy across tabs / collections / history) |
+| ⌥+⌘+→ / ⌥+⌘+← | Cycle to next / previous tab |
+| ⌘+K / ⌘+P | Open the quick switcher (fuzzy across tabs / collections / history) |
 | ⌘+F | Search inside the response body (within the editor) |
+| ? | Open the in-app Guide hub |
 | ↑ / ↓ in switcher | Navigate results |
 | ↵ in switcher | Open the highlighted item in the current tab |
 | ⌘+↵ in switcher | Open in a NEW tab |
@@ -250,6 +259,16 @@ In flight / queued:
 - Phase J — Built-in mock server
 - Phase K — Spec-driven dev (OpenAPI editor + Spectral linting + doc gen)
 - Phase L — Cross-platform distribution + cloud sync + polish
+
+## Author
+
+**Olgun Özoktaş** — designed, built and maintained API Lab.
+
+- GitHub: <https://github.com/olgunozoktas>
+- Commit identity: `Olgun Özoktaş <19225739+olgunozoktas@users.noreply.github.com>`
+- Every source file under `frontend/src/` and `src/` carries a one-line
+  `/** Olgun Özoktaş geliştirdi · API Lab */` (or `// …` for `.zig`)
+  attribution header. Drop the same line at the top of any new file you add.
 
 ## Built with [zero-native](https://github.com/vercel-labs/zero-native)
 

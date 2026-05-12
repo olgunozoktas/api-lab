@@ -1,3 +1,4 @@
+/** Olgun Özoktaş geliştirdi · API Lab */
 import { useStore } from "../store";
 import { useCallback, useEffect, useState } from "react";
 import { EnvEditorModal } from "./EnvEditorModal";
@@ -5,6 +6,7 @@ import { SettingsModal } from "./SettingsModal";
 import { ChangelogModal } from "./ChangelogModal";
 import { GuideHub } from "./GuideHub";
 import { useChangelogAutoOpen } from "../lib/changelog_gate";
+import { APP_VERSION } from "../lib/changelog";
 import { useGuideShortcut } from "../lib/guides_shortcut";
 import { useT } from "../lib/i18n/useT";
 import { Button } from "./ui/button";
@@ -55,6 +57,12 @@ export function TopBar() {
         <div className="font-semibold text-sm flex items-center gap-2">
           <span className="w-2.5 h-2.5 rounded-[3px] bg-gradient-to-br from-[var(--color-accent)] to-[var(--color-purple)]" />
           API Lab
+          <span
+            className="text-[10px] font-mono font-normal px-1.5 py-0.5 rounded bg-[var(--color-bg-elev-2)] text-[var(--color-fg-muted)]"
+            title={`v${APP_VERSION}`}
+          >
+            v{APP_VERSION}
+          </span>
         </div>
         <div className="flex-1" />
 

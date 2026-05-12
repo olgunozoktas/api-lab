@@ -2,6 +2,17 @@
   "name": "api-lab-frontend",
   "private": true,
   "version": "0.1.0",
+  "description": "API Lab — native macOS Postman-style API tester (frontend)",
+  "author": {
+    "name": "Olgun Özoktaş",
+    "email": "19225739+olgunozoktas@users.noreply.github.com",
+    "url": "https://github.com/olgunozoktas"
+  },
+  "homepage": "https://github.com/olgunozoktas/api-lab",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/olgunozoktas/api-lab.git"
+  },
   "type": "module",
   "scripts": {
     "dev": "vite --host 127.0.0.1",

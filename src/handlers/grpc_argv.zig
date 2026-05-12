@@ -1,3 +1,4 @@
+// Olgun Özoktaş geliştirdi · API Lab
 // Pure argv builder for grpcurl. Extracted from grpc.zig to keep that
 // file under the 400-LOC cap (CLAUDE.md hard rule) before the gRPC
 // reflection slice expands the handler surface.

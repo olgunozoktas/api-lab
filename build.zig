@@ -1,3 +1,12 @@
+// API Lab — native macOS Postman-style API tester.
+//
+// Author:  Olgun Özoktaş <https://github.com/olgunozoktas>
+// Repo:    https://github.com/olgunozoktas/api-lab
+// License: PolyForm Noncommercial 1.0.0 + attribution addendum (see LICENSE)
+//
+// build.zig — sequences the Zig side: imports zero-native, registers the
+// http.request handler, and links a single ~3 MB binary. `./build.sh`
+// drives this on top of the frontend (Vite) build.
 const std = @import("std");
 
 const PlatformOption = enum {

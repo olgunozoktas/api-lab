@@ -1,3 +1,4 @@
+/** Olgun Özoktaş geliştirdi · API Lab */
 // Zero-dep syntax highlighter for TS/JSX/TSX. Used by the ErrorBoundary's
 // Astro-style "blame frame" so the offending source excerpt reads as
 // real code, not a flat dump. Hand-rolled instead of pulling in

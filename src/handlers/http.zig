@@ -1,3 +1,4 @@
+// Olgun Özoktaş geliştirdi · API Lab
 const std = @import("std");
 const zero_native = @import("zero-native");
 const bridge = zero_native.bridge;

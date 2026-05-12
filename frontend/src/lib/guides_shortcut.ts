@@ -1,3 +1,4 @@
+/** Olgun Özoktaş geliştirdi · API Lab */
 import { useEffect } from "react";
 
 // Hook — bind the `?` key globally to open the guide hub. Skips when

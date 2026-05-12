@@ -1,3 +1,4 @@
+// Olgun Özoktaş geliştirdi · API Lab
 // Unit tests for `handlers/http.zig` — Phase F (tests + CI/CD).
 //
 // Run with: `zig build test` (test step in build.zig drives `app_mod` which

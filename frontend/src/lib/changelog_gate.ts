@@ -1,3 +1,4 @@
+/** Olgun Özoktaş geliştirdi · API Lab */
 import { useEffect, useState } from "react";
 import { APP_VERSION, isNewer } from "./changelog";
 import { getLastSeen, markSeen } from "./changelog_seen";

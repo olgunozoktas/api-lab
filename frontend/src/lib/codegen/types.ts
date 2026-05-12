@@ -1,3 +1,4 @@
+/** Olgun Özoktaş geliştirdi · API Lab */
 import type { HttpHeader } from "../bridge";
 
 export type CodegenInput = {

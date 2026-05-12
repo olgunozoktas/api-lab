@@ -1,3 +1,4 @@
+/** Olgun Özoktaş geliştirdi · API Lab */
 // Server-Sent Events helpers — URL detection + message helpers.
 // Connection lifecycle lives in the SsePanel component itself; this
 // module stays pure / framework-free so the helpers can be unit-tested.

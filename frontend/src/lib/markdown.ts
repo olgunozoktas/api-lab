@@ -1,3 +1,4 @@
+/** Olgun Özoktaş geliştirdi · API Lab */
 // Minimal markdown-to-HTML renderer for in-app docs (changelog
 // entries, feature guides). Hand-rolled, dependency-free, and
 // safe-by-default: every input is HTML-escaped first, so raw HTML

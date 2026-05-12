@@ -1,3 +1,4 @@
+/** Olgun Özoktaş geliştirdi · API Lab */
 import { useMemo } from "react";
 import type { ChangelogEntry } from "../lib/changelog";
 import { renderMarkdown } from "../lib/markdown";

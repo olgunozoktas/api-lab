@@ -1,3 +1,4 @@
+/** Olgun Özoktaş geliştirdi · API Lab */
 // cURL command parser — converts a `curl ...` shell line into a partial
 // CurrentRequest the URL bar can drop into the active tab. Pure function,
 // no DOM, no React. Covers the common shapes copied from API docs:

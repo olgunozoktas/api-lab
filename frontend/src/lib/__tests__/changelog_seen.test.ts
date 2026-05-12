@@ -1,3 +1,4 @@
+/** Olgun Özoktaş geliştirdi · API Lab */
 import { describe, it, expect, beforeEach, vi } from "vitest";
 
 // Mock idbStorage with an in-memory map. The real adapter swallows

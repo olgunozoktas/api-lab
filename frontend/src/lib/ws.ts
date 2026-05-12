@@ -1,3 +1,4 @@
+/** Olgun Özoktaş geliştirdi · API Lab */
 // WebSocket helpers — URL detection + message helpers.
 // Connection lifecycle lives in the WsPanel component itself; this module
 // stays pure / framework-free so the helpers can be unit-tested.

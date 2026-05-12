@@ -1,3 +1,4 @@
+/** Olgun Özoktaş geliştirdi · API Lab */
 // QuickJS-backed sandbox for pre/post-request scripts.
 //
 // Strategy: instead of live-binding host functions into the sandbox,

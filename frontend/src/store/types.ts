@@ -1,3 +1,4 @@
+/** Olgun Özoktaş geliştirdi · API Lab */
 import type { CoreState } from "./internal";
 import type { CollectionsActions } from "./collections";
 import type { TabsActions } from "./tabs";

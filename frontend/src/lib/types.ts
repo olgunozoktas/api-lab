@@ -1,3 +1,4 @@
+/** Olgun Özoktaş geliştirdi · API Lab */
 export type KvRow = { enabled: boolean; k: string; v: string };
 
 export type AuthType = "none" | "bearer" | "basic" | "apikey" | "oauth2";

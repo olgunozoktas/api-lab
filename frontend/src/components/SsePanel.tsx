@@ -1,3 +1,4 @@
+/** Olgun Özoktaş geliştirdi · API Lab */
 // Server-Sent Events panel. Mirrors WsPanel's structure (status bar +
 // scrolling log) but drops the send box — SSE is one-way, server →
 // client. Uses browser-native EventSource so no Zig bridge is needed.

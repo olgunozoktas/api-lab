@@ -1,3 +1,4 @@
+// Olgun Özoktaş geliştirdi · API Lab
 // gRPC reflection bridge — exposes two commands:
 //   `grpc.reflect.list({target, plaintext, timeout_ms})`
 //      → {services: [{name, methods: [{name, request_type, response_type,

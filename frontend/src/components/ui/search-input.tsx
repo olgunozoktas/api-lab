@@ -1,3 +1,4 @@
+/** Olgun Özoktaş geliştirdi · API Lab */
 // Reusable search input — used by the sidebar Collections + History tabs.
 // Extracted from Sidebar.tsx (commit bf59e5e) so both tabs render the
 // exact same UX: leading magnifier glyph, trailing X clear button when

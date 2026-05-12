@@ -1,3 +1,4 @@
+/** Olgun Özoktaş geliştirdi · API Lab */
 // Shell-level pieces of the ErrorBoundary overlay: top banner, hint
 // card, action button row, and reusable primitives (Card, Btn, CopyMini,
 // Spinner, keyframe injector, color palette, path utils). Split out of

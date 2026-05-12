@@ -1,3 +1,4 @@
+/** Olgun Özoktaş geliştirdi · API Lab */
 // Persists "last seen changelog version" so the modal only auto-opens
 // when something new shipped. Stored in IDB next to the rest of the
 // app's persisted state — same `idbStorage` adapter the Zustand store

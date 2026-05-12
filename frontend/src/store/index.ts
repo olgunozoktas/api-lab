@@ -1,3 +1,4 @@
+/** Olgun Özoktaş geliştirdi · API Lab */
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { buildInitialState, migrateV1toV2, migrateV2toV3, type CoreState } from "./internal";
