@@ -20,6 +20,7 @@ export type ResponseViewerProps = {
   hasResponse: boolean;
   tab: ResponseTab;
   examplesCount: number;
+  headersCount: number;
   onTabChange: (t: ResponseTab) => void;
 };
 
@@ -27,6 +28,7 @@ export function ResponseViewer({
   hasResponse,
   tab,
   examplesCount,
+  headersCount,
   onTabChange,
 }: ResponseViewerProps) {
   const t = useT();
@@ -44,6 +46,7 @@ export function ResponseViewer({
               <TabsTrigger key={rt.id} value={rt.id}>
                 {t(rt.key)}
                 {rt.id === "examples" && examplesCount > 0 && <Badge n={examplesCount} />}
+                {rt.id === "headers" && headersCount > 0 && <Badge n={headersCount} />}
               </TabsTrigger>
             ))}
           </TabsList>
@@ -66,6 +69,7 @@ function Badge({ n }: { n: number }) {
 export function ResponseViewerContainer() {
   const lastResponse = useStore((s) => s.lastResponse);
   const examplesCount = useStore((s) => s.current.examples?.length ?? 0);
+  const headersCount = useStore((s) => s.lastResponse?.headers.length ?? 0);
   const tab = useStore((s) => s.ui.responseTab);
   const setUi = useStore((s) => s.setUi);
   return (
@@ -73,6 +77,7 @@ export function ResponseViewerContainer() {
       hasResponse={lastResponse !== null}
       tab={tab}
       examplesCount={examplesCount}
+      headersCount={headersCount}
       onTabChange={(responseTab) => setUi({ responseTab })}
     />
   );
