@@ -43,6 +43,8 @@ export const tr = {
   "settings.insecure": "TLS doğrulamasını atla (insecure)",
   "settings.insecure.hint":
     "Sertifika geçerliliği kontrolünü atlar (curl'ün -k bayrağı). Self-signed dev API'leri için pratik; production'a karşı kullanmayın.",
+  "settings.defaults.dirtyHint": "Varsayılanlardan farklı değerler var.",
+  "settings.defaults.reset": "Varsayılana dön",
   "settings.section.shortcuts": "Klavye kısayolları",
   "settings.shortcuts.send": "İstek gönder",
   "settings.shortcuts.save": "Kaydet",

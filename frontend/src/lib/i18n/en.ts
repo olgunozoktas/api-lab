@@ -44,6 +44,8 @@ export const en: Dict = {
   "settings.insecure": "Skip TLS verification (insecure)",
   "settings.insecure.hint":
     "Skip certificate validation (curl's -k flag). Useful for self-signed dev APIs; never use against production.",
+  "settings.defaults.dirtyHint": "Some values differ from the shipped defaults.",
+  "settings.defaults.reset": "Reset to defaults",
   "settings.section.shortcuts": "Keyboard shortcuts",
   "settings.shortcuts.send": "Send request",
   "settings.shortcuts.save": "Save",
