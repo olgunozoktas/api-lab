@@ -62,6 +62,7 @@ export const tr = {
   "settings.shortcuts.cancel": "İsteği iptal et",
   "settings.shortcuts.openGuides": "Guide hub'ı aç",
   "settings.shortcuts.openSettings": "Ayarları aç",
+  "settings.shortcuts.openEnv": "Ortam düzenleyiciyi aç",
   "settings.section.about": "Hakkında",
   "settings.about.name": "API Lab",
   "settings.about.versionAria": "Sürüm {version}",
