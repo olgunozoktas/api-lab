@@ -5,14 +5,17 @@
 // menu (right-click) with rename / delete / sub-folder / open-in-new-tab.
 
 import { useState } from "react";
-import { useStore } from "../store";
+import { useActiveVars, useStore } from "../store";
 import { displayTabName, methodClass } from "../lib/utils";
 import { useT } from "../lib/i18n/useT";
 import { useConfirm } from "../lib/dialogs";
 import { cn } from "../lib/cn";
+import { buildBody, buildHeadersList, buildUrl, effectiveContentType } from "../lib/sendRequest";
+import { toCurl } from "../lib/codegen/curl";
 import {
   ChevronRight,
   Cable,
+  Copy,
   FilePlus,
   Folder,
   FolderOpen,
@@ -21,11 +24,12 @@ import {
   Pencil,
   Radio,
   Sparkles,
+  Terminal,
   Trash2,
   Eye,
   ExternalLink,
 } from "lucide-react";
-import type { CollectionItem } from "../lib/types";
+import type { CollectionItem, CurrentRequest } from "../lib/types";
 import type { NewRequestKind } from "../store/collections";
 import {
   ContextMenu,
@@ -223,10 +227,37 @@ export function RequestRow({ item, depth }: { item: CollectionItem; depth: numbe
   const loadCollectionInNewTab = useStore((s) => s.loadCollectionInNewTab);
   const deleteCollectionItem = useStore((s) => s.deleteCollectionItem);
   const renameCollectionItem = useStore((s) => s.renameCollectionItem);
+  const showToast = useStore((s) => s.showToast);
+  const vars = useActiveVars();
   const [renaming, setRenaming] = useState(false);
   const [draftName, setDraftName] = useState(item.name);
   const isActive = item.id === currentId;
   const m = item.request?.method ?? "GET";
+
+  const onCopyUrl = () => {
+    const url = item.request?.url ?? "";
+    navigator.clipboard.writeText(url).then(() => showToast(t("history.context.urlCopied")));
+  };
+
+  // Same builder pipeline CopyAsMenu / HistoryList.onCopyCurl use:
+  // env-substituted URL, auth folded into headers, body skipped for
+  // GET/HEAD, content-type set. RequestSnapshot is widened with the
+  // two CurrentRequest fields buildUrl doesn't read.
+  const onCopyCurl = () => {
+    if (!item.request) return;
+    const req = { ...item.request, id: null, name: "" } as CurrentRequest;
+    const isGraphql = !!item.request.isGraphql;
+    const url = buildUrl(req, vars);
+    const method = isGraphql ? "POST" : item.request.method;
+    const headers = buildHeadersList(req, vars);
+    effectiveContentType(req, isGraphql, headers);
+    const body =
+      method === "GET" || method === "HEAD" ? null : (buildBody(req, isGraphql, vars) ?? null);
+    const headersArr: { name: string; value: string }[] = [];
+    headers.forEach((v, k) => headersArr.push({ name: k, value: v }));
+    const code = toCurl({ method, url, headers: headersArr, body });
+    navigator.clipboard.writeText(code).then(() => showToast(t("history.context.curlCopied")));
+  };
 
   const onConfirmDelete = async () => {
     const ok = await confirm({
@@ -333,6 +364,15 @@ export function RequestRow({ item, depth }: { item: CollectionItem; depth: numbe
         <ContextMenuItem onSelect={() => loadCollectionInNewTab(item)}>
           <ExternalLink className="w-3.5 h-3.5" aria-hidden />
           {t("collections.context.openInNewTab")}
+        </ContextMenuItem>
+        <ContextMenuSeparator />
+        <ContextMenuItem onSelect={onCopyUrl}>
+          <Copy className="w-3.5 h-3.5" aria-hidden />
+          {t("history.context.copyUrl")}
+        </ContextMenuItem>
+        <ContextMenuItem onSelect={onCopyCurl}>
+          <Terminal className="w-3.5 h-3.5" aria-hidden />
+          {t("history.context.copyCurl")}
         </ContextMenuItem>
         <ContextMenuSeparator />
         <ContextMenuItem onSelect={() => setRenaming(true)}>
