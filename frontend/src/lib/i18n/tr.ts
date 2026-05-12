@@ -304,6 +304,7 @@ export const tr = {
   "response.empty.pickHint": "Bu isteği aktif sekmeye yükle",
   "response.empty.sentCount": "{n} kez gönderildi",
   "response.copy.body": "Body Kopyala",
+  "response.copy.bodyDone": "Kopyalandı",
   "response.download.body": "İndir",
   "response.download.title": "Yanıt body'sini dosya olarak kaydet",
   "response.bodyDownloaded": "Body dosyaya kaydedildi",
