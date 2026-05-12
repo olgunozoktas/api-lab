@@ -142,6 +142,28 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = ALL_ENTRIES;
 declare const __APP_VERSION__: string;
 export const APP_VERSION: string = typeof __APP_VERSION__ === "string" ? __APP_VERSION__ : "0.0.0";
 
+// `__BUILD_DATE__` is captured at vite.config.ts load time on each
+// build (ISO-8601 string). Empty string in tests / vitest runs where
+// the define isn't injected.
+declare const __BUILD_DATE__: string;
+export const BUILD_DATE: string = typeof __BUILD_DATE__ === "string" ? __BUILD_DATE__ : "";
+
+// Render the build date in the user's locale + short style. Returns
+// an empty string when the date is unavailable, so callers can safely
+// concatenate without a fallback dance.
+export function formatBuildDate(date: string = BUILD_DATE): string {
+  if (!date) return "";
+  const d = new Date(date);
+  if (Number.isNaN(d.getTime())) return "";
+  return d.toLocaleString(undefined, {
+    year: "numeric",
+    month: "short",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
 // Compare two semver-ish version strings. Tolerant of "v" prefix and
 // missing trailing components ("0.1" vs "0.1.0"). Returns positive if
 // a > b, negative if a < b, 0 if equal.

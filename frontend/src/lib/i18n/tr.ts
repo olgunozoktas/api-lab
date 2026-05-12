@@ -70,6 +70,8 @@ export const tr = {
   "settings.about.frontend": "Frontend",
   "settings.about.storage": "Depolama",
   "settings.about.storageLocal": "Yerel (WebKit LocalStorage)",
+  "settings.about.built": "Derleme zamanı",
+  "topbar.builtAt": "{date} tarihinde derlendi",
   "settings.about.openGuides": "Rehberler",
   "settings.about.openChangelog": "Değişiklikler",
   "settings.about.repo": "GitHub deposu",
