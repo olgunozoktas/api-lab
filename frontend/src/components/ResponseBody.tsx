@@ -4,7 +4,8 @@ import { useStore } from "../store";
 import { useT } from "../lib/i18n/useT";
 import { isProbablyJson } from "../lib/utils";
 import JsonView from "@uiw/react-json-view";
-import { Copy, Search, X } from "lucide-react";
+import { Check, Copy, Search, X } from "lucide-react";
+import { useCopyFeedback } from "../lib/useCopyFeedback";
 import { CodeEditor } from "./ui/code-editor";
 import { SaveAsVariableMenu } from "./SaveAsVariable";
 import { ResponseEmpty } from "./ResponseEmpty";
@@ -220,15 +221,7 @@ function ResponseHeadersTable({ headers }: { headers: ResponseHeader[] }) {
                   <td className="px-2.5 py-1.5 align-top break-all">
                     <div className="flex items-start gap-2">
                       <span className="flex-1 break-all">{h.v}</span>
-                      <button
-                        type="button"
-                        onClick={() => copy(h)}
-                        className="opacity-0 group-hover:opacity-100 shrink-0 p-0.5 rounded text-[var(--color-fg-muted)] hover:bg-[var(--color-bg-elev-2)] hover:text-[var(--color-fg)] transition-colors"
-                        aria-label={t("response.headers.copyValue", { name: h.k })}
-                        title={t("response.headers.copyValue", { name: h.k })}
-                      >
-                        <Copy className="w-3 h-3" aria-hidden />
-                      </button>
+                      <HeaderCopyButton header={h} onCopy={copy} />
                     </div>
                   </td>
                 </tr>
@@ -238,6 +231,46 @@ function ResponseHeadersTable({ headers }: { headers: ResponseHeader[] }) {
         )}
       </div>
     </>
+  );
+}
+
+// Per-row copy button with the same Copy→Check flash the ResponseHead
+// uses. Each row owns its own flash state so hitting Copy on one row
+// doesn't briefly mark every other row as "copied"; the parent
+// supplies the actual clipboard write via `onCopy` so the toast
+// channel stays centralized.
+function HeaderCopyButton({
+  header: h,
+  onCopy,
+}: {
+  header: ResponseHeader;
+  onCopy: (h: ResponseHeader) => void;
+}) {
+  const t = useT();
+  const { copied, flash } = useCopyFeedback();
+  return (
+    <button
+      type="button"
+      onClick={() => {
+        onCopy(h);
+        flash();
+      }}
+      className={
+        // Hover-reveal stays, but the check sticks the button visible
+        // for the duration of the flash so the confirmation is seen
+        // even when the user's cursor has already moved off the row.
+        (copied ? "opacity-100 " : "opacity-0 group-hover:opacity-100 ") +
+        "shrink-0 p-0.5 rounded text-[var(--color-fg-muted)] hover:bg-[var(--color-bg-elev-2)] hover:text-[var(--color-fg)] transition-colors"
+      }
+      aria-label={t("response.headers.copyValue", { name: h.k })}
+      title={t("response.headers.copyValue", { name: h.k })}
+    >
+      {copied ? (
+        <Check className="w-3 h-3 text-[var(--color-success)]" aria-hidden />
+      ) : (
+        <Copy className="w-3 h-3" aria-hidden />
+      )}
+    </button>
   );
 }
 
