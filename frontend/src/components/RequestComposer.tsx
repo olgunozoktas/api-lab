@@ -7,6 +7,7 @@ import { BodyPanelContainer } from "./BodyPanel";
 import { GraphqlPanelContainer } from "./GraphqlPanel";
 import { ScriptsPanelContainer } from "./ScriptsPanel";
 import { useT } from "../lib/i18n/useT";
+import { displayTabName, isDefaultTabName } from "../lib/utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { Button } from "./ui/button";
 import type { ComposerTab, KvRow } from "../lib/types";
@@ -28,6 +29,12 @@ export type RequestComposerProps = {
   onSend: () => void;
   onCancel?: () => void;
   name: string;
+  // `method` + `url` only feed the name-input placeholder — they hint
+  // at what `displayTabName` would derive when the user hits ⌘+S on
+  // a still-default-named tab. Pure visual; the live values come
+  // from store reads in the container.
+  method: string;
+  url: string;
   params: KvRow[];
   headers: KvRow[];
   composerTab: ComposerTab;
@@ -43,6 +50,8 @@ export function RequestComposer({
   onSend,
   onCancel,
   name,
+  method,
+  url,
   params,
   headers,
   composerTab,
@@ -55,14 +64,29 @@ export function RequestComposer({
   const t = useT();
   const pCount = params.filter((r) => r.enabled && r.k).length;
   const hCount = headers.filter((r) => r.enabled && r.k).length;
+  // Render the input as empty + show derived `METHOD shortUrl` (or
+  // the request-name placeholder) when the tab is still using a
+  // default name. The store can hold "Yeni istek" — but presenting
+  // that as the input value would lock the suggestion behind a
+  // select-all-delete. Empty value + placeholder lets the user
+  // type straight over the suggestion.
+  const isDefault = isDefaultTabName(name);
+  const derivedNamePreview = displayTabName({ name: "", method, url });
+  const displayValue = isDefault ? "" : name;
+  const namePlaceholder = derivedNamePreview || t("composer.requestName");
 
   return (
     <section className="bg-[var(--color-bg)] border-r border-[var(--color-border)] flex flex-col overflow-hidden">
       <div className="flex items-center gap-2 px-3 py-2.5 border-b border-[var(--color-border)] bg-[var(--color-bg-elev)]">
         <input
-          value={name}
+          value={displayValue}
           onChange={(e) => onNameChange(e.target.value)}
-          placeholder={t("composer.requestName")}
+          placeholder={namePlaceholder}
+          title={
+            derivedNamePreview
+              ? t("composer.requestName.derivedTitle", { name: derivedNamePreview })
+              : undefined
+          }
           className="flex-1 bg-transparent border-0 outline-none text-sm font-medium"
         />
         <Button variant="secondary" size="sm" onClick={onSave} title={t("composer.save.title")}>
@@ -149,6 +173,8 @@ export function RequestComposerContainer({
   onCancel,
 }: RequestComposerContainerProps) {
   const name = useStore((s) => s.current.name);
+  const method = useStore((s) => s.current.method);
+  const url = useStore((s) => s.current.url);
   const params = useStore((s) => s.current.params);
   const headers = useStore((s) => s.current.headers);
   const composerTab = useStore((s) => s.ui.composerTab);
@@ -162,6 +188,8 @@ export function RequestComposerContainer({
       onSend={onSend}
       onCancel={onCancel}
       name={name}
+      method={method}
+      url={url}
       params={params}
       headers={headers}
       composerTab={composerTab}
