@@ -59,10 +59,8 @@ jobs:
       - name: Build frontend (Vite production)
         working-directory: api-lab/frontend
         run: |
-          npm ci --ignore-scripts
+          npm ci --ignore-scripts --include=dev
           npm run build
-        env:
-          NODE_ENV: production
 
       - name: Build native (ReleaseSafe)
         working-directory: api-lab
