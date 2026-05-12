@@ -60,6 +60,14 @@ export function humanSize(b: number): string {
 // can derive a more useful label from the URL.
 const DEFAULT_TAB_NAMES = new Set(["Yeni istek", "New request", "Untitled"]);
 
+// Exposed for callers that want to know "should this value count as
+// the user's input or as the still-default placeholder text?" — the
+// composer name input uses it to render an empty input + derived
+// placeholder when the tab hasn't been explicitly renamed yet.
+export function isDefaultTabName(name: string): boolean {
+  return DEFAULT_TAB_NAMES.has(name.trim());
+}
+
 // Compute the visible tab strip label. When the tab is still using
 // the default placeholder name AND a URL is set, fall back to a
 // `${METHOD} ${shortUrl}` derived form so a strip full of new tabs

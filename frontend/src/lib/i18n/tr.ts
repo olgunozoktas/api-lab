@@ -171,6 +171,7 @@ export const tr = {
   "dialog.ok": "Tamam",
 
   "composer.requestName": "İstek adı",
+  "composer.requestName.derivedTitle": "⌘+S basarsanız “{name}” olarak kaydedilir",
   "composer.save": "Kaydet",
   "composer.save.title": "İsteği aktif klasöre kaydet (⌘+S)",
   "composer.send": "Gönder",
