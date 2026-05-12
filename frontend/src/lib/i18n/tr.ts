@@ -73,6 +73,7 @@ export const tr = {
   "settings.about.storageLocal": "Yerel (WebKit LocalStorage)",
   "settings.about.built": "Derleme zamanı",
   "topbar.builtAt": "{date} tarihinde derlendi",
+  "topbar.version.clickHint": "Bu sürümün notlarını görmek için tıkla",
   "settings.about.openGuides": "Rehberler",
   "settings.about.openChangelog": "Değişiklikler",
   "settings.about.repo": "GitHub deposu",

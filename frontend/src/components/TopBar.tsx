@@ -57,17 +57,22 @@ export function TopBar() {
         <div className="font-semibold text-sm flex items-center gap-2">
           <span className="w-2.5 h-2.5 rounded-[3px] bg-gradient-to-br from-[var(--color-accent)] to-[var(--color-purple)]" />
           API Lab
-          <span
-            className="text-[10px] font-mono font-normal px-1.5 py-0.5 rounded bg-[var(--color-bg-elev-2)] text-[var(--color-fg-muted)] cursor-help"
+          <button
+            type="button"
+            onClick={() => setChangelogOpen(true)}
+            className="text-[10px] font-mono font-normal px-1.5 py-0.5 rounded bg-[var(--color-bg-elev-2)] text-[var(--color-fg-muted)] hover:bg-[var(--color-bg-elev)] hover:text-[var(--color-fg)] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-accent)] transition-colors cursor-pointer"
             title={(() => {
               const built = formatBuildDate();
-              return built
+              const hint = t("topbar.version.clickHint");
+              const base = built
                 ? `v${APP_VERSION}\n${t("topbar.builtAt", { date: built })}`
                 : `v${APP_VERSION}`;
+              return `${base}\n\n${hint}`;
             })()}
+            aria-label={t("topbar.version.clickHint")}
           >
             v{APP_VERSION}
-          </span>
+          </button>
         </div>
         <div className="flex-1" />
 
