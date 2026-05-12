@@ -322,6 +322,10 @@ export const en: Dict = {
   "response.timing.connect": "TCP / TLS handshake",
   "response.timing.ttfb": "TTFB (first byte)",
   "response.timing.total": "Total",
+  "response.timing.band.fast": "Fast (<200 ms) — feels instant",
+  "response.timing.band.ok": "Normal (200–700 ms)",
+  "response.timing.band.slow": "Slow (700 ms – 2 s)",
+  "response.timing.band.bad": "Very slow (≥ 2 s)",
   "response.status.class.1xx":
     "Informational (1xx) — the server got the request and is still processing. The real response is yet to come.",
   "response.status.class.2xx":

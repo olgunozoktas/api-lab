@@ -9,6 +9,8 @@ import {
   methodClass,
   statusText,
   timeAgo,
+  timingBand,
+  timingClass,
   tokenizeUnresolvedVars,
 } from "../utils";
 
@@ -206,6 +208,48 @@ describe("tokenizeUnresolvedVars", () => {
   });
   it("strips whitespace inside braces", () => {
     expect(tokenizeUnresolvedVars("{{  x  }}")).toEqual([{ kind: "unresolved", name: "x" }]);
+  });
+});
+
+describe("timingBand", () => {
+  it("buckets sub-200ms as fast", () => {
+    expect(timingBand(0)).toBe("fast");
+    expect(timingBand(50)).toBe("fast");
+    expect(timingBand(199)).toBe("fast");
+  });
+  it("buckets 200–700ms as ok", () => {
+    expect(timingBand(200)).toBe("ok");
+    expect(timingBand(500)).toBe("ok");
+    expect(timingBand(699)).toBe("ok");
+  });
+  it("buckets 700–2000ms as slow", () => {
+    expect(timingBand(700)).toBe("slow");
+    expect(timingBand(1500)).toBe("slow");
+    expect(timingBand(1999)).toBe("slow");
+  });
+  it("buckets ≥2000ms as bad", () => {
+    expect(timingBand(2000)).toBe("bad");
+    expect(timingBand(5000)).toBe("bad");
+  });
+  it("returns ok for NaN / negative / Infinity", () => {
+    expect(timingBand(NaN)).toBe("ok");
+    expect(timingBand(-5)).toBe("ok");
+    expect(timingBand(Infinity)).toBe("ok");
+  });
+});
+
+describe("timingClass", () => {
+  it("returns the success token for fast responses", () => {
+    expect(timingClass(50)).toBe("text-[var(--color-success)]");
+  });
+  it("returns the muted token for normal responses", () => {
+    expect(timingClass(500)).toBe("text-[var(--color-fg-muted)]");
+  });
+  it("returns the warning token for slow responses", () => {
+    expect(timingClass(1500)).toBe("text-[var(--color-warning)]");
+  });
+  it("returns the danger token for very slow responses", () => {
+    expect(timingClass(5000)).toBe("text-[var(--color-danger)]");
   });
 });
 

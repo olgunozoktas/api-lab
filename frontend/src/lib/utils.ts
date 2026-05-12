@@ -31,6 +31,37 @@ export function hasUnresolvedVars(s: string): boolean {
   return /\{\{\s*[\w.-]+\s*\}\}/.test(s);
 }
 
+// Bucket an elapsed-time reading into a perceptual band. Thresholds
+// track the Nielsen-Group 0.1s/1s feel curve for network-bound work:
+//   fast  (<200 ms)  — interactive
+//   ok    (<700 ms)  — acceptable
+//   slow  (<2000 ms) — user starts to wonder
+//   bad   (≥2000 ms) — feels broken
+export type TimingBand = "fast" | "ok" | "slow" | "bad";
+export function timingBand(ms: number): TimingBand {
+  if (!Number.isFinite(ms) || ms < 0) return "ok";
+  if (ms < 200) return "fast";
+  if (ms < 700) return "ok";
+  if (ms < 2000) return "slow";
+  return "bad";
+}
+
+// CSS-var-backed color per band. `ok` stays muted on purpose so a
+// "normal" response doesn't outshine the status pill.
+export function timingClass(ms: number): string {
+  switch (timingBand(ms)) {
+    case "fast":
+      return "text-[var(--color-success)]";
+    case "slow":
+      return "text-[var(--color-warning)]";
+    case "bad":
+      return "text-[var(--color-danger)]";
+    case "ok":
+    default:
+      return "text-[var(--color-fg-muted)]";
+  }
+}
+
 // Bucket a status code into its RFC 9110 class. `other` covers
 // edge cases (0 = no response, negative, > 599) that shouldn't ship
 // a class description.

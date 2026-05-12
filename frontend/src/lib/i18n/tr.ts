@@ -322,6 +322,10 @@ export const tr = {
   "response.timing.connect": "TCP / TLS handshake",
   "response.timing.ttfb": "TTFB (ilk byte)",
   "response.timing.total": "Toplam",
+  "response.timing.band.fast": "Hızlı (<200 ms) — anında",
+  "response.timing.band.ok": "Normal (200–700 ms)",
+  "response.timing.band.slow": "Yavaş (700 ms – 2 s)",
+  "response.timing.band.bad": "Çok yavaş (≥ 2 s)",
   "response.status.class.1xx":
     "Bilgilendirme (1xx) — sunucu isteği aldı, işleme devam ediyor. Asıl yanıt henüz gelmedi.",
   "response.status.class.2xx": "Başarılı (2xx) — istek alındı, anlaşıldı ve kabul edildi.",

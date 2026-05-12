@@ -2,7 +2,14 @@
 import type { ReactNode } from "react";
 import { useStore } from "../store";
 import { useT } from "../lib/i18n/useT";
-import { humanSize, statusClass, statusPillClass, statusText } from "../lib/utils";
+import {
+  humanSize,
+  statusClass,
+  statusPillClass,
+  statusText,
+  timingBand,
+  timingClass,
+} from "../lib/utils";
 import type { TKey } from "../lib/i18n";
 import { downloadResponseBody } from "../lib/responseDownload";
 import { Button } from "./ui/button";
@@ -98,7 +105,9 @@ export function ResponseHead({
 // plain "Elapsed: Xms" string.
 function TimingBadge({ response: r }: { response: ResponseSnapshot }) {
   const t = useT();
-  const tooltip = r.timing
+  const band = timingBand(r.elapsedMs);
+  const bandLabel = t(`response.timing.band.${band}` as TKey);
+  const breakdown = r.timing
     ? [
         `${t("response.timing.dns")}: ${Math.round(r.timing.namelookup_ms)} ms`,
         `${t("response.timing.connect")}: ${Math.round(r.timing.connect_ms)} ms`,
@@ -106,9 +115,10 @@ function TimingBadge({ response: r }: { response: ResponseSnapshot }) {
         `${t("response.timing.total")}: ${Math.round(r.timing.total_ms)} ms`,
       ].join("\n")
     : t("response.timing.elapsed", { ms: String(r.elapsedMs) });
+  const tooltip = `${bandLabel}\n\n${breakdown}`;
   return (
     <span
-      className="text-xs text-[var(--color-fg-muted)] cursor-help"
+      className={"text-xs font-medium cursor-help " + timingClass(r.elapsedMs)}
       title={tooltip}
       aria-label={tooltip.replace(/\n/g, " · ")}
     >
