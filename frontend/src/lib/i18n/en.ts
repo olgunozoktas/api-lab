@@ -74,6 +74,7 @@ export const en: Dict = {
   "settings.about.storageLocal": "Local (WebKit LocalStorage)",
   "settings.about.built": "Built",
   "topbar.builtAt": "Built {date}",
+  "topbar.version.clickHint": "Click to see what changed in this release",
   "settings.about.openGuides": "Guides",
   "settings.about.openChangelog": "Changelog",
   "settings.about.repo": "GitHub repo",
