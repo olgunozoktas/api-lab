@@ -22,6 +22,10 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   define: {
     __APP_VERSION__: JSON.stringify(APP_VERSION),
+    // `__BUILD_DATE__` is captured at config-load time. Vite re-evaluates
+    // this file on every build, so the value matches the actual bundle
+    // timestamp. Surfaced as the TopBar version-badge tooltip.
+    __BUILD_DATE__: JSON.stringify(new Date().toISOString()),
   },
   build: {
     outDir: "dist",

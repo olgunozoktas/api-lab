@@ -4,7 +4,7 @@ import { useStore } from "../store";
 import { useT } from "../lib/i18n/useT";
 import { THEMES, defaultRequestDefaults, type RequestDefaults, type Theme } from "../lib/types";
 import { SUPPORTED_LOCALES, LOCALE_LABEL, type Locale } from "../lib/i18n";
-import { APP_VERSION } from "../lib/changelog";
+import { APP_VERSION, formatBuildDate } from "../lib/changelog";
 import { cn } from "../lib/cn";
 import { BookOpen, ClockArrowUp, ExternalLink } from "lucide-react";
 
@@ -235,6 +235,12 @@ function AboutCard({ onClose }: { onClose: () => void }) {
         <dd className="font-mono">Vite + React 19 + Tailwind v4</dd>
         <dt className="text-[var(--color-fg-muted)]">{t("settings.about.storage")}</dt>
         <dd className="font-mono">{t("settings.about.storageLocal")}</dd>
+        {formatBuildDate() && (
+          <>
+            <dt className="text-[var(--color-fg-muted)]">{t("settings.about.built")}</dt>
+            <dd className="font-mono">{formatBuildDate()}</dd>
+          </>
+        )}
       </dl>
       <div>
         <p className="text-[10px] uppercase tracking-wide font-semibold text-[var(--color-fg-muted)] mb-1.5">
