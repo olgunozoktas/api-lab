@@ -324,6 +324,12 @@ export const en: Dict = {
   "response.bodyCopied": "Body copied",
   "response.codeCopied": "{lang} copied",
   "response.transport.title": "HTTP transport",
+  "response.transport.native": "native",
+  "response.transport.fetch": "fetch",
+  "response.transport.native.title":
+    "Native bridge — request went through the Zig curl subprocess (CORS-free, real headers)",
+  "response.transport.fetch.title":
+    "Browser fetch — fallback path; CORS rules apply and some headers are censored",
   "response.timing.elapsed": "Elapsed: {ms} ms",
   "response.timing.dns": "DNS",
   "response.timing.connect": "TCP / TLS handshake",
