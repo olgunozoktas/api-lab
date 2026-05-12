@@ -1,7 +1,7 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
 import { useStore } from "../store";
 import { useT } from "../lib/i18n/useT";
-import { THEMES, type Theme } from "../lib/types";
+import { THEMES, defaultRequestDefaults, type RequestDefaults, type Theme } from "../lib/types";
 import { SUPPORTED_LOCALES, LOCALE_LABEL, type Locale } from "../lib/i18n";
 import { APP_VERSION } from "../lib/changelog";
 import { cn } from "../lib/cn";
@@ -137,6 +137,10 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
                   aria-label={t("settings.insecure")}
                 />
               </Field>
+              <ResetDefaultsRow
+                defaults={defaults}
+                onReset={() => setDefaults(defaultRequestDefaults())}
+              />
             </div>
           </section>
 
@@ -288,6 +292,39 @@ function AboutLink({
       {icon}
       {children}
     </button>
+  );
+}
+
+// Conditional "Reset to defaults" row — only renders when at least
+// one current Defaults field differs from the shipped baseline. Lets
+// the user undo a session of tweaking without remembering each
+// original value. Hidden when nothing's changed so the section stays
+// clean by default.
+function ResetDefaultsRow({
+  defaults,
+  onReset,
+}: {
+  defaults: RequestDefaults;
+  onReset: () => void;
+}) {
+  const t = useT();
+  const baseline = defaultRequestDefaults();
+  const dirty =
+    defaults.timeoutMs !== baseline.timeoutMs ||
+    defaults.followRedirects !== baseline.followRedirects ||
+    defaults.insecure !== baseline.insecure;
+  if (!dirty) return null;
+  return (
+    <div className="pt-2 mt-1 border-t border-[var(--color-border)] flex items-center justify-between gap-3">
+      <p className="text-[11px] text-[var(--color-fg-muted)]">{t("settings.defaults.dirtyHint")}</p>
+      <button
+        type="button"
+        onClick={onReset}
+        className="text-[11px] px-2 py-1 rounded border border-[var(--color-border)] text-[var(--color-fg)] hover:bg-[var(--color-bg-elev-2)]"
+      >
+        {t("settings.defaults.reset")}
+      </button>
+    </div>
   );
 }
 
