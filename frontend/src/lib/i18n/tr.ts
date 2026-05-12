@@ -12,6 +12,7 @@ export const tr = {
   "topbar.settings": "Ayarlar",
   "topbar.envEdit": "Env...",
   "topbar.envSelect": "Environment seç",
+  "topbar.activeEnv": "Aktif ortam: {name}",
   "topbar.changelog": "Değişiklik notları",
   "topbar.guides": "Rehberler (?)",
 

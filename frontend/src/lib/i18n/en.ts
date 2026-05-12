@@ -13,6 +13,7 @@ export const en: Dict = {
   "topbar.settings": "Settings",
   "topbar.envEdit": "Env...",
   "topbar.envSelect": "Select environment",
+  "topbar.activeEnv": "Active environment: {name}",
   "topbar.changelog": "Changelog",
   "topbar.guides": "Guides (?)",
 

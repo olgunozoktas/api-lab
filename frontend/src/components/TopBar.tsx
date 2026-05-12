@@ -73,7 +73,10 @@ export function TopBar() {
 
         {/* Hide the env switcher when there's only one env — a solo
             "default" dropdown is visual noise. The Env... button stays
-            visible so users can still discover and create more. */}
+            visible so users can still discover and create more. A small
+            read-only badge with the single env's name + var count fills
+            the "which env is active?" gap that the hidden dropdown
+            leaves behind. */}
         {envs.length > 1 ? (
           <Select value={activeEnv} onValueChange={setActiveEnv}>
             <SelectTrigger aria-label={t("topbar.envSelect")} className="w-auto">
@@ -98,7 +101,9 @@ export function TopBar() {
               })}
             </SelectContent>
           </Select>
-        ) : null}
+        ) : (
+          <SingleEnvBadge />
+        )}
 
         <Button variant="ghost" size="sm" onClick={() => setEditingEnv(true)}>
           <Settings2 className="w-3.5 h-3.5" />
@@ -137,5 +142,33 @@ export function TopBar() {
       <ChangelogModal open={changelogOpen} onOpenChange={setChangelogOpen} />
       <GuideHub open={guideOpen} onOpenChange={setGuideOpen} />
     </>
+  );
+}
+
+// Read-only badge shown in place of the env switcher when only one
+// env exists. Surfaces both the env name and its var count so the
+// user knows what {{var}} substitutions will resolve against — the
+// hidden-dropdown state was previously a blind spot.
+function SingleEnvBadge() {
+  const envs = useStore((s) => s.envs);
+  const activeEnv = useStore((s) => s.activeEnv);
+  const t = useT();
+  const active = envs.find((e) => e.id === activeEnv) ?? envs[0];
+  if (!active) return null;
+  const count = Object.keys(active.vars).length;
+  return (
+    <span
+      className="inline-flex items-center gap-1.5 text-[11px] text-[var(--color-fg-muted)] px-2 py-1 rounded bg-[var(--color-bg-elev-2)]"
+      aria-label={t("topbar.activeEnv", { name: active.name })}
+      title={t("topbar.activeEnv", { name: active.name })}
+    >
+      <span>{active.name}</span>
+      <span
+        className="text-[10px] font-mono px-1 py-0 rounded bg-[var(--color-bg)] text-[var(--color-fg-muted)]"
+        aria-label={t("env.varCount", { n: String(count) })}
+      >
+        {t("env.varCountShort", { n: String(count) })}
+      </span>
+    </span>
   );
 }
