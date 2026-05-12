@@ -232,15 +232,21 @@ export function TabStripPresenter({
                 the placeholder ("Yeni istek" / "New request") AND the
                 tab has a URL, fall back to a `METHOD shortUrl` derived
                 label so a strip full of new tabs is readable at a
-                glance. The user's manual rename always wins. */}
+                glance. The user's manual rename always wins. The
+                tooltip stacks the label + the full `METHOD URL` so
+                hovering surfaces both the human-facing name and the
+                actual endpoint, even when the visible label is
+                truncated mid-path. */}
                 {(() => {
                   const label = displayTabName({
                     name: tab.name,
                     method: tab.request.method,
                     url: tab.request.url,
                   });
+                  const fullUrl = tab.request.url ? `${tab.request.method} ${tab.request.url}` : "";
+                  const tooltip = fullUrl && fullUrl !== label ? `${label}\n${fullUrl}` : label;
                   return (
-                    <span className="truncate flex-1 min-w-0" title={label}>
+                    <span className="truncate flex-1 min-w-0" title={tooltip}>
                       {label}
                     </span>
                   );
