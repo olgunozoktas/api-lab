@@ -6,7 +6,7 @@ import { useConfirm } from "../lib/dialogs";
 import { Button } from "./ui/button";
 import { Trash2, Eye, Pencil } from "lucide-react";
 import { exampleToResponse } from "../lib/examples";
-import { humanSize, statusPillClass } from "../lib/utils";
+import { humanSize, sizeClass, statusPillClass, statusText, timeAgo } from "../lib/utils";
 import type { Example } from "../lib/types";
 
 // Presenter — pure props in / actions in.
@@ -72,6 +72,7 @@ function ExampleRow({
         className={
           "font-mono font-bold text-[10px] px-1.5 py-0.5 rounded-full " + statusPillClass(ex.status)
         }
+        title={ex.status > 0 ? `${ex.status} ${statusText(ex.status)}`.trim() : undefined}
       >
         {ex.status}
       </span>
@@ -104,7 +105,17 @@ function ExampleRow({
           {ex.name}
         </button>
       )}
-      <span className="text-[10px] text-[var(--color-fg-muted)]">{humanSize(ex.body.length)}</span>
+      {ex.savedAt > 0 && (
+        <span
+          className="font-mono text-[10px] text-[var(--color-fg-muted)] cursor-help"
+          title={new Date(ex.savedAt).toLocaleString()}
+        >
+          {timeAgo(ex.savedAt)}
+        </span>
+      )}
+      <span className={"font-mono text-[10px] " + sizeClass(ex.body.length)}>
+        {humanSize(ex.body.length)}
+      </span>
       <Button
         variant="ghost"
         size="sm"
