@@ -1,7 +1,7 @@
 /** Olgun Özoktaş geliştirdi · API Lab */
 import { useMemo, useState } from "react";
 import { useStore } from "../store";
-import { methodClass, timingBand, timingClass } from "../lib/utils";
+import { methodClass, statusPillClass, statusText, timingBand, timingClass } from "../lib/utils";
 import { useT } from "../lib/i18n/useT";
 import { type TKey } from "../lib/i18n";
 import { filterHistory } from "../lib/historyFilter";
@@ -117,14 +117,8 @@ export function HistoryList({ query = "" }: { query?: string }) {
       <div className="flex-1 overflow-y-auto px-1.5 pb-3">
         {filtered.slice(0, 100).map((h) => {
           const status = h.response?.status ?? 0;
-          const dot =
-            status >= 500
-              ? "var(--color-danger)"
-              : status >= 400
-                ? "var(--color-warning)"
-                : status >= 200
-                  ? "var(--color-success)"
-                  : "var(--color-fg-muted)";
+          const statusLabel = status > 0 ? String(status) : "—";
+          const statusFullText = status > 0 ? `${status} ${statusText(status)}`.trim() : "";
           const elapsed = h.response?.elapsedMs;
           const hasTiming = typeof elapsed === "number" && elapsed >= 0;
           const timingTitle = hasTiming
@@ -157,9 +151,15 @@ export function HistoryList({ query = "" }: { query?: string }) {
                     </span>
                   )}
                   <span
-                    className="w-1.5 h-1.5 rounded-full flex-shrink-0"
-                    style={{ background: dot }}
-                  />
+                    className={
+                      "font-mono text-[10px] font-bold px-1.5 py-0.5 rounded flex-shrink-0 " +
+                      statusPillClass(status)
+                    }
+                    title={statusFullText || undefined}
+                    aria-label={statusFullText || undefined}
+                  >
+                    {statusLabel}
+                  </span>
                 </div>
               </ContextMenuTrigger>
               <ContextMenuContent>
