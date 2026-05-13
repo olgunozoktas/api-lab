@@ -214,9 +214,9 @@ bash scripts/check-bundle-size.sh
   - **Zig job (`macos-latest`)**: installs Zig 0.16 via `mlugg/setup-zig@v2`, checks out `vercel-labs/zero-native@main` as a sibling clone, runs `zig build test` + `zig build -Doptimize=ReleaseSafe`, caches `.zig-cache` and `~/.cache/zig` for incrementality.
   - **Frontend job (`ubuntu-latest`)**: `npm ci --ignore-scripts`, lockfile-integrity check (rejects non-`registry.npmjs.org` URLs), `npm audit --audit-level=high`, TypeScript strict typecheck, Vitest, production build, bundle-size guardrail.
 - **`release.yml`** — on tag push (`v*`):
-  - Builds macOS arm64 (Apple Silicon) and macOS x86_64 (Intel) in parallel.
-  - Each runner: setup Zig, npm ci frontend, vite build, `zig build -Doptimize=ReleaseSafe`, stage tree (binary + `frontend/dist/` + `app.zon` + README + LICENSE), tarball with `sha256` sidecar, upload as workflow artifact.
-  - Aggregator: downloads both arch artifacts, creates a **draft** release via `softprops/action-gh-release@v2` with auto-generated notes. Review and publish manually.
+  - Builds macOS arm64 (Apple Silicon) on `macos-latest`. **Intel x86_64 is not built** — GitHub's hosted Intel-runner pool was queue-blocking releases for hours, and Apple stopped selling Intel Macs in 2023. Intel users can still build from source (see Quick start above).
+  - Runner: setup Zig, npm ci frontend (devDeps included), vite build, `zig build -Doptimize=ReleaseSafe`, stage tree (binary + `frontend/dist/` + `app.zon` + README + LICENSE), tarball with `sha256` sidecar, upload as workflow artifact.
+  - Aggregator: downloads the arm64 artifact, creates a **draft** release via `softprops/action-gh-release@v2` with auto-generated notes. Review and publish manually.
 
 The frontend CI job runs plain `npm ci` rather than the dev-machine `dnpm` wrapper. The threat model differs (ephemeral runner, no SSH/credential exposure, torn down per-job) and the lockfile-integrity check + `npm audit` substitute for dnpm's auto-audit pass. See `.github/workflows/ci.yml` for the inline rationale.
 

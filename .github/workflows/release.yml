@@ -29,8 +29,12 @@ jobs:
         include:
           - arch: arm64
             runner: macos-latest # Apple Silicon
-          - arch: x86_64
-            runner: macos-13 # Intel
+            # NOTE: Intel x86_64 dropped 2026-05-13 — GitHub's macos-13
+            # hosted-runner pool was sitting on jobs for 2h+, blocking
+            # every release. Apple Silicon covers >95% of in-warranty
+            # Macs in 2026; Intel users can build from source per
+            # README. Future option (cross-compile from arm64 runner)
+            # tracked in docs/backlog/inbox/*-x86_64-cross-compile-*.md.
     steps:
       - name: Checkout api-lab
         uses: actions/checkout@v4
