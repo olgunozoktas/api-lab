@@ -7,6 +7,7 @@ import { useT } from "../lib/i18n/useT";
 import { useConfirm } from "../lib/dialogs";
 import { Tabs, TabsList, TabsTrigger } from "./ui/tabs";
 import { Button } from "./ui/button";
+import { KbdHint } from "./ui/kbd-hint";
 import { SearchInput } from "./ui/search-input";
 import { parsePostmanV2 } from "../lib/importers/postmanV2";
 import {
@@ -86,9 +87,10 @@ export function Sidebar() {
                   size="md"
                   className="w-full"
                   onClick={() => resetCurrent("http")}
-                  title={t("sidebar.newRequest.title")}
+                  title={t("sidebar.newRequest.title") + "  ⌘N"}
                 >
                   {t("sidebar.newRequest")}
+                  <KbdHint>⌘ N</KbdHint>
                 </Button>
               </ContextMenuTrigger>
               <ContextMenuContent>
