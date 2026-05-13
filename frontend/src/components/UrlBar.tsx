@@ -4,6 +4,7 @@ import { useStore, useActiveVars } from "../store";
 import { envSubst, methodClass, tokenizeUnresolvedVars, hasUnresolvedVars } from "../lib/utils";
 import { useT } from "../lib/i18n/useT";
 import { Button } from "./ui/button";
+import { KbdHint } from "./ui/kbd-hint";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { AlertTriangle, Send, Wand2, X } from "lucide-react";
 import { looksLikeCurl, parseCurl } from "../lib/curlParse";
@@ -314,19 +315,5 @@ function CurlImportBanner({
         <X className="w-3 h-3" />
       </button>
     </div>
-  );
-}
-
-// Tiny faded kbd hint rendered inside an action button — reminds
-// the user there's a shortcut for what they're clicking without
-// stealing visual weight from the primary label.
-export function KbdHint({ children }: { children: React.ReactNode }) {
-  return (
-    <kbd
-      className="ml-1 px-1 py-px rounded text-[10px] font-mono bg-black/10 text-current/70 opacity-70"
-      aria-hidden
-    >
-      {children}
-    </kbd>
   );
 }

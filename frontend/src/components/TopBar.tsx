@@ -12,6 +12,7 @@ import { useSettingsShortcut } from "../lib/settings_shortcut";
 import { useEnvEditorShortcut } from "../lib/env_editor_shortcut";
 import { useT } from "../lib/i18n/useT";
 import { Button } from "./ui/button";
+import { KbdHint } from "./ui/kbd-hint";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { HelpCircle, History, Settings, Settings2 } from "lucide-react";
 
@@ -129,6 +130,7 @@ export function TopBar() {
         >
           <Settings2 className="w-3.5 h-3.5" />
           {t("topbar.envEdit")}
+          <KbdHint>⌘ ⇧ E</KbdHint>
         </Button>
         <Button
           variant="ghost"
@@ -157,6 +159,7 @@ export function TopBar() {
         >
           <Settings className="w-3.5 h-3.5" />
           {t("topbar.settings")}
+          <KbdHint>⌘ ,</KbdHint>
         </Button>
       </header>
       {editingEnv && <EnvEditorModal open onOpenChange={(o) => !o && setEditingEnv(false)} />}

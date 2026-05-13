@@ -1,6 +1,7 @@
 /** Olgun Özoktaş geliştirdi · API Lab */
 import { useStore } from "../store";
-import { KbdHint, UrlBarContainer } from "./UrlBar";
+import { UrlBarContainer } from "./UrlBar";
+import { KbdHint } from "./ui/kbd-hint";
 import { KvTable } from "./KvTable";
 import { AuthPanelContainer } from "./AuthPanel";
 import { BodyPanelContainer } from "./BodyPanel";
