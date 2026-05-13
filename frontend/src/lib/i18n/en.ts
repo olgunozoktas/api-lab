@@ -494,4 +494,27 @@ export const en: Dict = {
   "toast.urlEmpty": "URL is empty",
   "toast.networkError": "Error: {msg}",
   "toast.requestCancelled": "Request cancelled",
+
+  // Built-in sample requests — see frontend/src/lib/samples.ts.
+  "samples.section.title": "Samples",
+  "samples.section.publicHint":
+    "These point at public test services. Hide individual samples via right-click, or the whole section in Settings → Sample Requests. They remain reachable from ⌘ P at any time.",
+  "samples.httpGet.name": "HTTP GET",
+  "samples.httpGet.description":
+    "Hit httpbin.org/get and inspect the echoed query string + request headers.",
+  "samples.httpPost.name": "HTTP POST (JSON)",
+  "samples.httpPost.description":
+    "Send a JSON body to postman-echo.com/post and see it echoed back.",
+  "samples.graphql.name": "GraphQL — Countries",
+  "samples.graphql.description":
+    "Query the public Countries API for every ISO country, with capital + emoji.",
+  "samples.ws.name": "WebSocket — Echo",
+  "samples.ws.description":
+    "Connect to ws.postman-echo.com — anything you send is echoed straight back.",
+  "samples.sse.name": "SSE — Tick stream",
+  "samples.sse.description":
+    "Subscribe to sse.dev/test and watch server-sent events arrive every second.",
+  "samples.grpc.name": "gRPC — Reflection",
+  "samples.grpc.description":
+    "Explore the grpcb.in service tree via reflection — no .proto file needed.",
 };

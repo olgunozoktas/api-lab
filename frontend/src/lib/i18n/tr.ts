@@ -493,4 +493,25 @@ export const tr = {
   "toast.urlEmpty": "URL boş",
   "toast.networkError": "Hata: {msg}",
   "toast.requestCancelled": "İstek iptal edildi",
+
+  // Yerleşik örnek istekler — bkz. frontend/src/lib/samples.ts.
+  "samples.section.title": "Örnekler",
+  "samples.section.publicHint":
+    "Bu örnekler genel test servislerini gösterir. Tek bir örneği sağ tıkla → Gizle ile, tüm bölümü Ayarlar → Örnek İstekler'den kapatabilirsin. ⌘ P ile her zaman ulaşılabilir kalır.",
+  "samples.httpGet.name": "HTTP GET",
+  "samples.httpGet.description":
+    "httpbin.org/get'i çağır ve yankılanan query string + istek başlıklarını incele.",
+  "samples.httpPost.name": "HTTP POST (JSON)",
+  "samples.httpPost.description": "postman-echo.com/post adresine JSON gövde gönder, yankıyı gör.",
+  "samples.graphql.name": "GraphQL — Ülkeler",
+  "samples.graphql.description":
+    "Public Countries API'sini sorgula: tüm ISO ülkeler, başkent ve emoji ile.",
+  "samples.ws.name": "WebSocket — Echo",
+  "samples.ws.description": "ws.postman-echo.com'a bağlan; gönderdiğin her şey aynen geri döner.",
+  "samples.sse.name": "SSE — Tick akışı",
+  "samples.sse.description":
+    "sse.dev/test'e abone ol; sunucudan saniyede bir gelen event'leri izle.",
+  "samples.grpc.name": "gRPC — Reflection",
+  "samples.grpc.description":
+    "grpcb.in servis ağacını reflection ile keşfet — .proto dosyasına ihtiyaç yok.",
 };
