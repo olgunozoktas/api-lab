@@ -68,6 +68,11 @@ export type TabStripPresenterProps = {
   onReorder: (fromIdx: number, toIdx: number) => void;
   newTabLabel?: string;
   closeTabLabel?: string;
+  /** Optional keyboard-shortcut hints (glyph form, e.g. "⌘T") appended
+      to the corresponding button titles. Empty = no shortcut shown,
+      keeping the leaf portable to apps that bind different shortcuts. */
+  newTabShortcut?: string;
+  closeTabShortcut?: string;
   /** Localised strings for the context menu items. */
   closeOthersLabel?: string;
   closeToRightLabel?: string;
@@ -91,6 +96,8 @@ export function TabStripPresenter({
   onReorder,
   newTabLabel = "New tab",
   closeTabLabel = "Close tab",
+  newTabShortcut = "",
+  closeTabShortcut = "",
   closeOthersLabel = "Close others",
   closeToRightLabel = "Close tabs to the right",
   duplicateLabel = "Duplicate tab",
@@ -98,6 +105,8 @@ export function TabStripPresenter({
   unpinLabel = "Unpin tab",
   className,
 }: TabStripPresenterProps) {
+  const newTabTitle = newTabShortcut ? `${newTabLabel}  ${newTabShortcut}` : newTabLabel;
+  const closeTabTitle = closeTabShortcut ? `${closeTabLabel}  ${closeTabShortcut}` : closeTabLabel;
   const [dragFromIdx, setDragFromIdx] = useState<number | null>(null);
   const [dragOverIdx, setDragOverIdx] = useState<number | null>(null);
   // When the active tab changes, scroll it into view inside the strip
@@ -270,6 +279,7 @@ export function TabStripPresenter({
                   <button
                     type="button"
                     aria-label={closeTabLabel}
+                    title={closeTabTitle}
                     onClick={(e) => {
                       e.stopPropagation();
                       onClose(tab.id);
@@ -348,6 +358,7 @@ export function TabStripPresenter({
       <button
         type="button"
         aria-label={newTabLabel}
+        title={newTabTitle}
         onClick={onNewTab}
         className={cn(
           // Sticks at the right end of the visible tabs even when the
@@ -425,6 +436,8 @@ export function TabStripContainer() {
       onReorder={onReorder}
       newTabLabel={t("tabs.new")}
       closeTabLabel={t("tabs.close")}
+      newTabShortcut="⌘T"
+      closeTabShortcut="⌘W"
       closeOthersLabel={t("tabs.closeOthers")}
       closeToRightLabel={t("tabs.closeToRight")}
       duplicateLabel={t("tabs.duplicate")}
