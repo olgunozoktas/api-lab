@@ -5,6 +5,7 @@ import { useT } from "../lib/i18n/useT";
 import { cn } from "../lib/cn";
 import type { CollectionItem } from "../lib/types";
 import { FolderRow, RequestRow } from "./CollectionRows";
+import { SamplesRestoreCta } from "./SamplesList";
 
 // CollectionList — tree-shaped sidebar list with folders + requests.
 // Folders expand/collapse via the chevron; clicking a request loads it
@@ -91,6 +92,7 @@ export function CollectionList({ query = "" }: { query?: string }) {
           <li>{t("sidebar.empty.collections.tip2")}</li>
           <li>{t("sidebar.empty.collections.tip3")}</li>
         </ul>
+        <SamplesRestoreCta />
       </div>
     );
   }

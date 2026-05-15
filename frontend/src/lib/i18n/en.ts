@@ -518,4 +518,10 @@ export const en: Dict = {
   "samples.grpc.description":
     "Explore the grpcb.in service tree via reflection — no .proto file needed.",
   "samples.hide": "Hide this sample",
+  "settings.section.samples": "Sample requests",
+  "settings.samples.showSection": "Show samples section in the sidebar",
+  "settings.samples.showAll": "Show all",
+  "settings.samples.show": "Show",
+  "settings.samples.hide": "Hide",
+  "sidebar.samples.restoreCta": "Restore sample requests",
 };

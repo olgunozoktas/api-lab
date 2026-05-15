@@ -515,4 +515,10 @@ export const tr = {
   "samples.grpc.description":
     "grpcb.in servis ağacını reflection ile keşfet — .proto dosyasına ihtiyaç yok.",
   "samples.hide": "Bu örneği gizle",
+  "settings.section.samples": "Örnek istekler",
+  "settings.samples.showSection": "Kenar çubuğunda Örnekler bölümünü göster",
+  "settings.samples.showAll": "Hepsini göster",
+  "settings.samples.show": "Göster",
+  "settings.samples.hide": "Gizle",
+  "sidebar.samples.restoreCta": "Örnek istekleri geri yükle",
 };

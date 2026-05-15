@@ -7,7 +7,8 @@ import { useT } from "../lib/i18n/useT";
 import { cn } from "../lib/cn";
 import { methodClass, statusPillClass, statusText } from "../lib/utils";
 import type { CollectionItem, HistoryItem, OpenTab } from "../lib/types";
-import { History, FolderOpen, LayoutGrid } from "lucide-react";
+import { SAMPLES, type Sample } from "../lib/samples";
+import { History, FolderOpen, LayoutGrid, Sparkles } from "lucide-react";
 
 // =============================================================================
 // QuickSwitcher — ⌘+P / Ctrl+P modal. Fuzzy-search across:
@@ -25,7 +26,8 @@ import { History, FolderOpen, LayoutGrid } from "lucide-react";
 type Item =
   | { kind: "tab"; tab: OpenTab }
   | { kind: "collection"; col: CollectionItem }
-  | { kind: "history"; entry: HistoryItem };
+  | { kind: "history"; entry: HistoryItem }
+  | { kind: "sample"; sample: Sample };
 
 function score(query: string, target: string): number {
   if (!query) return 1;
@@ -45,7 +47,13 @@ function rankItems(query: string, items: Item[]): Item[] {
         ? `${item.tab.name} ${item.tab.request.url} ${item.tab.request.method}`
         : item.kind === "collection"
           ? `${item.col.name} ${item.col.request!.url} ${item.col.request!.method}`
-          : `${item.entry.request.url} ${item.entry.request.method}`;
+          : item.kind === "history"
+            ? `${item.entry.request.url} ${item.entry.request.method}`
+            : // sample — use the i18n key fragments + kind + url. Samples
+              // are deliberately indexed by their stable structural keys
+              // (not the localized display name) so the same "ws echo"
+              // query matches in both Turkish and English UI sessions.
+              `${item.sample.id} ${item.sample.kind} ${item.sample.nameKey} ${item.sample.url}`;
     return { item, s: score(query, text) };
   });
   return scored.filter((x) => x.s > 0).map((x) => x.item);
@@ -73,6 +81,12 @@ export function QuickSwitcher({ open, onOpenChange }: QuickSwitcherProps) {
   const loadCollection = useStore((s) => s.loadCollection);
   const loadCollectionInNewTab = useStore((s) => s.loadCollectionInNewTab);
   const loadHistoryItem = useStore((s) => s.loadHistoryItem);
+  const loadSample = useStore((s) => s.loadSample);
+  // Reading `showSample` here, not `hiddenSampleIds` — selecting a
+  // hidden sample from the palette should re-reveal it in the sidebar
+  // so the user sees what they just loaded. Always-reach paths bypass
+  // the hidden filter; we still want the un-hide side-effect on commit.
+  const showSample = useStore((s) => s.showSample);
   const newTab = useStore((s) => s.newTab);
   const t = useT();
 
@@ -95,6 +109,10 @@ export function QuickSwitcher({ open, onOpenChange }: QuickSwitcherProps) {
       ...tabs.map((tab) => ({ kind: "tab" as const, tab })),
       ...collections.map((col) => ({ kind: "collection" as const, col })),
       ...history.slice(0, 50).map((entry) => ({ kind: "history" as const, entry })),
+      // Samples come last so user-owned items rank above starter
+      // content. The full SAMPLES manifest is included regardless of
+      // the user's hidden state — that's the "always reach" rule.
+      ...SAMPLES.map((sample) => ({ kind: "sample" as const, sample })),
     ];
     return rankItems(query, base);
   }, [tabs, collections, history, query]);
@@ -114,6 +132,12 @@ export function QuickSwitcher({ open, onOpenChange }: QuickSwitcherProps) {
       } else {
         loadHistoryItem(item.entry);
       }
+    } else if (item.kind === "sample") {
+      if (openInNew) newTab();
+      loadSample(item.sample);
+      // Re-reveal in the sidebar so the user can see what they just
+      // picked. No-op if the sample was never hidden.
+      showSample(item.sample.id);
     }
     onOpenChange(false);
   };
@@ -186,7 +210,9 @@ export function QuickSwitcher({ open, onOpenChange }: QuickSwitcherProps) {
                         ? `tab:${item.tab.id}`
                         : item.kind === "collection"
                           ? `col:${item.col.id}`
-                          : `hist:${item.entry.id}`
+                          : item.kind === "history"
+                            ? `hist:${item.entry.id}`
+                            : `sample:${item.sample.id}`
                     }
                     type="button"
                     onMouseEnter={() => setHighlight(i)}
@@ -204,28 +230,34 @@ export function QuickSwitcher({ open, onOpenChange }: QuickSwitcherProps) {
                         <LayoutGrid className="w-3.5 h-3.5" />
                       ) : item.kind === "collection" ? (
                         <FolderOpen className="w-3.5 h-3.5" />
-                      ) : (
+                      ) : item.kind === "history" ? (
                         <History className="w-3.5 h-3.5" />
+                      ) : (
+                        <Sparkles className="w-3.5 h-3.5" />
                       )}
                     </span>
 
                     <span
                       className={cn(
                         "shrink-0 text-[10px] font-mono font-semibold uppercase w-12",
-                        methodClass(
-                          item.kind === "tab"
-                            ? item.tab.request.method
-                            : item.kind === "collection"
-                              ? item.col.request!.method
-                              : item.entry.request.method
-                        )
+                        item.kind === "sample"
+                          ? "text-[var(--color-fg-muted)]"
+                          : methodClass(
+                              item.kind === "tab"
+                                ? item.tab.request.method
+                                : item.kind === "collection"
+                                  ? item.col.request!.method
+                                  : item.entry.request.method
+                            )
                       )}
                     >
-                      {item.kind === "tab"
-                        ? item.tab.request.method
-                        : item.kind === "collection"
-                          ? item.col.request!.method
-                          : item.entry.request.method}
+                      {item.kind === "sample"
+                        ? item.sample.kind.toUpperCase()
+                        : item.kind === "tab"
+                          ? item.tab.request.method
+                          : item.kind === "collection"
+                            ? item.col.request!.method
+                            : item.entry.request.method}
                     </span>
 
                     <span className="flex-1 min-w-0 truncate text-sm">
@@ -233,7 +265,9 @@ export function QuickSwitcher({ open, onOpenChange }: QuickSwitcherProps) {
                         ? item.tab.name
                         : item.kind === "collection"
                           ? item.col.name
-                          : item.entry.request.url || "(empty)"}
+                          : item.kind === "history"
+                            ? item.entry.request.url || "(empty)"
+                            : t(item.sample.nameKey)}
                     </span>
 
                     {item.kind === "history" ? (
@@ -254,7 +288,11 @@ export function QuickSwitcher({ open, onOpenChange }: QuickSwitcherProps) {
                       </span>
                     ) : (
                       <span className="shrink-0 text-[10px] text-[var(--color-fg-muted)] truncate max-w-[200px]">
-                        {item.kind === "tab" ? item.tab.request.url : item.col.request!.url}
+                        {item.kind === "tab"
+                          ? item.tab.request.url
+                          : item.kind === "collection"
+                            ? item.col.request!.url
+                            : item.sample.url}
                       </span>
                     )}
                   </button>

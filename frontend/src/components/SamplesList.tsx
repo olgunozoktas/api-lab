@@ -105,6 +105,28 @@ export function SamplesList({
   );
 }
 
+// Empty-state CTA — surfaces in the Collections empty state when
+// every sample is hidden, giving the user a one-click recovery
+// even if they've forgotten Settings → Sample Requests exists.
+// Renders nothing when at least one sample is still visible.
+export function SamplesRestoreCta() {
+  const t = useT();
+  const hiddenIds = useStore((s) => s.hiddenSampleIds);
+  const sectionHidden = useStore((s) => s.samplesSectionHidden);
+  const showAllSamples = useStore((s) => s.showAllSamples);
+  const allHidden = sectionHidden || hiddenIds.length >= SAMPLES.length;
+  if (!allHidden) return null;
+  return (
+    <button
+      type="button"
+      onClick={showAllSamples}
+      className="text-[11px] text-[var(--color-fg-muted)] hover:text-[var(--color-fg)] underline underline-offset-2"
+    >
+      ← {t("sidebar.samples.restoreCta")}
+    </button>
+  );
+}
+
 // Container — wires the store. Filters hidden samples; returns null
 // entirely if the user has hidden the whole section. Always-reach
 // surfaces (⌘P, Settings → Sample Requests) bypass this filter and
