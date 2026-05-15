@@ -3,6 +3,7 @@ import { useRef, useState } from "react";
 import { useStore } from "../store";
 import { CollectionList } from "./CollectionList";
 import { HistoryList } from "./HistoryList";
+import { SamplesListContainer } from "./SamplesList";
 import { useT } from "../lib/i18n/useT";
 import { useConfirm } from "../lib/dialogs";
 import { Tabs, TabsList, TabsTrigger } from "./ui/tabs";
@@ -59,6 +60,12 @@ export function Sidebar() {
       </Tabs>
       {ui.sidebarTab === "collections" ? (
         <>
+          {/* Built-in samples — sits above the user's collections so
+              a first-launch user can click HTTP / GraphQL / WS / SSE
+              / gRPC and see the app actually work, instead of staring
+              at an empty composer. Hide/show controls land in
+              v0.2.33 (slice 3 of #26). */}
+          <SamplesListContainer />
           <SectionHeader
             count={requestCount}
             rightSlot={

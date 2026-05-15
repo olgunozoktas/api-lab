@@ -12,6 +12,7 @@ import { displayTabName, uid } from "../lib/utils";
 import { clone, nextOrder } from "./internal";
 import type { Store, StoreMutators } from "./types";
 import type { NewRequestKind } from "./collections";
+import type { Sample } from "../lib/samples";
 
 export type CurrentActions = {
   setCurrent: (patch: Partial<CurrentRequest>) => void;
@@ -23,6 +24,11 @@ export type CurrentActions = {
   resetCurrent: (kind?: NewRequestKind) => void;
   loadCollection: (c: CollectionItem) => void;
   loadHistoryItem: (h: HistoryItem) => void;
+  // Load a built-in Sample into the active tab. Samples are bundle
+  // constants (frontend/src/lib/samples.ts) — this never touches
+  // collectionItems, so loading a sample doesn't persist it into
+  // the user's saved tree.
+  loadSample: (sample: Sample) => void;
   saveCurrent: () => void;
 };
 
@@ -128,6 +134,37 @@ export const createCurrentSlice: StateCreator<Store, StoreMutators, [], CurrentA
         tabs: s.tabs.map((t) =>
           t.id === s.activeTabId ? { ...t, request: clone(nextCurrent), composerTab } : t
         ),
+      };
+    }),
+
+  loadSample: (sample) =>
+    set((s) => {
+      const nextCurrent: CurrentRequest = {
+        id: null,
+        name: "",
+        method: sample.method ?? (sample.kind === "graphql" ? "POST" : "GET"),
+        url: sample.url,
+        params: [{ enabled: true, k: "", v: "" }],
+        headers: (sample.headers ?? []).map((h) => ({ enabled: true, k: h.k, v: h.v })),
+        auth: { type: "none" },
+        body: sample.body ? { mode: "json", text: sample.body } : { mode: "none", text: "" },
+        gql: { query: sample.gqlQuery ?? "", vars: "" },
+      };
+      // Ensure at least one empty header row for the editor UI.
+      if (nextCurrent.headers.length === 0) {
+        nextCurrent.headers = [{ enabled: true, k: "", v: "" }];
+      }
+      const composerTab: ComposerTab =
+        sample.kind === "graphql" ? "graphql" : sample.body ? "body" : "params";
+      return {
+        current: nextCurrent,
+        ui: { ...s.ui, composerTab },
+        tabs: s.tabs.map((t) =>
+          t.id === s.activeTabId
+            ? { ...t, request: clone(nextCurrent), composerTab, lastResponse: null }
+            : t
+        ),
+        lastResponse: null,
       };
     }),
 

@@ -35,12 +35,11 @@ describe("samples manifest", () => {
       } else if (s.kind === "ws") {
         expect(s.url.startsWith("ws://") || s.url.startsWith("wss://")).toBe(true);
       } else if (s.kind === "sse") {
-        // SSE samples may use plain http(s):// (server-side ContentType
-        // negotiation) — fall back to URL parsing.
-        expect(() => new URL(s.url)).not.toThrow();
+        // api-lab uses sse:// / sses:// as marker schemes (lib/sse.ts).
+        expect(s.url.startsWith("sse://") || s.url.startsWith("sses://")).toBe(true);
       } else if (s.kind === "grpc") {
-        // gRPC URLs are host:port (no scheme); just check non-empty.
-        expect(s.url.length).toBeGreaterThan(0);
+        // grpc:// / grpcs:// trigger the gRPC composer (lib/grpc.ts).
+        expect(s.url.startsWith("grpc://") || s.url.startsWith("grpcs://")).toBe(true);
       }
     }
   });

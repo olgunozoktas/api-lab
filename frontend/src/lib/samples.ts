@@ -15,6 +15,8 @@
 // Sample description i18n key warns about this. Once Phase J's bundled
 // Zig mock-server ships, these defaults can point at localhost.
 
+import type { TKey } from "./i18n";
+
 export type SampleKind = "http" | "graphql" | "ws" | "sse" | "grpc";
 
 export type SampleHeader = { k: string; v: string };
@@ -25,11 +27,12 @@ export type Sample = {
       breaks the user's "hidden" persistence. */
   id: string;
   kind: SampleKind;
-  /** i18n key for the display name (e.g. "samples.httpGet.name"). */
-  nameKey: string;
+  /** i18n key for the display name (e.g. "samples.httpGet.name").
+      Typed as TKey so TypeScript catches typos against the locale Dict. */
+  nameKey: TKey;
   /** i18n key for the one-line description shown on hover / in
       Settings → Sample Requests. */
-  descriptionKey: string;
+  descriptionKey: TKey;
   /** HTTP method (HTTP + GraphQL only). Ignored for ws/sse/grpc. */
   method?: string;
   url: string;
@@ -81,14 +84,19 @@ export const SAMPLES: readonly Sample[] = [
     kind: "sse",
     nameKey: "samples.sse.name",
     descriptionKey: "samples.sse.description",
-    url: "https://sse.dev/test",
+    // `sses://` is api-lab's marker scheme for "this is an SSE
+    // endpoint that should be opened over TLS" (see lib/sse.ts).
+    // The actual HTTP request goes to https://sse.dev/test.
+    url: "sses://sse.dev/test",
   },
   {
     id: "sample-grpc-reflection",
     kind: "grpc",
     nameKey: "samples.grpc.name",
     descriptionKey: "samples.grpc.description",
-    url: "grpcb.in:9000",
+    // `grpcs://` = gRPC over TLS (see lib/grpc.ts). Bare host:port
+    // would not trigger the gRPC composer mode.
+    url: "grpcs://grpcb.in:9000",
   },
 ] as const;
 
