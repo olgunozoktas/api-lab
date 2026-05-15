@@ -12,6 +12,7 @@ import { KbdHint } from "./ui/kbd-hint";
 import { SearchInput } from "./ui/search-input";
 import { parsePostmanV2 } from "../lib/importers/postmanV2";
 import { isInsomniaExport, parseInsomniaV4 } from "../lib/importers/insomnia";
+import { isHarFile, parseHar } from "../lib/importers/har";
 import {
   ContextMenu,
   ContextMenuContent,
@@ -198,6 +199,8 @@ function ClearHistoryButton() {
 
 function ImportPostmanButton() {
   const importItems = useStore((s) => s.importItems);
+  const importHistory = useStore((s) => s.importHistory);
+  const setUi = useStore((s) => s.setUi);
   const showToast = useStore((s) => s.showToast);
   const t = useT();
   const fileRef = useRef<HTMLInputElement | null>(null);
@@ -206,14 +209,36 @@ function ImportPostmanButton() {
     try {
       const text = await file.text();
       // Format detection: peek the JSON shape and route to the right
-      // parser. Postman v2 + Insomnia v4 share the .json extension so
-      // we can't dispatch on filename alone.
+      // parser. Postman v2 / Insomnia v4 / HAR all share .json, so
+      // filename-based dispatch isn't enough.
       let parsed: unknown = null;
       try {
         parsed = JSON.parse(text);
       } catch {
         // Leave parsed null — parsePostmanV2 will re-throw with its
         // own JSON-error message; preserves the existing UX.
+      }
+      if (isHarFile(parsed)) {
+        const r = parseHar(text);
+        if (r.items.length === 0) {
+          showToast(t("import.empty"));
+          return;
+        }
+        importHistory(r.items);
+        // HAR populates History, so flip the sidebar tab so the user
+        // sees their imported entries immediately.
+        setUi({ sidebarTab: "history" });
+        const summary = t("import.har.success", {
+          creator: r.collectionName,
+          count: String(r.requestCount),
+        });
+        showToast(summary);
+        if (r.warnings.length > 0) {
+          showToast(t("import.warnings", { count: String(r.warnings.length) }));
+          // eslint-disable-next-line no-console
+          console.warn("HAR import warnings:", r.warnings);
+        }
+        return;
       }
       const useInsomnia = isInsomniaExport(parsed);
       const result = useInsomnia ? parseInsomniaV4(text) : parsePostmanV2(text);

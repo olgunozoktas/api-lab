@@ -120,6 +120,7 @@ export const en: Dict = {
   "import.success": 'Imported "{name}" — {folders} folders, {requests} requests',
   "import.warnings": "{count} warnings (see developer console)",
   "import.failed": "Import failed: {error}",
+  "import.har.success": "{creator} HAR imported — {count} entries added to History",
 
   "collections.newFolder": "+ Folder",
   "collections.newFolderPrompt": "Folder name:",

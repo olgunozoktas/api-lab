@@ -11,6 +11,11 @@ export type HistoryActions = {
     sizeBytes: number,
     elapsedMs: number
   ) => void;
+  // Batch-prepend a list of already-built HistoryItems to the top of
+  // the queue. Used by the HAR importer — a HAR can carry dozens or
+  // hundreds of entries, so we avoid the per-call cap reshuffle and
+  // a single set() commits the whole batch atomically.
+  importHistory: (items: HistoryItem[]) => void;
   clearHistory: () => void;
   removeHistoryItem: (id: string) => void;
 };
@@ -27,6 +32,14 @@ export const createHistorySlice: StateCreator<Store, StoreMutators, [], HistoryA
         response: { status, sizeBytes, elapsedMs },
       };
       const next = [item, ...s.history];
+      if (next.length > 200) next.length = 200;
+      return { history: next };
+    }),
+
+  importHistory: (items) =>
+    set((s) => {
+      if (items.length === 0) return {};
+      const next = [...items, ...s.history];
       if (next.length > 200) next.length = 200;
       return { history: next };
     }),

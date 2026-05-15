@@ -118,6 +118,7 @@ export const tr = {
   "import.success": '"{name}" içe aktarıldı — {folders} klasör, {requests} istek',
   "import.warnings": "{count} uyarı (geliştirici konsoluna bak)",
   "import.failed": "İçe aktarma başarısız: {error}",
+  "import.har.success": "{creator} HAR içe aktarıldı — {count} giriş geçmişe eklendi",
 
   "collections.newFolder": "+ Klasör",
   "collections.newFolderPrompt": "Klasör adı:",
