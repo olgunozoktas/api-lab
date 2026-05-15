@@ -11,6 +11,7 @@ import { Button } from "./ui/button";
 import { KbdHint } from "./ui/kbd-hint";
 import { SearchInput } from "./ui/search-input";
 import { parsePostmanV2 } from "../lib/importers/postmanV2";
+import { isInsomniaExport, parseInsomniaV4 } from "../lib/importers/insomnia";
 import {
   ContextMenu,
   ContextMenuContent,
@@ -204,7 +205,19 @@ function ImportPostmanButton() {
   const onFile = async (file: File) => {
     try {
       const text = await file.text();
-      const result = parsePostmanV2(text);
+      // Format detection: peek the JSON shape and route to the right
+      // parser. Postman v2 + Insomnia v4 share the .json extension so
+      // we can't dispatch on filename alone.
+      let parsed: unknown = null;
+      try {
+        parsed = JSON.parse(text);
+      } catch {
+        // Leave parsed null — parsePostmanV2 will re-throw with its
+        // own JSON-error message; preserves the existing UX.
+      }
+      const useInsomnia = isInsomniaExport(parsed);
+      const result = useInsomnia ? parseInsomniaV4(text) : parsePostmanV2(text);
+      const sourceLabel = useInsomnia ? "Insomnia" : "Postman";
       if (result.items.length === 0) {
         showToast(t("import.empty"));
         return;
@@ -217,11 +230,9 @@ function ImportPostmanButton() {
       });
       showToast(summary);
       if (result.warnings.length > 0) {
-        // Surface the first warning as a follow-up toast — the rest
-        // are visible in console for power users.
         showToast(t("import.warnings", { count: String(result.warnings.length) }));
         // eslint-disable-next-line no-console
-        console.warn("Postman import warnings:", result.warnings);
+        console.warn(`${sourceLabel} import warnings:`, result.warnings);
       }
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
