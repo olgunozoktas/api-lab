@@ -1,6 +1,7 @@
 # API Lab
 
 [![CI](https://github.com/olgunozoktas/api-lab/actions/workflows/ci.yml/badge.svg)](https://github.com/olgunozoktas/api-lab/actions/workflows/ci.yml)
+[![Release](https://github.com/olgunozoktas/api-lab/actions/workflows/release.yml/badge.svg)](https://github.com/olgunozoktas/api-lab/actions/workflows/release.yml)
 
 > Designed, built and maintained by **[Olgun Özoktaş](https://github.com/olgunozoktas)**.
 
