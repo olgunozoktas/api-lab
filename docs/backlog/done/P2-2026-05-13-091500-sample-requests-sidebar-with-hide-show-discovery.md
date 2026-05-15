@@ -71,7 +71,7 @@ Related items already in the backlog:
 
 ## Items
 
-- [ ] **Sample manifest** — define the canonical sample list as a pure
+- [x] **Sample manifest** — define the canonical sample list as a pure
   data module at `frontend/src/lib/samples.ts`. Six minimum entries,
   one per supported protocol surface:
     1. `sample-http-get` — `GET https://httpbin.org/get` (echo headers
@@ -104,7 +104,7 @@ Related items already in the backlog:
   - Ship-it-fully: nothing user-visible yet — this is the data layer
     only. The next item renders it.
 
-- [ ] **Sidebar Samples section** — render the manifest as a virtual,
+- [x] **Sidebar Samples section** — render the manifest as a virtual,
   read-only section above the existing Collections tree.
   - Touchpoints: `frontend/src/components/Sidebar.tsx` (add a `<Samples />`
     component before the existing `<CollectionList />`), new file
@@ -125,7 +125,7 @@ Related items already in the backlog:
   - Ship-it-fully: section appears, click a row → composer is loaded
     with the sample's URL/method/headers/body, ready to Send.
 
-- [ ] **Hide / show controls + persistence** — let users hide individual
+- [x] **Hide / show controls + persistence** — let users hide individual
   samples and the whole section, but keep state reversible.
   - Touchpoints: new store slice `frontend/src/store/samples.ts` with
     `hiddenSampleIds: Set<string>`, `samplesSectionHidden: boolean`,
@@ -144,7 +144,7 @@ Related items already in the backlog:
     Settings → Sample Requests → toggle "Show samples section" off →
     section disappears. Both states survive an app restart.
 
-- [ ] **Always-reach paths** — three independent surfaces let users
+- [x] **Always-reach paths** — three independent surfaces let users
   rediscover hidden samples.
   - **Command palette entries**: `frontend/src/components/QuickSwitcher.tsx`
     indexes the FULL sample manifest (not the filtered list) so
