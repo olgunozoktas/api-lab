@@ -211,15 +211,22 @@ export function TabStripPresenter({
                   />
                 ) : null}
 
-                {/* Method-color indicator */}
-                <span
-                  className={cn(
-                    "text-[10px] font-mono font-semibold uppercase tracking-tight shrink-0",
-                    methodClass(tab.request.method)
-                  )}
-                >
-                  {tab.request.method}
-                </span>
+                {/* Method-color indicator — or a SPEC tag for an
+                OpenAPI-editor tab (it carries no real HTTP method). */}
+                {tab.spec ? (
+                  <span className="text-[10px] font-mono font-semibold uppercase tracking-tight shrink-0 text-[var(--color-accent)]">
+                    SPEC
+                  </span>
+                ) : (
+                  <span
+                    className={cn(
+                      "text-[10px] font-mono font-semibold uppercase tracking-tight shrink-0",
+                      methodClass(tab.request.method)
+                    )}
+                  >
+                    {tab.request.method}
+                  </span>
+                )}
 
                 {/* Last-response status pill — colored by 2xx/3xx/4xx/5xx
                 so a glance across the tab strip shows which tabs

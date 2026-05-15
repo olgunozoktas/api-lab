@@ -121,6 +121,13 @@ export const tr = {
   "import.failed": "İçe aktarma başarısız: {error}",
   "import.har.success": "{creator} HAR içe aktarıldı — {count} giriş geçmişe eklendi",
 
+  "spec.button": "Spec",
+  "spec.button.title": "OpenAPI spec'ini editörde aç",
+  "spec.outline.title": "İşlemler",
+  "spec.outline.empty": "İşlem bulunamadı",
+  "spec.invalid": "Spec hatalı — işlemleri görmek için düzeltin",
+  "spec.parsing": "Çözümleniyor…",
+
   "collections.newFolder": "+ Klasör",
   "collections.newFolderPrompt": "Klasör adı:",
   "collections.newFolderDefault": "Yeni klasör",

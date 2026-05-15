@@ -8,12 +8,13 @@ import {
   syntaxHighlighting, defaultHighlightStyle, indentUnit,
 } from "@codemirror/language";
 import { json } from "@codemirror/lang-json";
+import { yaml } from "@codemirror/lang-yaml";
 import { graphql } from "cm6-graphql";
 import { closeBrackets, closeBracketsKeymap, autocompletion, completionKeymap } from "@codemirror/autocomplete";
 import { searchKeymap, highlightSelectionMatches } from "@codemirror/search";
 import { cn } from "../../lib/cn";
 
-export type CodeLanguage = "json" | "graphql" | "text";
+export type CodeLanguage = "json" | "yaml" | "graphql" | "text";
 
 export type CodeEditorProps = {
   value: string;
@@ -57,6 +58,7 @@ const editorTheme = EditorView.theme(
 
 function getLangExtension(lang: CodeLanguage): Extension {
   if (lang === "graphql") return graphql();
+  if (lang === "yaml") return yaml();
   if (lang === "text") return [];
   return json();
 }

@@ -110,7 +110,9 @@ export function snapshotActiveIntoTab(s: CoreState): OpenTab[] {
     t.id === s.activeTabId
       ? {
           ...t,
-          name: s.current.name?.trim() || t.name,
+          // Spec-editor tabs name themselves after the spec file, not
+          // the (unused) request mirror — keep `t.name` for them.
+          name: t.spec ? t.name : s.current.name?.trim() || t.name,
           request: clone(s.current),
           lastResponse: s.lastResponse,
           composerTab: s.ui.composerTab,

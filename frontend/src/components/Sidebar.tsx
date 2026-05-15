@@ -74,6 +74,7 @@ export function Sidebar() {
             rightSlot={
               <div className="flex gap-1">
                 <ImportPostmanButton />
+                <OpenSpecButton />
                 <NewFolderButton />
               </div>
             }
@@ -343,6 +344,40 @@ function ImportPostmanButton() {
         title={t("import.title")}
       >
         {t("import.button")}
+      </Button>
+    </>
+  );
+}
+
+function OpenSpecButton() {
+  const openSpecTab = useStore((s) => s.openSpecTab);
+  const t = useT();
+  const fileRef = useRef<HTMLInputElement | null>(null);
+  return (
+    <>
+      <input
+        ref={fileRef}
+        type="file"
+        accept=".yaml,.yml,.json,application/json"
+        className="hidden"
+        onChange={async (e) => {
+          const f = e.target.files?.[0];
+          if (f) {
+            const text = await f.text();
+            openSpecTab(text, f.name);
+          }
+          // Reset so re-opening the same file re-fires onChange.
+          e.target.value = "";
+        }}
+      />
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={() => fileRef.current?.click()}
+        className="text-[11px] h-auto py-0.5 px-1.5"
+        title={t("spec.button.title")}
+      >
+        {t("spec.button")}
       </Button>
     </>
   );

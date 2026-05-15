@@ -253,6 +253,18 @@ export const defaultRequestDefaults = (): RequestDefaults => ({
 // `current` / `lastResponse` / `ui.composerTab` / `ui.responseTab` mirrored
 // to the *active* tab's fields so existing leaf components stay
 // store-shape agnostic.
+// State for an OpenAPI-editor tab. When `OpenTab.spec` is set the tab
+// hosts the spec editor instead of the HTTP composer; the tab's
+// `request` stays a throwaway empty request so the existing tab
+// machinery (snapshot / clone / close / reopen) keeps working without
+// any spec-aware branching.
+export type SpecTabState = {
+  // The raw spec source — YAML or JSON — as the user is editing it.
+  text: string;
+  // Display name (the imported file's name); also the tab title.
+  fileName: string;
+};
+
 export type OpenTab = {
   id: string;
   name: string;
@@ -265,6 +277,8 @@ export type OpenTab = {
   // Optional so persisted v3 snapshots from before pin shipped still
   // load — readers should default `pinned ?? false`.
   pinned?: boolean;
+  // Present only on OpenAPI-editor tabs. Absent on normal request tabs.
+  spec?: SpecTabState;
 };
 
 export const emptyTab = (id: string): OpenTab => ({

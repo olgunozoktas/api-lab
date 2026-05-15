@@ -123,6 +123,13 @@ export const en: Dict = {
   "import.failed": "Import failed: {error}",
   "import.har.success": "{creator} HAR imported — {count} entries added to History",
 
+  "spec.button": "Spec",
+  "spec.button.title": "Open an OpenAPI spec in the editor",
+  "spec.outline.title": "Operations",
+  "spec.outline.empty": "No operations found",
+  "spec.invalid": "Spec has errors — fix it to see operations",
+  "spec.parsing": "Parsing…",
+
   "collections.newFolder": "+ Folder",
   "collections.newFolderPrompt": "Folder name:",
   "collections.newFolderDefault": "New folder",

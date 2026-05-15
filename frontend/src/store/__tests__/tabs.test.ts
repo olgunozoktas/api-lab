@@ -297,3 +297,56 @@ describe("tabs", () => {
     expect(final.tabs.some((t) => t.id === rightmostId)).toBe(true);
   });
 });
+
+describe("spec tabs", () => {
+  beforeEach(() => {
+    reset();
+  });
+
+  it("openSpecTab() opens an editor tab and activates it", () => {
+    const before = useStore.getState().tabs.length;
+    useStore.getState().openSpecTab("openapi: 3.0.0", "petstore.yaml");
+    const s = useStore.getState();
+    expect(s.tabs.length).toBe(before + 1);
+    const active = s.tabs.find((t) => t.id === s.activeTabId)!;
+    expect(active.spec).toEqual({ text: "openapi: 3.0.0", fileName: "petstore.yaml" });
+    expect(active.name).toBe("petstore.yaml");
+  });
+
+  it("updateSpecText() patches the spec text in place", () => {
+    useStore.getState().openSpecTab("a", "s.yaml");
+    const id = useStore.getState().activeTabId;
+    useStore.getState().updateSpecText(id, "b");
+    const tab = useStore.getState().tabs.find((t) => t.id === id)!;
+    expect(tab.spec!.text).toBe("b");
+    expect(tab.spec!.fileName).toBe("s.yaml");
+  });
+
+  it("updateSpecText() is a no-op on a non-spec tab", () => {
+    const id = useStore.getState().activeTabId;
+    useStore.getState().updateSpecText(id, "ignored");
+    expect(useStore.getState().tabs.find((t) => t.id === id)!.spec).toBeUndefined();
+  });
+
+  it("preserves spec text + name across a tab switch", () => {
+    useStore.getState().openSpecTab("v1", "s.yaml");
+    const specId = useStore.getState().activeTabId;
+    useStore.getState().updateSpecText(specId, "v2");
+    useStore.getState().newTab();
+    useStore.getState().setActiveTab(specId);
+    const tab = useStore.getState().tabs.find((t) => t.id === specId)!;
+    expect(tab.spec!.text).toBe("v2");
+    expect(tab.name).toBe("s.yaml");
+  });
+
+  it("restores the spec payload when a closed spec tab is reopened", () => {
+    useStore.getState().openSpecTab("openapi: 3.1.0", "api.yaml");
+    const specId = useStore.getState().activeTabId;
+    useStore.getState().closeTab(specId);
+    useStore.getState().reopenLastClosedTab();
+    const s = useStore.getState();
+    const reopened = s.tabs.find((t) => t.id === s.activeTabId)!;
+    expect(reopened.spec?.text).toBe("openapi: 3.1.0");
+    expect(reopened.spec?.fileName).toBe("api.yaml");
+  });
+});

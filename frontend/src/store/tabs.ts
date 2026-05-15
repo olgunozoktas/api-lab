@@ -48,6 +48,12 @@ export type TabsActions = {
   // the current tab untouched so the user can compare the original
   // vs the replayed request side-by-side.
   openHistoryItemInNewTab: (h: HistoryItem) => void;
+  // Open an OpenAPI spec in a new editor tab. The tab carries a
+  // `spec` payload; its `request` stays an unused empty request.
+  openSpecTab: (text: string, fileName: string) => void;
+  // Patch the spec text of an editor tab (the CodeMirror onChange
+  // sink). No-op if `id` isn't a spec tab.
+  updateSpecText: (id: string, text: string) => void;
 };
 
 export const createTabsSlice: StateCreator<Store, StoreMutators, [], TabsActions> = (set) => ({
@@ -372,4 +378,30 @@ export const createTabsSlice: StateCreator<Store, StoreMutators, [], TabsActions
         ui: { ...s.ui, composerTab, responseTab },
       };
     }),
+
+  openSpecTab: (text, fileName) =>
+    set((s) => {
+      const tabs = snapshotActiveIntoTab(s);
+      const fresh: OpenTab = {
+        ...emptyTab(uid()),
+        name: fileName,
+        spec: { text, fileName },
+      };
+      return {
+        tabs: [...tabs, fresh],
+        activeTabId: fresh.id,
+        current: clone(fresh.request),
+        lastResponse: null,
+        ui: {
+          ...s.ui,
+          composerTab: fresh.composerTab,
+          responseTab: fresh.responseTab,
+        },
+      };
+    }),
+
+  updateSpecText: (id, text) =>
+    set((s) => ({
+      tabs: s.tabs.map((t) => (t.id === id && t.spec ? { ...t, spec: { ...t.spec, text } } : t)),
+    })),
 });

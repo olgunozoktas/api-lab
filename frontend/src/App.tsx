@@ -20,6 +20,7 @@ import { ResponseViewerContainer } from "./components/ResponseViewer";
 import { WsPanelContainer } from "./components/WsPanel";
 import { GrpcPanelContainer } from "./components/GrpcPanelContainer";
 import { SsePanelContainer } from "./components/SsePanel";
+import { OpenApiEditorContainer } from "./components/OpenApiEditor";
 import { UrlBarContainer } from "./components/UrlBar";
 import { Toast } from "./components/Toast";
 import { ResizableDivider } from "./components/ResizableDivider";
@@ -260,10 +261,13 @@ export function App() {
   ]);
 
   const activeTabId = useStore((s) => s.activeTabId);
+  // A spec-editor tab takes over the whole content area, ahead of the
+  // URL-derived WS / gRPC / SSE modes.
+  const specMode = useStore((s) => !!s.tabs.find((tab) => tab.id === s.activeTabId)?.spec);
   const substitutedUrl = envSubst(current.url, vars);
-  const wsMode = isWsUrl(substitutedUrl);
-  const grpcMode = !wsMode && isGrpcUrl(substitutedUrl);
-  const sseMode = !wsMode && !grpcMode && isSseUrl(substitutedUrl);
+  const wsMode = !specMode && isWsUrl(substitutedUrl);
+  const grpcMode = !specMode && !wsMode && isGrpcUrl(substitutedUrl);
+  const sseMode = !specMode && !wsMode && !grpcMode && isSseUrl(substitutedUrl);
   const singleColumn = wsMode || grpcMode || sseMode;
 
   const layout = ui.layout ?? DEFAULT_LAYOUT;
@@ -279,9 +283,8 @@ export function App() {
   // + its divider aren't rendered (so they can't steal pointer events).
   const sidebarCollapsed = ui.sidebarCollapsed ?? false;
   const leading = sidebarCollapsed ? "" : `${layout.sidebarPx}px 8px `;
-  const gridTemplateColumns = singleColumn
-    ? `${leading}1fr`
-    : `${leading}${layout.composerPx}px 8px 1fr`;
+  const gridTemplateColumns =
+    singleColumn || specMode ? `${leading}1fr` : `${leading}${layout.composerPx}px 8px 1fr`;
 
   return (
     <div className="h-full flex flex-col bg-[var(--color-bg)] text-[var(--color-fg)] text-[13px]">
@@ -300,7 +303,14 @@ export function App() {
             />
           </>
         )}
-        {singleColumn ? (
+        {specMode ? (
+          <div className="flex flex-col min-h-0 min-w-0 overflow-hidden">
+            <TabStripContainer />
+            <div className="flex-1 min-h-0 overflow-hidden">
+              <OpenApiEditorContainer />
+            </div>
+          </div>
+        ) : singleColumn ? (
           <div className="flex flex-col min-h-0 min-w-0 overflow-hidden">
             <TabStripContainer />
             <UrlBarContainer busy={false} onSend={onSend} onCancel={onCancel} hideSend hideMethod />
