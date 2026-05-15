@@ -44,6 +44,10 @@ export type CoreState = {
   // not listed in the store's `partialize` key set — so it lives only
   // for the current session, matching browser behaviour.
   recentlyClosed: OpenTab[];
+  // Per-id hidden state for the built-in Samples surface. See
+  // store/samples.ts + lib/samples.ts. Persisted via partialize.
+  hiddenSampleIds: string[];
+  samplesSectionHidden: boolean;
 };
 
 // Cap for the recently-closed stack. Mirrors Chrome's "Recently
@@ -93,6 +97,8 @@ export function buildInitialState(): CoreState {
     defaults: defaultRequestDefaults(),
     toast: null,
     recentlyClosed: [],
+    hiddenSampleIds: [],
+    samplesSectionHidden: false,
   };
 }
 
@@ -169,6 +175,8 @@ export function migrateV1toV2(persisted: unknown): V2State {
     locale: old.locale ?? detectLocale("tr"),
     defaults: old.defaults ?? defaultRequestDefaults(),
     recentlyClosed: old.recentlyClosed ?? [],
+    hiddenSampleIds: old.hiddenSampleIds ?? [],
+    samplesSectionHidden: old.samplesSectionHidden ?? false,
     toast: null,
   };
 }
@@ -193,11 +201,18 @@ export function migrateV2toV3(persisted: unknown): CoreState {
   // `collectionItems`. Object spread first so we override known keys.
   const { collections: _drop, ...rest } = old;
   void _drop;
+  // Spread persisted state after the initial defaults, then re-pin the
+  // fields added in versions after V2 so older snapshots don't surface
+  // them as undefined and trip the CoreState shape check. Each new
+  // field added to CoreState in a future version needs the same
+  // treatment here.
   return {
     ...buildInitialState(),
     ...rest,
     collectionItems,
     collectionsExpanded: {},
+    hiddenSampleIds: [],
+    samplesSectionHidden: false,
   } as CoreState;
 }
 

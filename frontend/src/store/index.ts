@@ -12,6 +12,7 @@ import { createExamplesSlice } from "./examples";
 import { createUiSlice } from "./ui";
 import { createResponseSlice } from "./response";
 import { createCurrentSlice } from "./current";
+import { createSamplesSlice } from "./samples";
 
 // Multi-request workspace store. `tabs[]` is the source of truth; each tab
 // carries its own request/lastResponse/composerTab/responseTab. The
@@ -34,6 +35,7 @@ export const useStore = create<Store>()(
       ...createUiSlice(...args),
       ...createResponseSlice(...args),
       ...createCurrentSlice(...args),
+      ...createSamplesSlice(...args),
     }),
     {
       name: "apilab.store.v1",
@@ -61,6 +63,8 @@ export const useStore = create<Store>()(
           ui: s.ui,
           locale: s.locale,
           defaults: s.defaults,
+          hiddenSampleIds: s.hiddenSampleIds,
+          samplesSectionHidden: s.samplesSectionHidden,
         }) as Store,
     }
   )

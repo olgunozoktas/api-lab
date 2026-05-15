@@ -517,4 +517,5 @@ export const en: Dict = {
   "samples.grpc.name": "gRPC — Reflection",
   "samples.grpc.description":
     "Explore the grpcb.in service tree via reflection — no .proto file needed.",
+  "samples.hide": "Hide this sample",
 };

@@ -8,6 +8,7 @@ import type { ExamplesActions } from "./examples";
 import type { UiActions } from "./ui";
 import type { ResponseActions } from "./response";
 import type { CurrentActions } from "./current";
+import type { SamplesActions } from "./samples";
 
 export type Actions = CollectionsActions &
   TabsActions &
@@ -16,7 +17,8 @@ export type Actions = CollectionsActions &
   ExamplesActions &
   UiActions &
   ResponseActions &
-  CurrentActions;
+  CurrentActions &
+  SamplesActions;
 
 export type Store = CoreState & Actions;
 

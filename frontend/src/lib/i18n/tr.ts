@@ -514,4 +514,5 @@ export const tr = {
   "samples.grpc.name": "gRPC — Reflection",
   "samples.grpc.description":
     "grpcb.in servis ağacını reflection ile keşfet — .proto dosyasına ihtiyaç yok.",
+  "samples.hide": "Bu örneği gizle",
 };
