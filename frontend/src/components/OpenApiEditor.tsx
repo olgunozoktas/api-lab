@@ -13,7 +13,10 @@ import { useT } from "../lib/i18n/useT";
 import { cn } from "../lib/cn";
 import { methodClass } from "../lib/utils";
 import { validateSpec, type SpecIssue } from "../lib/specValidate";
+import { downloadTextFile } from "../lib/responseDownload";
 import { CodeEditor, type CodeLanguage } from "./ui/code-editor";
+import { Button } from "./ui/button";
+import { Download } from "lucide-react";
 import type { CollectionItem } from "../lib/types";
 
 type Outline = {
@@ -152,20 +155,32 @@ export function OpenApiEditor({ text, fileName, onChange, className }: OpenApiEd
   }, [text, t]);
 
   const errorCount = issues.filter((i) => i.severity === "error").length;
+  const lang = specLanguage(fileName, text);
 
   return (
     <div className={cn("flex h-full min-h-0", className)}>
       <div className="flex-1 min-w-0 flex flex-col">
-        <div className="px-3 py-1.5 text-[11px] text-[var(--color-fg-muted)] border-b border-[var(--color-border)] truncate">
-          {fileName}
+        <div className="px-3 py-1 flex items-center justify-between gap-2 border-b border-[var(--color-border)]">
+          <span className="text-[11px] text-[var(--color-fg-muted)] truncate">{fileName}</span>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() =>
+              downloadTextFile(
+                text,
+                fileName,
+                lang === "json" ? "application/json" : "application/yaml"
+              )
+            }
+            className="text-[11px] h-auto py-0.5 px-1.5 shrink-0"
+            title={t("spec.save.title")}
+          >
+            <Download className="w-3 h-3" />
+            {t("spec.save")}
+          </Button>
         </div>
         <div className="flex-1 min-h-0 p-2">
-          <CodeEditor
-            value={text}
-            onChange={onChange}
-            language={specLanguage(fileName, text)}
-            className="h-full"
-          />
+          <CodeEditor value={text} onChange={onChange} language={lang} className="h-full" />
         </div>
       </div>
       <div className="w-[300px] shrink-0 flex flex-col border-l border-[var(--color-border)] bg-[var(--color-bg-elev)]">

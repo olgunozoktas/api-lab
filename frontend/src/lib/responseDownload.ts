@@ -19,19 +19,17 @@ export function extensionForContentType(contentType: string): string {
   return "txt";
 }
 
-// Trigger a browser download of the response body. Filename includes
-// the status code so saved files from chained debug sessions don't
-// stomp each other (`response-200.json`, `response-404.html`, etc.).
+// Trigger a browser download of arbitrary text content. The shared
+// blob-anchor mechanic behind `downloadResponseBody` and the OpenAPI
+// editor's Save button.
 //
 // Side effects only — caller doesn't get a promise. The anchor click +
-// URL revoke happens synchronously on the next microtask via a tiny
-// setTimeout so the click handler completes before the URL is freed.
-export function downloadResponseBody(body: string, contentType: string, status: number): void {
-  const ext = extensionForContentType(contentType);
-  const filename = `response-${status || "unknown"}.${ext}`;
-  // Use Blob with the response's actual MIME type so Finder / dock
-  // shows the right icon when the user saves it.
-  const blob = new Blob([body], { type: contentType || "text/plain" });
+// URL revoke happens on the next macrotask via a tiny setTimeout so
+// the click event dispatches before the URL is freed.
+export function downloadTextFile(content: string, filename: string, mimeType: string): void {
+  // The Blob carries the real MIME type so Finder / the dock show the
+  // right icon for the saved file.
+  const blob = new Blob([content], { type: mimeType || "text/plain" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
@@ -39,8 +37,15 @@ export function downloadResponseBody(body: string, contentType: string, status: 
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
-  // Free the object URL after the click event has dispatched. The
   // 0ms timeout pushes the revoke to the next macrotask so Safari's
   // download pipeline has time to read the blob.
   setTimeout(() => URL.revokeObjectURL(url), 0);
+}
+
+// Trigger a browser download of the response body. Filename includes
+// the status code so saved files from chained debug sessions don't
+// stomp each other (`response-200.json`, `response-404.html`, etc.).
+export function downloadResponseBody(body: string, contentType: string, status: number): void {
+  const ext = extensionForContentType(contentType);
+  downloadTextFile(body, `response-${status || "unknown"}.${ext}`, contentType || "text/plain");
 }

@@ -123,6 +123,8 @@ export const tr = {
 
   "spec.button": "Spec",
   "spec.button.title": "OpenAPI spec'ini editörde aç",
+  "spec.save": "Kaydet",
+  "spec.save.title": "Spec'i dosya olarak indir",
   "spec.outline.title": "İşlemler",
   "spec.outline.empty": "İşlem bulunamadı",
   "spec.parsing": "Çözümleniyor…",

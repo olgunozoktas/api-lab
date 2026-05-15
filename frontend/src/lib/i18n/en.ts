@@ -125,6 +125,8 @@ export const en: Dict = {
 
   "spec.button": "Spec",
   "spec.button.title": "Open an OpenAPI spec in the editor",
+  "spec.save": "Save",
+  "spec.save.title": "Download the spec as a file",
   "spec.outline.title": "Operations",
   "spec.outline.empty": "No operations found",
   "spec.parsing": "Parsing…",
