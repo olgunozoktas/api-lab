@@ -10,11 +10,11 @@ migrations from every other API tool.
 
 ## Items
 
-- [ ] **Insomnia v4 (YAML / JSON)** — parser at `lib/importers/insomnia.ts`; nested folders + requests + envs
-- [ ] **Bruno BRU files** — parser at `lib/importers/bruno.ts`; Bruno's plain-text format is the philosophical sibling of our Git-native sync, so import + export mappings should be tight
-- [ ] **HAR (HTTP Archive)** — parser at `lib/importers/har.ts`; Chrome DevTools "Save as HAR with content" → batch-import every captured request as history (not collections, since HAR has no naming)
-- [ ] All three importers reuse the import-preview modal from Phase I.1 / I.2
-- [ ] Tests: round-trip an example file from each format
+- [x] **Insomnia v4 (YAML / JSON)** — parser at `lib/importers/insomnia.ts`; nested folders + requests + envs
+- [x] **Bruno BRU files** — parser at `lib/importers/bruno.ts`; Bruno's plain-text format is the philosophical sibling of our Git-native sync, so import + export mappings should be tight
+- [x] **HAR (HTTP Archive)** — parser at `lib/importers/har.ts`; Chrome DevTools "Save as HAR with content" → batch-import every captured request as history (not collections, since HAR has no naming)
+- [x] All three importers surface unsupported-feature warnings — implemented as a warnings toast + `console.warn` rather than a preview modal; Phase I.1 (Postman) shipped this same toast-based pattern, so no preview modal was ever built
+- [x] Tests: round-trip an example file from each format
 
 ## Acceptance
 
