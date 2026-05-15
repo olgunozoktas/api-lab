@@ -13,6 +13,7 @@ import { SearchInput } from "./ui/search-input";
 import { parsePostmanV2 } from "../lib/importers/postmanV2";
 import { isInsomniaExport, parseInsomniaV4 } from "../lib/importers/insomnia";
 import { isHarFile, parseHar } from "../lib/importers/har";
+import { isBrunoFile, parseBruno } from "../lib/importers/bruno";
 import {
   ContextMenu,
   ContextMenuContent,
@@ -208,6 +209,29 @@ function ImportPostmanButton() {
   const onFile = async (file: File) => {
     try {
       const text = await file.text();
+      // Bruno `.bru` files are plain text, not JSON — sniff + route
+      // them before the JSON-shape dispatch below.
+      if (isBrunoFile(text)) {
+        const r = parseBruno(text);
+        if (r.items.length === 0) {
+          showToast(t("import.empty"));
+          return;
+        }
+        importItems(r.items, r.envVars, r.collectionName);
+        showToast(
+          t("import.success", {
+            name: r.collectionName,
+            folders: String(r.folderCount),
+            requests: String(r.requestCount),
+          })
+        );
+        if (r.warnings.length > 0) {
+          showToast(t("import.warnings", { count: String(r.warnings.length) }));
+          // eslint-disable-next-line no-console
+          console.warn("Bruno import warnings:", r.warnings);
+        }
+        return;
+      }
       // Format detection: peek the JSON shape and route to the right
       // parser. Postman v2 / Insomnia v4 / HAR all share .json, so
       // filename-based dispatch isn't enough.
@@ -270,7 +294,7 @@ function ImportPostmanButton() {
       <input
         ref={fileRef}
         type="file"
-        accept=".json,application/json"
+        accept=".json,.bru,application/json"
         className="hidden"
         onChange={(e) => {
           const f = e.target.files?.[0];
