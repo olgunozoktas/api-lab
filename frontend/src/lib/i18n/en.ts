@@ -127,8 +127,12 @@ export const en: Dict = {
   "spec.button.title": "Open an OpenAPI spec in the editor",
   "spec.outline.title": "Operations",
   "spec.outline.empty": "No operations found",
-  "spec.invalid": "Spec has errors — fix it to see operations",
   "spec.parsing": "Parsing…",
+  "spec.validation.title": "Validation",
+  "spec.validation.ok": "No problems found",
+  "spec.validation.errorTag": "Error",
+  "spec.validation.warningTag": "Warn",
+  "spec.validation.parseError": "Document is not valid YAML or JSON.",
 
   "collections.newFolder": "+ Folder",
   "collections.newFolderPrompt": "Folder name:",

@@ -125,8 +125,12 @@ export const tr = {
   "spec.button.title": "OpenAPI spec'ini editörde aç",
   "spec.outline.title": "İşlemler",
   "spec.outline.empty": "İşlem bulunamadı",
-  "spec.invalid": "Spec hatalı — işlemleri görmek için düzeltin",
   "spec.parsing": "Çözümleniyor…",
+  "spec.validation.title": "Doğrulama",
+  "spec.validation.ok": "Sorun bulunamadı",
+  "spec.validation.errorTag": "Hata",
+  "spec.validation.warningTag": "Uyarı",
+  "spec.validation.parseError": "Belge geçerli YAML veya JSON değil.",
 
   "collections.newFolder": "+ Klasör",
   "collections.newFolderPrompt": "Klasör adı:",
