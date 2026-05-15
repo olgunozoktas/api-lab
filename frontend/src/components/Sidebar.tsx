@@ -232,6 +232,38 @@ function ImportPostmanButton() {
         }
         return;
       }
+      // OpenAPI 3.x — JSON or YAML. Detected before the JSON-only
+      // branches since a YAML spec won't survive a JSON.parse. The
+      // importer (and its ~100 KB yaml parser) is dynamically imported
+      // so it stays out of the main bundle.
+      const oas = await import("../lib/importers/openapi");
+      let specDoc: unknown = null;
+      try {
+        specDoc = oas.parseSpecText(text);
+      } catch {
+        // Not a parseable spec — fall through to the JSON dispatch.
+      }
+      if (oas.isOpenApiSpec(specDoc)) {
+        const r = oas.parseOpenApi(text);
+        if (r.items.length === 0) {
+          showToast(t("import.empty"));
+          return;
+        }
+        importItems(r.items, r.envVars, r.collectionName);
+        showToast(
+          t("import.success", {
+            name: r.collectionName,
+            folders: String(r.folderCount),
+            requests: String(r.requestCount),
+          })
+        );
+        if (r.warnings.length > 0) {
+          showToast(t("import.warnings", { count: String(r.warnings.length) }));
+          // eslint-disable-next-line no-console
+          console.warn("OpenAPI import warnings:", r.warnings);
+        }
+        return;
+      }
       // Format detection: peek the JSON shape and route to the right
       // parser. Postman v2 / Insomnia v4 / HAR all share .json, so
       // filename-based dispatch isn't enough.
@@ -294,7 +326,7 @@ function ImportPostmanButton() {
       <input
         ref={fileRef}
         type="file"
-        accept=".json,.bru,application/json"
+        accept=".json,.bru,.yaml,.yml,application/json"
         className="hidden"
         onChange={(e) => {
           const f = e.target.files?.[0];
