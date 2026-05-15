@@ -16,7 +16,7 @@ import { validateSpec, type SpecIssue } from "../lib/specValidate";
 import { downloadTextFile } from "../lib/responseDownload";
 import { CodeEditor, type CodeLanguage } from "./ui/code-editor";
 import { Button } from "./ui/button";
-import { Download } from "lucide-react";
+import { Download, FolderInput } from "lucide-react";
 import type { CollectionItem } from "../lib/types";
 
 type Outline = {
@@ -106,11 +106,19 @@ export type OpenApiEditorProps = {
   text: string;
   fileName: string;
   onChange: (text: string) => void;
+  // Convert the current spec into a sidebar collection.
+  onConvert: () => void;
   className?: string;
 };
 
 /** Presenter — pure props, no store access. */
-export function OpenApiEditor({ text, fileName, onChange, className }: OpenApiEditorProps) {
+export function OpenApiEditor({
+  text,
+  fileName,
+  onChange,
+  onConvert,
+  className,
+}: OpenApiEditorProps) {
   const t = useT();
   const [outline, setOutline] = useState<Outline | null>(null);
   const [issues, setIssues] = useState<SpecIssue[]>([]);
@@ -162,22 +170,35 @@ export function OpenApiEditor({ text, fileName, onChange, className }: OpenApiEd
       <div className="flex-1 min-w-0 flex flex-col">
         <div className="px-3 py-1 flex items-center justify-between gap-2 border-b border-[var(--color-border)]">
           <span className="text-[11px] text-[var(--color-fg-muted)] truncate">{fileName}</span>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() =>
-              downloadTextFile(
-                text,
-                fileName,
-                lang === "json" ? "application/json" : "application/yaml"
-              )
-            }
-            className="text-[11px] h-auto py-0.5 px-1.5 shrink-0"
-            title={t("spec.save.title")}
-          >
-            <Download className="w-3 h-3" />
-            {t("spec.save")}
-          </Button>
+          <div className="flex items-center gap-1 shrink-0">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onConvert}
+              disabled={errorCount > 0}
+              className="text-[11px] h-auto py-0.5 px-1.5"
+              title={errorCount > 0 ? t("spec.convert.blocked") : t("spec.convert.title")}
+            >
+              <FolderInput className="w-3 h-3" />
+              {t("spec.convert")}
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() =>
+                downloadTextFile(
+                  text,
+                  fileName,
+                  lang === "json" ? "application/json" : "application/yaml"
+                )
+              }
+              className="text-[11px] h-auto py-0.5 px-1.5"
+              title={t("spec.save.title")}
+            >
+              <Download className="w-3 h-3" />
+              {t("spec.save")}
+            </Button>
+          </div>
         </div>
         <div className="flex-1 min-h-0 p-2">
           <CodeEditor value={text} onChange={onChange} language={lang} className="h-full" />
@@ -248,12 +269,45 @@ export function OpenApiEditorContainer() {
   const activeTabId = useStore((s) => s.activeTabId);
   const spec = useStore((s) => s.tabs.find((tab) => tab.id === s.activeTabId)?.spec);
   const updateSpecText = useStore((s) => s.updateSpecText);
+  const importItems = useStore((s) => s.importItems);
+  const showToast = useStore((s) => s.showToast);
+  const t = useT();
   if (!spec) return null;
+
+  // Convert the current spec text into a sidebar collection via the
+  // Slice-1 importer. Same toast feedback as the sidebar Import flow.
+  const convert = async () => {
+    try {
+      const oas = await import("../lib/importers/openapi");
+      const r = oas.parseOpenApi(spec.text);
+      if (r.items.length === 0) {
+        showToast(t("import.empty"));
+        return;
+      }
+      importItems(r.items, r.envVars, r.collectionName);
+      showToast(
+        t("import.success", {
+          name: r.collectionName,
+          folders: String(r.folderCount),
+          requests: String(r.requestCount),
+        })
+      );
+      if (r.warnings.length > 0) {
+        showToast(t("import.warnings", { count: String(r.warnings.length) }));
+        // eslint-disable-next-line no-console
+        console.warn("OpenAPI convert warnings:", r.warnings);
+      }
+    } catch (e) {
+      showToast(t("import.failed", { error: e instanceof Error ? e.message : String(e) }));
+    }
+  };
+
   return (
     <OpenApiEditor
       text={spec.text}
       fileName={spec.fileName}
       onChange={(text) => updateSpecText(activeTabId, text)}
+      onConvert={() => void convert()}
     />
   );
 }
