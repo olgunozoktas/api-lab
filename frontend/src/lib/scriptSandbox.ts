@@ -16,18 +16,14 @@
 // WASM bootstrap is lazy + module-cached. First script eats ~250 KB
 // of bundle on demand (code-split target for Phase O.0).
 
-import type { KvRow, RequestSnapshot, ResponseSnapshot } from "./types";
+import type { KvRow, RequestSnapshot, ResponseSnapshot, ScriptAssert } from "./types";
+
+export type { ScriptAssert };
 
 export type ScriptInputState = {
   request: RequestSnapshot;
   env: Record<string, string>;
   response?: ResponseSnapshot;
-};
-
-export type ScriptAssert = {
-  name: string;
-  passed: boolean;
-  error?: string;
 };
 
 export type ScriptResult = {
@@ -179,6 +175,14 @@ const pm = {
           false: function() { if (actual !== false) fail("expected " + show(actual) + " to be false"); },
           null: function() { if (actual !== null) fail("expected " + show(actual) + " to be null"); },
           undefined: function() { if (actual !== undefined) fail("expected " + show(actual) + " to be undefined"); },
+          a: function(type) {
+            var got = Array.isArray(actual) ? "array" : (actual === null ? "null" : typeof actual);
+            if (got !== type) fail("expected " + show(actual) + " to be a " + type + " (got " + got + ")");
+          },
+          an: function(type) {
+            var got = Array.isArray(actual) ? "array" : (actual === null ? "null" : typeof actual);
+            if (got !== type) fail("expected " + show(actual) + " to be an " + type + " (got " + got + ")");
+          },
         },
         have: {
           status: function(expected) {

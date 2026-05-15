@@ -26,7 +26,7 @@ import { Toast } from "./components/Toast";
 import { ResizableDivider } from "./components/ResizableDivider";
 import { useStore, useActiveVars } from "./store";
 import { useT } from "./lib/i18n/useT";
-import { send } from "./lib/sendRequest";
+import { sendWithScripts } from "./lib/sendRequest";
 import { isWsUrl } from "./lib/ws";
 import { isGrpcUrl } from "./lib/grpc";
 import { isSseUrl } from "./lib/sse";
@@ -93,7 +93,19 @@ export function App() {
     abortRef.current = controller;
     setBusy(true);
     try {
-      const res = await send(current, isGraphql, vars, defaults, { signal: controller.signal });
+      const result = await sendWithScripts(current, isGraphql, vars, defaults, {
+        signal: controller.signal,
+      });
+      // Carry the pre/post-script outcomes on the response so the
+      // Tests + Console tabs can surface them. Omitted when the
+      // request has no scripts.
+      const res =
+        result.preScript || result.postScript
+          ? {
+              ...result.response,
+              scriptResults: { pre: result.preScript, post: result.postScript },
+            }
+          : result.response;
       setLastResponse(res);
       pushHistory(
         {

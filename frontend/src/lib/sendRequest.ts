@@ -1,16 +1,12 @@
 /** Olgun Özoktaş geliştirdi · API Lab */
 import { bridge } from "./bridge";
 import type { HttpHeader, HttpResponse } from "./bridge";
-import type { CurrentRequest, RequestDefaults, ResponseSnapshot } from "./types";
+import type { CurrentRequest, RequestDefaults, ResponseSnapshot, ScriptOutcome } from "./types";
 import { defaultRequestDefaults } from "./types";
 import { envSubst } from "./utils";
-import { runScript, type ScriptAssert } from "./scriptSandbox";
+import { runScript } from "./scriptSandbox";
 
-export type ScriptOutcome = {
-  asserts: ScriptAssert[];
-  console_log: string[];
-  error?: string;
-};
+export type { ScriptOutcome };
 
 export type SendResult = {
   response: ResponseSnapshot;

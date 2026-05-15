@@ -3,6 +3,7 @@ import { useStore } from "../store";
 import { ResponseHeadContainer } from "./ResponseHead";
 import { ResponseBodyContainer } from "./ResponseBody";
 import { ExamplesPanelContainer } from "./ExamplesPanel";
+import { ScriptTestsPanelContainer, ScriptConsolePanelContainer } from "./ScriptResultsPanel";
 import { useT } from "../lib/i18n/useT";
 import { Tabs, TabsList, TabsTrigger } from "./ui/tabs";
 import type { ResponseTab } from "../lib/types";
@@ -12,6 +13,8 @@ const TABS: { id: ResponseTab; key: TKey }[] = [
   { id: "body", key: "response.tab.body" },
   { id: "headers", key: "response.tab.headers" },
   { id: "raw", key: "response.tab.raw" },
+  { id: "tests", key: "response.tab.tests" },
+  { id: "console", key: "response.tab.console" },
   { id: "examples", key: "response.tab.examples" },
 ];
 
@@ -21,6 +24,8 @@ export type ResponseViewerProps = {
   tab: ResponseTab;
   examplesCount: number;
   headersCount: number;
+  testCount: number;
+  consoleCount: number;
   onTabChange: (t: ResponseTab) => void;
 };
 
@@ -29,6 +34,8 @@ export function ResponseViewer({
   tab,
   examplesCount,
   headersCount,
+  testCount,
+  consoleCount,
   onTabChange,
 }: ResponseViewerProps) {
   const t = useT();
@@ -47,12 +54,22 @@ export function ResponseViewer({
                 {t(rt.key)}
                 {rt.id === "examples" && examplesCount > 0 && <Badge n={examplesCount} />}
                 {rt.id === "headers" && headersCount > 0 && <Badge n={headersCount} />}
+                {rt.id === "tests" && testCount > 0 && <Badge n={testCount} />}
+                {rt.id === "console" && consoleCount > 0 && <Badge n={consoleCount} />}
               </TabsTrigger>
             ))}
           </TabsList>
         </Tabs>
       )}
-      {tab === "examples" ? <ExamplesPanelContainer /> : <ResponseBodyContainer />}
+      {tab === "examples" ? (
+        <ExamplesPanelContainer />
+      ) : tab === "tests" ? (
+        <ScriptTestsPanelContainer />
+      ) : tab === "console" ? (
+        <ScriptConsolePanelContainer />
+      ) : (
+        <ResponseBodyContainer />
+      )}
     </section>
   );
 }
@@ -70,14 +87,21 @@ export function ResponseViewerContainer() {
   const lastResponse = useStore((s) => s.lastResponse);
   const examplesCount = useStore((s) => s.current.examples?.length ?? 0);
   const headersCount = useStore((s) => s.lastResponse?.headers.length ?? 0);
+  const scriptResults = useStore((s) => s.lastResponse?.scriptResults);
   const tab = useStore((s) => s.ui.responseTab);
   const setUi = useStore((s) => s.setUi);
+  const testCount =
+    (scriptResults?.pre?.asserts.length ?? 0) + (scriptResults?.post?.asserts.length ?? 0);
+  const consoleCount =
+    (scriptResults?.pre?.console_log.length ?? 0) + (scriptResults?.post?.console_log.length ?? 0);
   return (
     <ResponseViewer
       hasResponse={lastResponse !== null}
       tab={tab}
       examplesCount={examplesCount}
       headersCount={headersCount}
+      testCount={testCount}
+      consoleCount={consoleCount}
       onTabChange={(responseTab) => setUi({ responseTab })}
     />
   );

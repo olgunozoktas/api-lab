@@ -156,6 +156,22 @@ export type Environment = {
   vars: Record<string, string>;
 };
 
+// One assertion made by a `pm.test(...)` call inside a sandboxed
+// pre/post-request script.
+export type ScriptAssert = {
+  name: string;
+  passed: boolean;
+  error?: string;
+};
+
+// Outcome of one pre- or post-request script run — the assertions it
+// made, captured console output, and any thrown error.
+export type ScriptOutcome = {
+  asserts: ScriptAssert[];
+  console_log: string[];
+  error?: string;
+};
+
 export type ResponseHeader = { k: string; v: string };
 
 export type ResponseSnapshot = {
@@ -174,6 +190,9 @@ export type ResponseSnapshot = {
     ttfb_ms: number;
     total_ms: number;
   };
+  // Pre/post-request script outcomes for the run that produced this
+  // response. Absent when the request carries no scripts.
+  scriptResults?: { pre?: ScriptOutcome; post?: ScriptOutcome };
 };
 
 export type HistoryItem = {
@@ -184,7 +203,7 @@ export type HistoryItem = {
 };
 
 export type ComposerTab = "params" | "headers" | "auth" | "body" | "graphql" | "scripts";
-export type ResponseTab = "body" | "headers" | "raw" | "examples";
+export type ResponseTab = "body" | "headers" | "raw" | "examples" | "tests" | "console";
 export type SidebarTab = "collections" | "history";
 
 export type Theme = "auto" | "light" | "dark" | "tokyo-night" | "github-light" | "high-contrast";

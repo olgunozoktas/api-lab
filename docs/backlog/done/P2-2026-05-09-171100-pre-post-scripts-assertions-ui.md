@@ -10,13 +10,13 @@ scripts.
 
 ## Items
 
-- [ ] New "Scripts" tab in `RequestComposer.tsx` (alongside Params / Headers / Auth / Body / GraphQL)
-- [ ] Two side-by-side CodeMirror editors: pre-request script + tests/post-response script
-- [ ] Run hooks via `lib/sendRequest.ts:send()` — pre runs before HTTP, post after, threads results through `pm.*` API
-- [ ] Chai-style assertion library: `pm.expect(value).to.equal(...)`, `.to.be.a("string")`, `.to.have.property("foo")`, `.to.match(regex)`, `.to.include(...)`
-- [ ] Test results panel: shows pass/fail per `pm.test(name, fn)` call, opens in the response area below the body
-- [ ] Console.log capture: `console.log` from inside the sandbox surfaced in a "Script Console" tab
-- [ ] Script editor reuses existing CodeMirror config (current JSON editor pattern)
+- [x] New "Scripts" tab in `RequestComposer.tsx` (alongside Params / Headers / Auth / Body / GraphQL)
+- [x] Two side-by-side CodeMirror editors: pre-request script + tests/post-response script
+- [x] Run hooks via `lib/sendRequest.ts` — `sendWithScripts()` runs pre before HTTP, post after; App.onSend now calls it and threads the outcomes onto the response
+- [x] Chai-style assertion library: `equal` / `eql` / `be.ok|true|false|null|undefined|a|an` / `have.status|property|length` / `include` / `match` — `.be.a()/.an()` type assertions added this slice
+- [x] Test results panel: pass/fail per `pm.test(name, fn)` call, in a new **Tests** tab in the response area
+- [x] Console.log capture: script `console.log` surfaced in a new **Console** tab in the response area
+- [x] Script editor reuses existing CodeMirror config (current JSON editor pattern)
 
 ## Acceptance
 
