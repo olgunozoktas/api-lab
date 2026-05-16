@@ -18,23 +18,23 @@ the same session as the frontend half.
 
 ## Items
 
-- [ ] Verify Zig 0.16 `std.Io.net` server-side surface — read upstream Zig std docs for `IpAddress.bind` / `IpAddress.listen` (or whatever the 0.16 equivalent is). Document the chosen API in `src/handlers/mock.zig`'s header comment for future reference.
-- [ ] New `src/handlers/mock.zig` — minimal HTTP server:
+- [x] Verify Zig 0.16 `std.Io.net` server-side surface — read upstream Zig std docs for `IpAddress.bind` / `IpAddress.listen` (or whatever the 0.16 equivalent is). Document the chosen API in `src/handlers/mock.zig`'s header comment for future reference.
+- [x] New `src/handlers/mock.zig` — minimal HTTP server:
   - `Server.start(allocator, examples, port_or_zero) -> {port, id}`
   - `Server.stop(id)` — atomic shutdown flag + close listener + join thread
   - Worker thread runs accept loop, parses request line + headers (skip body for v1), matches `(method, path)` against the example list, writes back `HTTP/1.1 <status>\r\n<headers>\r\n\r\n<body>`
   - Bind 127.0.0.1 only (security)
   - Ephemeral port if `port_or_zero == 0`
-- [ ] 3 bridge handlers, all sharing context (active servers map):
+- [x] 3 bridge handlers, all sharing context (active servers map):
   - `mock.start({collectionId, examples: Example[], port?})` → `{id, port}`
   - `mock.stop({id})` → `{ok: true}`
   - `mock.list()` → `[{id, port, exampleCount, status}]`
-- [ ] App lifecycle: register a shutdown hook (or rely on context destructor) that stops all active servers on app_quit.
-- [ ] Frontend `MockControlPanel` — sidebar tab or floating panel:
+- [x] App lifecycle: register a shutdown hook (or rely on context destructor) that stops all active servers on app_quit.
+- [x] Frontend `MockControlPanel` — sidebar tab or floating panel:
   - List active mocks with port + base URL
   - "Start mock" button per request that has examples
   - "Stop" + "Stop all" buttons
-- [ ] Tests:
+- [x] Tests:
   - Zig handler test for matcher (`(method, path)` → example) — pure helper, no socket
   - Zig integration test that starts a server on ephemeral port + curls it (gated behind a test feature flag — needs network capability in test env)
   - Frontend test for the bridge command shape

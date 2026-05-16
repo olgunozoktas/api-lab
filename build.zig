@@ -63,6 +63,10 @@ pub fn build(b: *std.Build) void {
     const cef_auto_install_override = b.option(bool, "cef-auto-install", "Override app.zon CEF auto-install setting");
     const package_target = b.option(PackageTarget, "package-target", "Package target: macos, windows, linux") orelse .macos;
     const zero_native_path = b.option([]const u8, "zero-native-path", "Path to the zero-native framework checkout") orelse default_zero_native_path;
+    // Gates the mock-server socket integration test (handlers/mock_test.zig).
+    // It binds a real loopback port, which some restricted test sandboxes
+    // disallow — so it is opt-in: `zig build test -Dmock-it=true`.
+    const mock_integration_test = b.option(bool, "mock-it", "Run the mock-server socket integration test") orelse false;
     const optimize_name = @tagName(optimize);
     const selected_platform: PlatformOption = switch (platform_option) {
         .auto => if (target.result.os.tag == .macos) .macos else if (target.result.os.tag == .linux) .linux else if (target.result.os.tag == .windows) .windows else .null,
@@ -99,6 +103,7 @@ pub fn build(b: *std.Build) void {
     options.addOption(bool, "debug_overlay", debug_overlay);
     options.addOption(bool, "automation", automation_enabled);
     options.addOption(bool, "js_bridge", js_bridge_enabled);
+    options.addOption(bool, "mock_it", mock_integration_test);
     const options_mod = options.createModule();
 
     const runner_mod = localModule(b, target, optimize, "src/runner.zig");
@@ -108,6 +113,10 @@ pub fn build(b: *std.Build) void {
     const app_mod = localModule(b, target, optimize, "src/main.zig");
     app_mod.addImport("zero-native", zero_native_mod);
     app_mod.addImport("runner", runner_mod);
+    // `handlers/mock_test.zig` reads `build_options.mock_it` to gate the
+    // socket integration test; expose the options module to app_mod's
+    // test graph so that import resolves.
+    app_mod.addImport("build_options", options_mod);
     const exe = b.addExecutable(.{
         .name = app_exe_name,
         .root_module = app_mod,
