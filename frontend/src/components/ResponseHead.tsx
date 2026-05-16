@@ -199,7 +199,7 @@ export function ResponseHeadContainer() {
     navigator.clipboard.writeText(r.body).then(() => showToast(t("response.bodyCopied")));
 
   const onDownloadBody = () => {
-    downloadResponseBody(r.body, r.contentType, r.status);
+    downloadResponseBody(r.body, r.contentType, r.status, r.bodyBase64);
     showToast(t("response.bodyDownloaded"));
   };
 

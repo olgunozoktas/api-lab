@@ -47,6 +47,13 @@ export type HttpResponse = {
   url: string;
   headers: HttpHeader[];
   body: string;
+  // Binary response channel (src/handlers/http.zig). When `body_base64`
+  // is true, `body` is a standard-alphabet base64 string rather than
+  // raw text. When `body_too_large` is true the binary body exceeded
+  // the bridge's 1 MB result buffer and `body` is empty. Both are
+  // additive — absent on text responses.
+  body_base64?: boolean;
+  body_too_large?: boolean;
   error?: string;
   exit_code?: number;
   stderr?: string;

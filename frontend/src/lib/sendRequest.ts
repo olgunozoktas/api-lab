@@ -5,6 +5,13 @@ import type { CurrentRequest, RequestDefaults, ResponseSnapshot, ScriptOutcome }
 import { defaultRequestDefaults } from "./types";
 import { envSubst } from "./utils";
 import { runScript } from "./scriptSandbox";
+import {
+  base64ToText,
+  bytesToBase64,
+  bytesToText,
+  isBinaryContentType,
+  MAX_BINARY_RAW,
+} from "./binaryBody";
 
 export type { ScriptOutcome };
 
@@ -139,11 +146,28 @@ async function viaNative(
   }
   const respHeaders = (r.headers || []).map((h) => ({ k: h.name, v: h.value }));
   const ct = (r.headers || []).find((h) => h.name.toLowerCase() === "content-type")?.value || "";
+
+  // Binary response channel: when the native handler flags the body as
+  // base64, keep the raw base64 on `bodyBase64` for the rich viewers
+  // and decode a lossy-text render into `body` for the Raw tab.
+  let bodyText = r.body || "";
+  let bodyBase64: string | undefined;
+  if (r.body_base64 === true && r.body) {
+    bodyBase64 = r.body;
+    try {
+      bodyText = base64ToText(r.body);
+    } catch {
+      bodyText = "";
+    }
+  }
+
   return {
     status: r.status,
     statusText: "",
     headers: respHeaders,
-    body: r.body || "",
+    body: bodyText,
+    bodyBase64,
+    bodyTooLarge: r.body_too_large === true ? true : undefined,
     contentType: ct,
     sizeBytes: r.size_bytes ?? r.body?.length ?? 0,
     elapsedMs: r.timing_ms ?? r.timing?.total_ms ?? 0,
@@ -170,13 +194,29 @@ async function viaFetch(
   } catch {
     buf = new ArrayBuffer(0);
   }
-  const text = new TextDecoder("utf-8", { fatal: false }).decode(buf);
+  const bytes = new Uint8Array(buf);
+  const ct = res.headers.get("content-type") || "";
+
+  // Binary response channel — mirror the native handler so the rich
+  // viewers work in browser-only (fetch) mode too.
+  let bodyBase64: string | undefined;
+  let bodyTooLarge: true | undefined;
+  if (isBinaryContentType(ct)) {
+    if (bytes.byteLength > MAX_BINARY_RAW) {
+      bodyTooLarge = true;
+    } else {
+      bodyBase64 = bytesToBase64(bytes);
+    }
+  }
+
   return {
     status: res.status,
     statusText: res.statusText,
     headers: respHeaders,
-    body: text,
-    contentType: res.headers.get("content-type") || "",
+    body: bytesToText(bytes),
+    bodyBase64,
+    bodyTooLarge,
+    contentType: ct,
     sizeBytes: buf.byteLength,
     elapsedMs: Math.round(performance.now() - t0),
     url: res.url,

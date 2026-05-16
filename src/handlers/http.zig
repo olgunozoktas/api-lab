@@ -5,6 +5,14 @@ const bridge = zero_native.bridge;
 
 const SEPARATOR = "\n----APILAB-METRICS----";
 
+/// Largest raw binary body the base64 channel will carry. The
+/// zero-native bridge result buffer is 1 MB (`max_result_bytes`);
+/// base64 inflates ~4/3, so 700 KB raw → ~933 KB encoded, leaving
+/// headroom for the headers array + JSON envelope. Larger binary
+/// bodies are reported with `body_too_large: true` instead of being
+/// truncated into a corrupt payload.
+const MAX_BINARY_RAW: usize = 700 * 1024;
+
 pub const Context = struct {
     gpa: std.mem.Allocator,
     io: std.Io,
@@ -41,6 +49,20 @@ fn invoke(context: *anyopaque, invocation: bridge.Invocation, output: []u8) anye
     };
 }
 
+/// Run the curl subprocess and serialise its result into `output` as
+/// JSON. Response shape (the `http.request` bridge contract):
+///
+///   {status, size_bytes, timing_ms, timing:{namelookup_ms, connect_ms,
+///    ttfb_ms, total_ms}, url, headers:[{name,value}], body}
+///
+/// Text bodies (valid UTF-8, text/json/xml/svg content types) ship in
+/// `body` verbatim — no extra fields. Binary bodies (images, audio,
+/// video, PDFs, anything that fails UTF-8 validation) ship `body`
+/// base64-encoded with an added `body_base64: true` flag; a binary
+/// body over `MAX_BINARY_RAW` ships `body: ""` with
+/// `body_too_large: true`. Both binary flags are additive — a frontend
+/// that ignores them still reads `body` as before. On failure:
+/// {error, exit_code?, stderr?}.
 fn runRequest(ctx: *Context, payload: []const u8, output: []u8) ![]const u8 {
     var arena = std.heap.ArenaAllocator.init(ctx.gpa);
     defer arena.deinit();
@@ -100,6 +122,7 @@ fn runRequest(ctx: *Context, payload: []const u8, output: []u8) ![]const u8 {
     const split = findLastHeaderBoundary(headers_and_body);
     const headers_block = headers_and_body[0..split];
     const body_bytes = headers_and_body[split..];
+    const content_type = findContentType(headers_block);
 
     // Build response JSON
     const total_ms: u64 = @intFromFloat(m.time_total * 1000.0);
@@ -118,10 +141,97 @@ fn runRequest(ctx: *Context, payload: []const u8, output: []u8) ![]const u8 {
     try writeJsonString(&w, m.url_effective);
     try w.writeAll(",\"headers\":");
     try writeHeadersJson(&w, headers_block);
-    try w.writeAll(",\"body\":");
-    try writeJsonString(&w, body_bytes);
+    try writeBodyJson(&w, a, content_type, body_bytes);
     try w.writeAll("}");
     return output[0..w.end];
+}
+
+/// Locate the `Content-Type` header value in a raw header block.
+/// Case-insensitive on the header name; returns "" when absent.
+pub fn findContentType(headers_block: []const u8) []const u8 {
+    var lines = std.mem.splitSequence(u8, headers_block, "\r\n");
+    while (lines.next()) |line_raw| {
+        const line = std.mem.trim(u8, line_raw, " \t");
+        const colon = std.mem.indexOfScalar(u8, line, ':') orelse continue;
+        const name = std.mem.trim(u8, line[0..colon], " \t");
+        if (std.ascii.eqlIgnoreCase(name, "content-type")) {
+            return std.mem.trim(u8, line[colon + 1 ..], " \t");
+        }
+    }
+    return "";
+}
+
+/// True when the response body should travel base64-encoded. Binary
+/// when the content type is unambiguously binary, OR when the body
+/// fails UTF-8 validation. Known text types (text/*, json, xml, svg,
+/// js, yaml, form-encoded) always stay on the verbatim text path so
+/// the common case pays no base64 tax.
+pub fn isBinaryBody(content_type: []const u8, body: []const u8) bool {
+    var buf: [128]u8 = undefined;
+    const ct = ctLower(content_type, &buf);
+    if (isBinaryContentType(ct)) return true;
+    if (isTextContentType(ct)) return false;
+    return !std.unicode.utf8ValidateSlice(body);
+}
+
+fn ctLower(content_type: []const u8, buf: []u8) []const u8 {
+    const n = @min(content_type.len, buf.len);
+    for (content_type[0..n], 0..) |c, i| buf[i] = std.ascii.toLower(c);
+    return buf[0..n];
+}
+
+fn isBinaryContentType(ct: []const u8) bool {
+    if (std.mem.startsWith(u8, ct, "image/")) return !std.mem.startsWith(u8, ct, "image/svg");
+    if (std.mem.startsWith(u8, ct, "audio/")) return true;
+    if (std.mem.startsWith(u8, ct, "video/")) return true;
+    if (std.mem.startsWith(u8, ct, "font/")) return true;
+    const binary_types = [_][]const u8{
+        "application/pdf",   "application/octet-stream",
+        "application/wasm",  "application/zip",
+        "application/gzip",  "application/x-protobuf",
+        "application/x-tar", "application/msword",
+    };
+    for (binary_types) |t| {
+        if (std.mem.startsWith(u8, ct, t)) return true;
+    }
+    return false;
+}
+
+fn isTextContentType(ct: []const u8) bool {
+    if (std.mem.startsWith(u8, ct, "text/")) return true;
+    if (std.mem.startsWith(u8, ct, "image/svg")) return true;
+    const text_markers = [_][]const u8{
+        "application/json",       "application/xml",
+        "application/javascript", "application/yaml",
+        "application/x-yaml",     "application/x-www-form-urlencoded",
+        "application/ld+json",    "+json",
+        "+xml",
+    };
+    for (text_markers) |t| {
+        if (std.mem.indexOf(u8, ct, t) != null) return true;
+    }
+    return false;
+}
+
+/// Write the `"body"` field. Text payloads ship verbatim; binary
+/// payloads ship base64-encoded with a `body_base64` flag, or
+/// `body_too_large` when over `MAX_BINARY_RAW`.
+pub fn writeBodyJson(w: *std.Io.Writer, a: std.mem.Allocator, content_type: []const u8, body: []const u8) !void {
+    if (!isBinaryBody(content_type, body)) {
+        try w.writeAll(",\"body\":");
+        try writeJsonString(w, body);
+        return;
+    }
+    if (body.len > MAX_BINARY_RAW) {
+        try w.writeAll(",\"body\":\"\",\"body_base64\":false,\"body_too_large\":true");
+        return;
+    }
+    const enc = std.base64.standard.Encoder;
+    const b64 = try a.alloc(u8, enc.calcSize(body.len));
+    _ = enc.encode(b64, body);
+    try w.writeAll(",\"body\":");
+    try writeJsonString(w, b64);
+    try w.writeAll(",\"body_base64\":true");
 }
 
 /// Build the curl argv slice from a parsed HttpRequest.

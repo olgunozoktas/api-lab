@@ -44,4 +44,20 @@ describe("hexDump", () => {
     expect(hexDump("Ā")).toContain("00000000  00 ");
     expect(HEXDUMP_DEFAULT_LIMIT).toBe(16384);
   });
+
+  it("dumps a Uint8Array faithfully, including non-ASCII bytes", () => {
+    const out = hexDump(new Uint8Array([0xff, 0xd8, 0xff, 0x00, 0x41]));
+    // 0xff/0xd8/0x00 are non-printable → dots; 0x41 is 'A'
+    expect(out.startsWith("00000000  ff d8 ff 00 41 ")).toBe(true);
+    expect(out.endsWith("|....A|")).toBe(true);
+  });
+
+  it("caps a Uint8Array at maxBytes", () => {
+    const out = hexDump(new Uint8Array(100).fill(0x7a), 16);
+    expect(out.split("\n")).toHaveLength(1);
+  });
+
+  it("returns an empty string for an empty Uint8Array", () => {
+    expect(hexDump(new Uint8Array(0))).toBe("");
+  });
 });

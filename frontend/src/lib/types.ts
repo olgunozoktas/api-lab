@@ -193,6 +193,14 @@ export type ResponseSnapshot = {
   // Pre/post-request script outcomes for the run that produced this
   // response. Absent when the request carries no scripts.
   scriptResults?: { pre?: ScriptOutcome; post?: ScriptOutcome };
+  // Binary response channel. When the native bridge flags a body as
+  // binary it arrives base64-encoded; `bodyBase64` carries the raw
+  // base64 so the image / audio / video / PDF / hex viewers can decode
+  // faithful bytes, while `body` holds a best-effort lossy-text render
+  // for the Raw tab. `bodyTooLarge` marks a binary body that exceeded
+  // the bridge buffer — no bytes are available to preview.
+  bodyBase64?: string;
+  bodyTooLarge?: boolean;
 };
 
 export type HistoryItem = {
