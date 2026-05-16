@@ -23,25 +23,25 @@ check have no such dependency and can ship first.
 
 ## Items
 
-- **macOS `.dmg` installer (signed + notarized).** Build a `.dmg` via
+- [ ] **macOS `.dmg` installer (signed + notarized).** Build a `.dmg` via
   `create-dmg` in CI from the release binary; code-sign and notarize
   it. Requires an Apple Developer certificate — a procurement action,
   tracked as a blocker below, not part of the code work. Touchpoints:
   the release GitHub Actions workflow, a packaging script.
-- **Homebrew tap formula.** Publish a formula in a personal tap
+- [ ] **Homebrew tap formula.** Publish a formula in a personal tap
   (`olgunozoktas/homebrew-api-lab`) so `brew install` works; a
   homebrew-core PR can come later. Touchpoints: a new tap repo, a
   formula file, the release workflow (to bump the formula on tag).
-- **In-app update check.** On launch, query the GitHub Releases API
+- [ ] **In-app update check.** On launch, query the GitHub Releases API
   for a newer version than `APP_VERSION` and surface a non-intrusive
   "update available" notification linking to the release. Touchpoints:
   `frontend/src/` (a launch-time check + notification UI), reuse the
   existing `APP_VERSION` plumbing. Keep the network call
   privacy-conscious — one request, no telemetry.
-- **Linux packaging (AppImage + `.deb`).** AppImage for run-anywhere,
+- [ ] **Linux packaging (AppImage + `.deb`).** AppImage for run-anywhere,
   `.deb` for apt; flatpak optional. **Depends on Phase G Linux
   support.** Touchpoints: the release workflow, packaging scripts.
-- **Windows installer (signed `.exe`).** An installer via Inno Setup
+- [ ] **Windows installer (signed `.exe`).** An installer via Inno Setup
   or WiX; optional `winget` manifest. Requires a Windows code-signing
   certificate (procurement). **Depends on Phase G Windows support.**
   Touchpoints: the release workflow, an installer script.

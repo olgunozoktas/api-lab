@@ -29,7 +29,7 @@ README is the project's front door for every new clone.
 
 ## Items
 
-- **Rewrite the README build section around `./build.sh`.** Document
+- [ ] **Rewrite the README build section around `./build.sh`.** Document
   the real flow: clone `api-lab` and `zero-native` as siblings, then
   `./build.sh` to build + launch. Cover the useful flags (`--no-run`,
   `--release`, `--frontend-only`, `--zig-only`, `--reset-state`).
@@ -37,7 +37,7 @@ README is the project's front door for every new clone.
   them to a clearly-labelled "advanced / manual" subsection that notes
   `frontend/dist/` must be populated first. Touchpoints: `README.md`.
   Verify by following the steps verbatim on a fresh clone.
-- **Add a "Why `dnpm` / why the build is sandboxed" explainer.**
+- [ ] **Add a "Why `dnpm` / why the build is sandboxed" explainer.**
   A short section explaining that all Node/npm work runs in a hardened
   Docker container (supply-chain defense), with a link to
   `frontend/CLAUDE.md` for the full policy rather than duplicating it.

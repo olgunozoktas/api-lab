@@ -19,19 +19,19 @@ a native bridge handler that shells out to `git` (mirroring the
 
 ## Items
 
-- **Sync settings + native git bridge handler.** A Settings entry for
+- [ ] **Sync settings + native git bridge handler.** A Settings entry for
   the sync repo URL + auth method (SSH key path or PAT). A new Zig
   bridge command (`git.sync` or similar) that shells out to `git`,
   registered in `src/main.zig`'s policy table. Touchpoints:
   `src/handlers/`, `src/main.zig`, `app.zon`, Settings UI.
-- **Write-on-save → background commit + push.** On collection/env
+- [ ] **Write-on-save → background commit + push.** On collection/env
   save, serialise to JSON in the local clone and run
   `git add` + `git commit` + `git push` in the background, surfacing
   a non-blocking sync-status indicator. Touchpoints: the store's save
   path, the git bridge handler.
-- **Pull-on-launch.** When sync is configured, `git pull` at startup
+- [ ] **Pull-on-launch.** When sync is configured, `git pull` at startup
   before hydrating the store. Touchpoints: app init, git handler.
-- **Conflict resolution.** On a pull conflict, surface a manual diff;
+- [ ] **Conflict resolution.** On a pull conflict, surface a manual diff;
   never auto-merge collection JSON. Touchpoints: a conflict UI.
 
 ## Acceptance

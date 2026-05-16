@@ -18,25 +18,25 @@ point driving traffic before there is an installer to download.
 
 ## Items
 
-- **README visual polish.** A 30–60 s demo GIF (Charm `vhs` or
+- [ ] **README visual polish.** A 30–60 s demo GIF (Charm `vhs` or
   asciinema-to-gif) of a typical flow; replace `docs/screenshot.png`
   with a feature-rich screenshot (collection loaded, real response,
   dark mode); add badges (build status, latest release, license,
   stars, brew downloads).
-- **Contributor docs.** `ARCHITECTURE.md` with a Mermaid diagram (Zig
+- [ ] **Contributor docs.** `ARCHITECTURE.md` with a Mermaid diagram (Zig
   shell ⇆ bridge ⇆ React frontend); `CONTRIBUTING.md` (clone + build,
   how to add a handler / component / translation);
   `CODE_OF_CONDUCT.md` (Contributor Covenant 2.1).
-- **GitHub repo furniture.** `.github/ISSUE_TEMPLATE/{bug,feature,question}.yml`
+- [ ] **GitHub repo furniture.** `.github/ISSUE_TEMPLATE/{bug,feature,question}.yml`
   and `.github/PULL_REQUEST_TEMPLATE.md`.
-- **Top-level `CHANGELOG.md`.** Keep-a-Changelog format, tagged
+- [ ] **Top-level `CHANGELOG.md`.** Keep-a-Changelog format, tagged
   releases following it. Note: an in-app changelog already exists
   under `frontend/changelog/` — decide whether the top-level file is
   generated from those entries at release-cut or maintained
   separately, and avoid two diverging sources of truth.
-- **Launch.** Submit to Show HN, Lobsters, /r/programming — only once
+- [ ] **Launch.** Submit to Show HN, Lobsters, /r/programming — only once
   Phase H (distribution) has shipped an installer.
-- **Optional: documentation site** at `api-lab.olgun.dev` (Astro
+- [ ] **Optional: documentation site** at `api-lab.olgun.dev` (Astro
   Starlight).
 
 ## Acceptance

@@ -25,7 +25,7 @@ Known starting points from the capture:
 
 ## Items
 
-- **Linux build + run support.** Add `linux` to `app.zon`'s
+- [ ] **Linux build + run support.** Add `linux` to `app.zon`'s
   `.platforms` with any per-platform asset paths. Do a path-discipline
   audit first — grep the Zig + build scripts for hardcoded `/Users/`,
   macOS-only paths, and backslash assumptions; `app_dirs` is already
@@ -35,7 +35,7 @@ Known starting points from the capture:
   `apt` / `dnf` dependency list (`libwebkit2gtk-4.1`, etc.) in the
   README. Touchpoints: `app.zon`, `build.zig`, `build.sh`,
   `src/main.zig`, `README.md`.
-- **Windows build + run support.** Add `windows` to `app.zon`'s
+- [ ] **Windows build + run support.** Add `windows` to `app.zon`'s
   `.platforms`; host the WebView via WebView2. Resolve the `curl`
   dependency — either bundle a `curl.exe` or fall back to a native
   HTTP path in `src/handlers/http.zig` when `curl` is absent. Add a
