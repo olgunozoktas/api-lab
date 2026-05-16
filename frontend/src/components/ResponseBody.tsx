@@ -9,6 +9,8 @@ import { useCopyFeedback } from "../lib/useCopyFeedback";
 import { CodeEditor } from "./ui/code-editor";
 import { SaveAsVariableMenu } from "./SaveAsVariable";
 import { ResponseEmpty } from "./ResponseEmpty";
+import { HexViewer } from "./HexViewer";
+import { XmlTreeView } from "./XmlTreeView";
 import type { ResponseHeader, ResponseSnapshot, ResponseTab } from "../lib/types";
 
 // Theme tokens fed to JsonView. Reads CSS variables so light/dark switch live.
@@ -114,6 +116,33 @@ export function ResponseBody({ response: r, tab }: ResponseBodyProps) {
             srcDoc={r.body}
             className="w-full h-full border border-[var(--color-border)] rounded bg-white"
           />
+        </div>
+      </SaveAsVariableMenu>
+    );
+  }
+
+  // Body tab — XML tree view for application/xml, text/xml, and any
+  // `+xml` media type (image/svg+xml is already handled above).
+  if (
+    r.contentType.includes("application/xml") ||
+    r.contentType.includes("text/xml") ||
+    (/\+xml/.test(r.contentType) && !r.contentType.includes("svg"))
+  ) {
+    return (
+      <SaveAsVariableMenu>
+        <div className="flex-1 overflow-hidden flex flex-col">
+          <XmlTreeView body={r.body} />
+        </div>
+      </SaveAsVariableMenu>
+    );
+  }
+
+  // Body tab — hex viewer for binary payloads with no richer viewer.
+  if (r.contentType.includes("octet-stream") || r.contentType.includes("binary")) {
+    return (
+      <SaveAsVariableMenu>
+        <div className="flex-1 overflow-hidden flex flex-col">
+          <HexViewer body={r.body} />
         </div>
       </SaveAsVariableMenu>
     );

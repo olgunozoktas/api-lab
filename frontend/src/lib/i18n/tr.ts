@@ -342,6 +342,8 @@ export const tr = {
   "response.tab.examples": "Examples",
   "scripts.tests.empty": "Test sonucu yok — pre/post script'e bir pm.test(...) ekleyin.",
   "scripts.console.empty": "Konsol çıktısı yok — script'teki console.log burada görünür.",
+  "response.hex.truncated": "İlk {limit} bayt gösteriliyor.",
+  "response.xml.invalid": "Yanıt geçerli XML değil.",
   "examples.save": "Örnek olarak kaydet",
   "examples.saveTitle": "Bu yanıtı bu istek için bir örnek olarak kaydet",
   "examples.saved": '"{name}" örnek olarak kaydedildi',

@@ -342,6 +342,8 @@ export const en: Dict = {
   "response.tab.examples": "Examples",
   "scripts.tests.empty": "No test results — add a pm.test(...) to a pre/post-request script.",
   "scripts.console.empty": "No console output — console.log from a script shows up here.",
+  "response.hex.truncated": "Showing the first {limit} bytes.",
+  "response.xml.invalid": "Response is not well-formed XML.",
   "examples.save": "Save as example",
   "examples.saveTitle": "Save this response as an example for this request",
   "examples.saved": '"{name}" saved as example',

@@ -13,14 +13,14 @@ promise.
 
 ## Items
 
-- [ ] Content-type-aware viewer dispatch in `frontend/src/components/ResponseBody.tsx`
-- [ ] HTML preview: sandboxed iframe (`sandbox=""`, no scripts, strict CSP) — shows the rendered HTML safely
-- [ ] Image preview: PNG / JPG / WebP / AVIF / GIF / SVG via `<img>` with object URL from response Blob
+- [x] Content-type-aware viewer dispatch in `frontend/src/components/ResponseBody.tsx`
+- [x] HTML preview: sandboxed iframe (`sandbox=""`, no scripts, strict CSP) — shows the rendered HTML safely
+- [ ] Image preview: PNG / JPG / WebP / AVIF / GIF / SVG via `<img>` with object URL from response Blob — SVG ships today; raster formats blocked (see Partial ship)
 - [ ] PDF preview: lazy-load `pdf.js` (dynamic import — Phase O.0 prerequisite) — render first 3 pages with paginator
 - [ ] Audio: `<audio controls>` with object URL
 - [ ] Video: `<video controls>` with object URL
-- [ ] Hex viewer: byte-grid view for unknown content types (offset / hex / ASCII columns)
-- [ ] XML tree view: same `@uiw/react-json-view` pattern but for parsed XML
+- [x] Hex viewer: byte-grid view for unknown content types (offset / hex / ASCII columns)
+- [x] XML tree view: collapsible element tree (DOMParser-based; the `@uiw/react-json-view` pattern is JSON-only)
 - [ ] Response diff: pick two history entries OR two open tabs, render side-by-side diff (json-diff for JSON, line-diff for text)
 
 ## Acceptance
@@ -43,3 +43,36 @@ safe default but can't run JS so dynamic SPAs render statically.
    canvas.
 3. Diff: use `diff-match-patch` for line-diff or `microdiff` for
    JSON.
+
+## Partial ship — 2026-05-15 (UTC)
+
+Shipped 4 of 9 items as **v0.2.45**: content-type dispatch, HTML
+preview (was already live from an earlier slice), the hex viewer,
+and the XML tree view.
+
+**What landed:**
+
+- `lib/hexDump.ts` — `hexdump -C`-style formatter (offset / two
+  8-byte hex groups / ASCII gutter), capped at 16 KB. 7 vitest cases.
+- `components/HexViewer.tsx` — renders the dump; triggers for
+  `application/octet-stream` and `*binary*` content types.
+- `components/XmlTreeView.tsx` — `DOMParser`-based collapsible
+  element tree (attributes + leaf text colour-coded; malformed XML
+  flagged). Triggers for `application/xml` / `text/xml` / `+xml`.
+- `ResponseBody.tsx` gained the XML + hex dispatch branches.
+
+**Deferred — and why:**
+
+- **Image / Audio / Video / PDF previews (items 3-6).** All need the
+  response's raw *binary* bytes, but `ResponseSnapshot.body` is a
+  `string` — the curl bridge serialises the body as text, so binary
+  payloads arrive mangled (non-UTF-8 bytes become replacement
+  chars). A faithful `<img>` / `<audio>` / `<video>` / pdf.js source
+  needs the bridge to carry a binary channel (base64 field or
+  similar). That's a bridge-contract change — same class of work as
+  the multipart-binary-body item. SVG already works because SVG is
+  text. **Follow-up: a bridge change to carry binary response bodies
+  is the prerequisite for items 3-6.**
+- **Response diff (item 9).** Needs a "pick two responses" UX
+  (two history entries / two open tabs) which is its own surface,
+  plus a diff library. Deferred to keep this slice cohesive.
