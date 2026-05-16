@@ -11,6 +11,7 @@ import { SaveAsVariableMenu } from "./SaveAsVariable";
 import { ResponseEmpty } from "./ResponseEmpty";
 import { HexViewer } from "./HexViewer";
 import { XmlTreeView } from "./XmlTreeView";
+import { ResponseBinaryBody } from "./ResponseBinaryBody";
 import type { ResponseHeader, ResponseSnapshot, ResponseTab } from "../lib/types";
 
 // Theme tokens fed to JsonView. Reads CSS variables so light/dark switch live.
@@ -74,6 +75,19 @@ export function ResponseBody({ response: r, tab }: ResponseBodyProps) {
         <div className="flex-1 overflow-hidden p-3">
           <CodeEditor value={r.body} language="json" readOnly minHeight={400} />
         </div>
+      </SaveAsVariableMenu>
+    );
+  }
+
+  // Body tab — binary response channel. When the native bridge flags
+  // a body as binary it arrives base64-encoded; ResponseBinaryBody
+  // decodes it and dispatches to an image / audio / video / PDF
+  // preview (or a hex fallback), or shows a too-large notice. SVG /
+  // HTML / XML / JSON stay text and are handled below.
+  if (r.bodyTooLarge || r.bodyBase64) {
+    return (
+      <SaveAsVariableMenu>
+        <ResponseBinaryBody response={r} />
       </SaveAsVariableMenu>
     );
   }

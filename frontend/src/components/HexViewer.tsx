@@ -6,7 +6,7 @@ import { useMemo } from "react";
 import { useT } from "../lib/i18n/useT";
 import { hexDump, HEXDUMP_DEFAULT_LIMIT } from "../lib/hexDump";
 
-export type HexViewerProps = { body: string };
+export type HexViewerProps = { body: string | Uint8Array };
 
 export function HexViewer({ body }: HexViewerProps) {
   const t = useT();

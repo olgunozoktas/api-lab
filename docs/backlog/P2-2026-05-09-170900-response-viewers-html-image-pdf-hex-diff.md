@@ -15,10 +15,10 @@ promise.
 
 - [x] Content-type-aware viewer dispatch in `frontend/src/components/ResponseBody.tsx`
 - [x] HTML preview: sandboxed iframe (`sandbox=""`, no scripts, strict CSP) — shows the rendered HTML safely
-- [ ] Image preview: PNG / JPG / WebP / AVIF / GIF / SVG via `<img>` with object URL from response Blob — SVG ships today; raster formats blocked (see Partial ship)
-- [ ] PDF preview: lazy-load `pdf.js` (dynamic import — Phase O.0 prerequisite) — render first 3 pages with paginator
-- [ ] Audio: `<audio controls>` with object URL
-- [ ] Video: `<video controls>` with object URL
+- [x] Image preview: PNG / JPG / WebP / AVIF / GIF / SVG via `<img>` with object URL from response Blob — raster formats now ship via the base64 binary channel (`P2-2026-05-16-071035`)
+- [x] PDF preview: lazy-load `pdf.js` (dynamic import) — page-by-page render with prev/next paginator, shipped via the binary channel (`P2-2026-05-16-071035`)
+- [x] Audio: `<audio controls>` with object URL
+- [x] Video: `<video controls>` with object URL
 - [x] Hex viewer: byte-grid view for unknown content types (offset / hex / ASCII columns)
 - [x] XML tree view: collapsible element tree (DOMParser-based; the `@uiw/react-json-view` pattern is JSON-only)
 - [ ] Response diff: pick two history entries OR two open tabs, render side-by-side diff (json-diff for JSON, line-diff for text)

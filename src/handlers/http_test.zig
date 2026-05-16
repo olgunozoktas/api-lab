@@ -231,3 +231,80 @@ test "formatTransportError: includes exit_code, timing_ms, escaped stderr" {
         out,
     );
 }
+
+test "findContentType: extracts value case-insensitively" {
+    const block = "HTTP/1.1 200 OK\r\ncontent-type: image/png\r\nX-Foo: bar\r\n";
+    try testing.expectEqualStrings("image/png", http.findContentType(block));
+}
+
+test "findContentType: absent returns empty" {
+    try testing.expectEqualStrings("", http.findContentType("HTTP/1.1 200 OK\r\n"));
+}
+
+test "isBinaryBody: json content type stays on the text path" {
+    try testing.expect(!http.isBinaryBody("application/json", "{}"));
+}
+
+test "isBinaryBody: png content type is binary" {
+    try testing.expect(http.isBinaryBody("image/png", "ignored"));
+}
+
+test "isBinaryBody: svg stays on the text path" {
+    try testing.expect(!http.isBinaryBody("image/svg+xml", "<svg/>"));
+}
+
+test "isBinaryBody: invalid utf-8 with unknown type is binary" {
+    const bad = [_]u8{ 0xff, 0xfe, 0x00, 0x80 };
+    try testing.expect(http.isBinaryBody("", &bad));
+}
+
+test "isBinaryBody: valid utf-8 with unknown type stays text" {
+    try testing.expect(!http.isBinaryBody("application/x-custom", "hello world"));
+}
+
+test "writeBodyJson: text body ships verbatim, no flag" {
+    var arena = std.heap.ArenaAllocator.init(testing.allocator);
+    defer arena.deinit();
+    var buf: [128]u8 = undefined;
+    var w = std.Io.Writer.fixed(&buf);
+    try http.writeBodyJson(&w, arena.allocator(), "application/json", "{\"ok\":true}");
+    try testing.expectEqualStrings(",\"body\":\"{\\\"ok\\\":true}\"", buf[0..w.end]);
+}
+
+test "writeBodyJson: binary body is base64-encoded with body_base64 flag" {
+    var arena = std.heap.ArenaAllocator.init(testing.allocator);
+    defer arena.deinit();
+    var buf: [256]u8 = undefined;
+    var w = std.Io.Writer.fixed(&buf);
+    const body = [_]u8{ 0xff, 0xd8, 0xff, 0x00, 0x10 };
+    try http.writeBodyJson(&w, arena.allocator(), "image/jpeg", &body);
+    const out = buf[0..w.end];
+    try testing.expect(std.mem.indexOf(u8, out, "\"body_base64\":true") != null);
+
+    // Round-trip: the base64 between `"body":"` and `","body_base64"`
+    // must decode back to the exact input bytes.
+    const prefix = ",\"body\":\"";
+    const start = std.mem.indexOf(u8, out, prefix).? + prefix.len;
+    const end = std.mem.indexOf(u8, out, "\",\"body_base64\"").?;
+    const b64 = out[start..end];
+    const dec = std.base64.standard.Decoder;
+    var decoded: [16]u8 = undefined;
+    const n = try dec.calcSizeForSlice(b64);
+    try dec.decode(decoded[0..n], b64);
+    try testing.expectEqualSlices(u8, &body, decoded[0..n]);
+}
+
+test "writeBodyJson: oversize binary body reports body_too_large" {
+    var arena = std.heap.ArenaAllocator.init(testing.allocator);
+    defer arena.deinit();
+    const a = arena.allocator();
+    const big = try a.alloc(u8, 700 * 1024 + 1);
+    @memset(big, 0xff);
+    var buf: [128]u8 = undefined;
+    var w = std.Io.Writer.fixed(&buf);
+    try http.writeBodyJson(&w, a, "application/octet-stream", big);
+    try testing.expectEqualStrings(
+        ",\"body\":\"\",\"body_base64\":false,\"body_too_large\":true",
+        buf[0..w.end],
+    );
+}

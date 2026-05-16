@@ -29,28 +29,28 @@ it was split out rather than folded into the viewer slice.
 
 ## Items
 
-- [ ] `src/handlers/http.zig` — detect a binary response body
+- [x] `src/handlers/http.zig` — detect a binary response body
   (content-type not text/json/xml/svg, OR body fails a UTF-8
   validity check). For binary, return the body **base64-encoded**
   plus a `body_base64: true` flag in the JSON response (text bodies
   unchanged — no base64 tax on the common path).
-- [ ] Bridge contract — document the new `body_base64` field in
+- [x] Bridge contract — document the new `body_base64` field in
   `src/main.zig`'s handler comment + the `http.request` response
   shape.
-- [ ] Frontend `lib/bridge.ts` / `lib/sendRequest.ts` — when
+- [x] Frontend `lib/bridge.ts` / `lib/sendRequest.ts` — when
   `body_base64` is set, decode to bytes; carry them on
   `ResponseSnapshot` (e.g. `bodyBytes?: Uint8Array` or keep base64
   + decode lazily at the viewer). Keep `body` populated with a
   best-effort text rendering for the Raw tab.
-- [ ] Response viewers (`components/ResponseBody.tsx`) — image
+- [x] Response viewers (`components/ResponseBody.tsx`) — image
   (`<img>`), audio (`<audio>`), video (`<video>`) via an object URL
   built from a Blob of the decoded bytes. PDF via lazy-loaded
   `pdfjs-dist`. Closes items 3-6 of `P2-2026-05-09-170900`.
-- [ ] `downloadResponseBody` — download the real bytes for binary
+- [x] `downloadResponseBody` — download the real bytes for binary
   responses, not the mangled string.
-- [ ] Size cap — base64 inflates ~33%; cap the channel (e.g. 8-16 MB)
+- [x] Size cap — base64 inflates ~33%; cap the channel (e.g. 8-16 MB)
   and surface a "response too large to preview" state past it.
-- [ ] Tests — Zig: UTF-8 detection + base64 round-trip on the
+- [x] Tests — Zig: UTF-8 detection + base64 round-trip on the
   handler. Frontend: `body_base64` decode path, viewer dispatch.
 
 ## Acceptance

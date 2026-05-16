@@ -11,6 +11,9 @@
 const std = @import("std");
 const runner = @import("runner");
 const zero_native = @import("zero-native");
+// `http.request` — curl-via-bridge. Response shape (incl. the binary
+// `body_base64` / `body_too_large` flags) is documented on
+// `runRequest` in handlers/http.zig.
 const http_handler = @import("handlers/http.zig");
 const grpc_handler = @import("handlers/grpc.zig");
 const grpc_reflect_handler = @import("handlers/grpc_reflect.zig");
