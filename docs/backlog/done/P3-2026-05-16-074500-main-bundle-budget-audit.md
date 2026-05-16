@@ -20,17 +20,17 @@ breached. The next small feature will push the main chunk over, and
 
 ## Items
 
-- [ ] Measure where the main bundle's weight sits — `vite build`
+- [x] Measure where the main bundle's weight sits — `vite build`
   with `rolldownOptions` chunk analysis, or `rollup-plugin-visualizer`,
   to get a treemap of `index-*.js`.
-- [ ] Decide a real budget + enforce it — add a `chunkSizeWarningLimit`
+- [x] Decide a real budget + enforce it — add a `chunkSizeWarningLimit`
   or a CI assertion on the gzipped `index-*.js` size so a regression
   fails the build instead of silently creeping.
-- [ ] Find the next lazy-split candidate — the OpenAPI editor already
+- [x] Find the next lazy-split candidate — the OpenAPI editor already
   splits (`openapi-*.js`, 102 KB); audit whether the QuickJS script
   sandbox wasm, `@uiw/react-json-view`, or other heavy leaves can move
   behind a dynamic import or route-level split.
-- [ ] If `ResponseBinaryBody` can be lazy-loaded from `ResponseBody`
+- [x] If `ResponseBinaryBody` can be lazy-loaded from `ResponseBody`
   without hurting the common path, do it — binary responses are rare.
 
 ## Acceptance

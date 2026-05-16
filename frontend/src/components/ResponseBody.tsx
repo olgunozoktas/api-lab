@@ -1,5 +1,5 @@
 /** Olgun Özoktaş geliştirdi · API Lab */
-import { useMemo, useState } from "react";
+import { lazy, Suspense, useMemo, useState } from "react";
 import { useStore } from "../store";
 import { useT } from "../lib/i18n/useT";
 import { isProbablyJson } from "../lib/utils";
@@ -11,8 +11,14 @@ import { SaveAsVariableMenu } from "./SaveAsVariable";
 import { ResponseEmpty } from "./ResponseEmpty";
 import { HexViewer } from "./HexViewer";
 import { XmlTreeView } from "./XmlTreeView";
-import { ResponseBinaryBody } from "./ResponseBinaryBody";
 import type { ResponseHeader, ResponseSnapshot, ResponseTab } from "../lib/types";
+
+// Binary responses are a rare path, so the image / audio / video / PDF
+// viewer dispatch (and, transitively, pdfjs-dist) loads on demand —
+// keeping it out of the first-paint entry chunk.
+const ResponseBinaryBody = lazy(() =>
+  import("./ResponseBinaryBody").then((m) => ({ default: m.ResponseBinaryBody }))
+);
 
 // Theme tokens fed to JsonView. Reads CSS variables so light/dark switch live.
 const treeStyle: Record<string, string> = {
@@ -87,7 +93,9 @@ export function ResponseBody({ response: r, tab }: ResponseBodyProps) {
   if (r.bodyTooLarge || r.bodyBase64) {
     return (
       <SaveAsVariableMenu>
-        <ResponseBinaryBody response={r} />
+        <Suspense fallback={<div className="flex-1" />}>
+          <ResponseBinaryBody response={r} />
+        </Suspense>
       </SaveAsVariableMenu>
     );
   }
