@@ -371,3 +371,60 @@ test "buildArgv: no multipart / binary_path keeps the plain body path" {
     try testing.expect(argvHas(argv, "{\"k\":1}"));
     for (argv) |arg| try testing.expect(!std.mem.eql(u8, arg, "--form"));
 }
+
+fn argvPairAfter(argv: []const []const u8, flag: []const u8) ?[]const u8 {
+    for (argv, 0..) |arg, i| {
+        if (std.mem.eql(u8, arg, flag) and i + 1 < argv.len) return argv[i + 1];
+    }
+    return null;
+}
+
+test "buildArgv: proxy emits --proxy <url>" {
+    var arena = std.heap.ArenaAllocator.init(testing.allocator);
+    defer arena.deinit();
+    const a = arena.allocator();
+
+    const req = http.HttpRequest{ .url = "https://x.test", .proxy = "socks5://127.0.0.1:1080" };
+    const argv = try http.buildArgv(a, req);
+
+    try testing.expectEqualStrings("socks5://127.0.0.1:1080", argvPairAfter(argv, "--proxy").?);
+}
+
+test "buildArgv: no proxy omits --proxy" {
+    var arena = std.heap.ArenaAllocator.init(testing.allocator);
+    defer arena.deinit();
+    const a = arena.allocator();
+
+    const argv = try http.buildArgv(a, .{ .url = "https://x.test" });
+    for (argv) |arg| try testing.expect(!std.mem.eql(u8, arg, "--proxy"));
+}
+
+test "buildArgv: mTLS emits --cert / --key / --pass" {
+    var arena = std.heap.ArenaAllocator.init(testing.allocator);
+    defer arena.deinit();
+    const a = arena.allocator();
+
+    const req = http.HttpRequest{
+        .url = "https://x.test",
+        .client_cert = "/c/cert.pem",
+        .client_key = "/c/key.pem",
+        .client_key_pass = "s3cret",
+    };
+    const argv = try http.buildArgv(a, req);
+
+    try testing.expectEqualStrings("/c/cert.pem", argvPairAfter(argv, "--cert").?);
+    try testing.expectEqualStrings("/c/key.pem", argvPairAfter(argv, "--key").?);
+    try testing.expectEqualStrings("s3cret", argvPairAfter(argv, "--pass").?);
+}
+
+test "buildArgv: no mTLS fields omit --cert / --key" {
+    var arena = std.heap.ArenaAllocator.init(testing.allocator);
+    defer arena.deinit();
+    const a = arena.allocator();
+
+    const argv = try http.buildArgv(a, .{ .url = "https://x.test" });
+    for (argv) |arg| {
+        try testing.expect(!std.mem.eql(u8, arg, "--cert"));
+        try testing.expect(!std.mem.eql(u8, arg, "--key"));
+    }
+}

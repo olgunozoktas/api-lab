@@ -39,6 +39,13 @@ export type HttpRequest = {
   // Raw-binary body — an absolute file path. When set, the handler
   // uses curl `--data-binary @path` and ignores `body`.
   binary_path?: string;
+  // Outbound proxy URL — curl `--proxy`.
+  proxy?: string;
+  // mTLS client certificate — absolute PEM file paths + optional key
+  // passphrase. curl `--cert` / `--key` / `--pass`.
+  client_cert?: string;
+  client_key?: string;
+  client_key_pass?: string;
 };
 
 export type HttpResponse = {

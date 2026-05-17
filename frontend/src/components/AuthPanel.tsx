@@ -27,6 +27,10 @@ export function AuthPanel({ value, onChange }: AuthPanelProps) {
   const setField = (k: keyof Auth, v: string) => onChange({ ...value, [k]: v });
   const setOauth = (patch: Partial<NonNullable<Auth["oauth2"]>>) =>
     onChange({ ...value, oauth2: { ...(value.oauth2 ?? {}), ...patch } });
+  const setSigv4 = (patch: Partial<NonNullable<Auth["awsSigv4"]>>) =>
+    onChange({ ...value, awsSigv4: { ...(value.awsSigv4 ?? {}), ...patch } });
+  const setMtls = (patch: Partial<NonNullable<Auth["mtls"]>>) =>
+    onChange({ ...value, mtls: { ...(value.mtls ?? {}), ...patch } });
 
   return (
     <div>
@@ -41,6 +45,8 @@ export function AuthPanel({ value, onChange }: AuthPanelProps) {
             <SelectItem value="basic">{t("auth.basic")}</SelectItem>
             <SelectItem value="apikey">{t("auth.apikey")}</SelectItem>
             <SelectItem value="oauth2">{t("auth.oauth2")}</SelectItem>
+            <SelectItem value="aws-sigv4">{t("auth.awsSigv4")}</SelectItem>
+            <SelectItem value="mtls">{t("auth.mtls")}</SelectItem>
           </SelectContent>
         </Select>
       </Row>
@@ -98,7 +104,110 @@ export function AuthPanel({ value, onChange }: AuthPanelProps) {
         </>
       )}
       {value.type === "oauth2" && <OAuthSubPanel value={value} setOauth={setOauth} />}
+      {value.type === "aws-sigv4" && <Sigv4SubPanel value={value} setSigv4={setSigv4} />}
+      {value.type === "mtls" && <MtlsSubPanel value={value} setMtls={setMtls} />}
     </div>
+  );
+}
+
+// AWS Signature v4 — access key + secret + region + service, plus an
+// optional session token for temporary (STS) credentials.
+function Sigv4SubPanel({
+  value,
+  setSigv4,
+}: {
+  value: Auth;
+  setSigv4: (patch: Partial<NonNullable<Auth["awsSigv4"]>>) => void;
+}) {
+  const s = value.awsSigv4 ?? {};
+  return (
+    <>
+      <Row labelKey="auth.sigv4.accessKey">
+        <input
+          type="text"
+          value={s.accessKey ?? ""}
+          placeholder="AKIA..."
+          onChange={(e) => setSigv4({ accessKey: e.target.value })}
+          className={inputCls}
+        />
+      </Row>
+      <Row labelKey="auth.sigv4.secretKey">
+        <input
+          type="password"
+          value={s.secretKey ?? ""}
+          onChange={(e) => setSigv4({ secretKey: e.target.value })}
+          className={inputCls}
+        />
+      </Row>
+      <Row labelKey="auth.sigv4.region">
+        <input
+          type="text"
+          value={s.region ?? ""}
+          placeholder="us-east-1"
+          onChange={(e) => setSigv4({ region: e.target.value })}
+          className={inputCls}
+        />
+      </Row>
+      <Row labelKey="auth.sigv4.service">
+        <input
+          type="text"
+          value={s.service ?? ""}
+          placeholder="s3"
+          onChange={(e) => setSigv4({ service: e.target.value })}
+          className={inputCls}
+        />
+      </Row>
+      <Row labelKey="auth.sigv4.sessionToken">
+        <input
+          type="password"
+          value={s.sessionToken ?? ""}
+          onChange={(e) => setSigv4({ sessionToken: e.target.value })}
+          className={inputCls}
+        />
+      </Row>
+    </>
+  );
+}
+
+// Mutual-TLS — paths to the client certificate + key PEM files, plus
+// an optional key passphrase.
+function MtlsSubPanel({
+  value,
+  setMtls,
+}: {
+  value: Auth;
+  setMtls: (patch: Partial<NonNullable<Auth["mtls"]>>) => void;
+}) {
+  const m = value.mtls ?? {};
+  return (
+    <>
+      <Row labelKey="auth.mtls.certPath">
+        <input
+          type="text"
+          value={m.certPath ?? ""}
+          placeholder="/path/to/client-cert.pem"
+          onChange={(e) => setMtls({ certPath: e.target.value })}
+          className={inputCls}
+        />
+      </Row>
+      <Row labelKey="auth.mtls.keyPath">
+        <input
+          type="text"
+          value={m.keyPath ?? ""}
+          placeholder="/path/to/client-key.pem"
+          onChange={(e) => setMtls({ keyPath: e.target.value })}
+          className={inputCls}
+        />
+      </Row>
+      <Row labelKey="auth.mtls.passphrase">
+        <input
+          type="password"
+          value={m.passphrase ?? ""}
+          onChange={(e) => setMtls({ passphrase: e.target.value })}
+          className={inputCls}
+        />
+      </Row>
+    </>
   );
 }
 
