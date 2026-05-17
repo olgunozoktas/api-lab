@@ -27,8 +27,40 @@ export type Auth = {
   };
 };
 
-export type BodyMode = "none" | "json" | "form" | "raw";
-export type Body = { mode: BodyMode; text: string };
+export type BodyMode = "none" | "json" | "form" | "raw" | "multipart" | "binary";
+
+// One field of a multipart/form-data body. `kind` decides whether the
+// field carries an inline text value or an on-disk file (picked via
+// the native file dialog). `filePath` is an absolute path; `fileName`
+// is its basename, kept for display so the UI need not re-derive it.
+export type MultipartField = {
+  enabled: boolean;
+  k: string;
+  kind: "text" | "file";
+  v: string;
+  filePath: string;
+  fileName: string;
+};
+
+export const emptyMultipartField = (): MultipartField => ({
+  enabled: true,
+  k: "",
+  kind: "text",
+  v: "",
+  filePath: "",
+  fileName: "",
+});
+
+// `parts` is populated only when `mode === "multipart"`; `filePath` /
+// `fileName` only when `mode === "binary"`. Both are optional so
+// persisted snapshots from before this landed hydrate cleanly.
+export type Body = {
+  mode: BodyMode;
+  text: string;
+  parts?: MultipartField[];
+  filePath?: string;
+  fileName?: string;
+};
 
 export type Gql = { query: string; vars: string };
 

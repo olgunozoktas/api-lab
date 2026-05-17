@@ -32,6 +32,13 @@ export type HttpRequest = {
   timeout_ms?: number;
   follow_redirects?: number;
   insecure?: boolean;
+  // multipart/form-data fields. When set, the Zig handler builds curl
+  // `-F` args (`name=value` for text, `name=@path` for files) and
+  // ignores `body`. curl reads file parts off disk itself.
+  multipart?: { name: string; value: string; is_file: boolean }[];
+  // Raw-binary body — an absolute file path. When set, the handler
+  // uses curl `--data-binary @path` and ignores `body`.
+  binary_path?: string;
 };
 
 export type HttpResponse = {
