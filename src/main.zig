@@ -21,6 +21,9 @@ const grpc_reflect_handler = @import("handlers/grpc_reflect.zig");
 // that serves saved response examples over a loopback HTTP listener.
 // See handlers/mock.zig for the Zig-net-API decision + protocol.
 const mock_handler = @import("handlers/mock.zig");
+// `git.sync.*` — optional git-based collection sync. Shells out to
+// `git` against a local clone under `<HOME>/.api-lab/git-sync`.
+const git_sync_handler = @import("handlers/git_sync.zig");
 
 pub const panic = std.debug.FullPanic(zero_native.debug.capturePanic);
 
@@ -54,6 +57,14 @@ const command_policies = [_]zero_native.BridgeCommandPolicy{
     .{ .name = "mock.start", .permissions = &.{"network"}, .origins = &allowed_origins },
     .{ .name = "mock.stop", .permissions = &.{"network"}, .origins = &allowed_origins },
     .{ .name = "mock.list", .permissions = &.{"network"}, .origins = &allowed_origins },
+    // git sync — shells out to `git` (network for clone/pull/push) and
+    // reads/writes a clone under <HOME>/.api-lab/ (filesystem).
+    .{ .name = "git.sync.status", .permissions = &.{"filesystem"}, .origins = &allowed_origins },
+    .{ .name = "git.sync.setup", .permissions = &.{ "network", "filesystem" }, .origins = &allowed_origins },
+    .{ .name = "git.sync.pull", .permissions = &.{ "network", "filesystem" }, .origins = &allowed_origins },
+    .{ .name = "git.sync.read", .permissions = &.{"filesystem"}, .origins = &allowed_origins },
+    .{ .name = "git.sync.push", .permissions = &.{ "network", "filesystem" }, .origins = &allowed_origins },
+    .{ .name = "git.sync.resolve", .permissions = &.{ "network", "filesystem" }, .origins = &allowed_origins },
 };
 
 // Builtin-bridge commands provided by zero-native itself (not our
@@ -89,6 +100,11 @@ pub fn main(init: std.process.Init) !void {
     // listeners down cleanly (backlog Item: app lifecycle).
     var mock_ctx = mock_handler.Context{ .gpa = gpa };
     defer mock_ctx.deinit();
+    var git_sync_ctx = git_sync_handler.Context{
+        .gpa = gpa,
+        .io = init.io,
+        .env_map = init.environ_map,
+    };
 
     var handler_list = [_]zero_native.BridgeHandler{
         http_handler.handler(&http_ctx),
@@ -98,6 +114,12 @@ pub fn main(init: std.process.Init) !void {
         mock_handler.startHandler(&mock_ctx),
         mock_handler.stopHandler(&mock_ctx),
         mock_handler.listHandler(&mock_ctx),
+        git_sync_handler.statusHandler(&git_sync_ctx),
+        git_sync_handler.setupHandler(&git_sync_ctx),
+        git_sync_handler.pullHandler(&git_sync_ctx),
+        git_sync_handler.readHandler(&git_sync_ctx),
+        git_sync_handler.pushHandler(&git_sync_ctx),
+        git_sync_handler.resolveHandler(&git_sync_ctx),
     };
     const registry = zero_native.BridgeRegistry{ .handlers = &handler_list };
 

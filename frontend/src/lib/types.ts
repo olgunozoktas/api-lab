@@ -331,6 +331,30 @@ export const defaultRequestDefaults = (): RequestDefaults => ({
   proxyUrl: "",
 });
 
+// Optional git-based collection sync (Phase K). `repoUrl` is an SSH
+// remote — auth runs through the system SSH agent, so no secret is
+// stored. Persisted; sync is fully off until `enabled` is true.
+export type SyncConfig = {
+  enabled: boolean;
+  repoUrl: string;
+};
+
+export const defaultSyncConfig = (): SyncConfig => ({ enabled: false, repoUrl: "" });
+
+// Runtime-only sync status (NOT persisted) — drives the status line in
+// Settings and the conflict banner.
+export type SyncStatus = {
+  state: "idle" | "syncing" | "ok" | "error" | "conflict";
+  message: string;
+  lastSyncAt: number | null;
+};
+
+export const defaultSyncStatus = (): SyncStatus => ({
+  state: "idle",
+  message: "",
+  lastSyncAt: null,
+});
+
 // One open tab in the multi-request workspace. `request` is the editable
 // state; `lastResponse` is the most recent response shown in the response
 // pane; `composerTab` and `responseTab` are the tab's UI memory so each
