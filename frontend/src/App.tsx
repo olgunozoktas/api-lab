@@ -12,6 +12,8 @@
  */
 import { useCallback, useEffect, useRef, useState } from "react";
 import { TopBar } from "./components/TopBar";
+import { SyncBanner } from "./components/SyncBanner";
+import { useSyncEngine } from "./lib/syncEngine";
 import { Sidebar } from "./components/Sidebar";
 import { TabStripContainer } from "./components/TabStrip";
 import { QuickSwitcher } from "./components/QuickSwitcher";
@@ -55,6 +57,10 @@ export function App() {
   const vars = useActiveVars();
   const t = useT();
   const [busy, setBusy] = useState(false);
+
+  // Git-based collection sync — pulls on launch, debounce-pushes on
+  // edit. No-op unless sync is configured + enabled in Settings.
+  useSyncEngine();
   const [switcherOpen, setSwitcherOpen] = useState(false);
   // Holds the AbortController of the currently-flying request so the
   // Cancel button + ⌘+. shortcut can both reach it. Reset to null in
@@ -301,6 +307,7 @@ export function App() {
   return (
     <div className="h-full flex flex-col bg-[var(--color-bg)] text-[var(--color-fg)] text-[13px]">
       <TopBar />
+      <SyncBanner />
       <main className="flex-1 grid min-h-0" style={{ gridTemplateColumns }}>
         {!sidebarCollapsed && (
           <>

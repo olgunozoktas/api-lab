@@ -13,6 +13,7 @@ import { createUiSlice } from "./ui";
 import { createResponseSlice } from "./response";
 import { createCurrentSlice } from "./current";
 import { createSamplesSlice } from "./samples";
+import { createSyncSlice } from "./sync";
 
 // Multi-request workspace store. `tabs[]` is the source of truth; each tab
 // carries its own request/lastResponse/composerTab/responseTab. The
@@ -36,6 +37,7 @@ export const useStore = create<Store>()(
       ...createResponseSlice(...args),
       ...createCurrentSlice(...args),
       ...createSamplesSlice(...args),
+      ...createSyncSlice(...args),
     }),
     {
       name: "apilab.store.v1",
@@ -65,6 +67,9 @@ export const useStore = create<Store>()(
           defaults: s.defaults,
           hiddenSampleIds: s.hiddenSampleIds,
           samplesSectionHidden: s.samplesSectionHidden,
+          // syncConfig persists (repo URL + enabled); syncStatus does
+          // NOT — it's this session's runtime sync state.
+          syncConfig: s.syncConfig,
         }) as Store,
     }
   )

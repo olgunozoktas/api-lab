@@ -14,8 +14,17 @@ import type {
   UiState,
   Environment,
   RequestDefaults,
+  SyncConfig,
+  SyncStatus,
 } from "../lib/types";
-import { emptyRequest, emptyTab, defaultRequestDefaults, DEFAULT_LAYOUT } from "../lib/types";
+import {
+  emptyRequest,
+  emptyTab,
+  defaultRequestDefaults,
+  defaultSyncConfig,
+  defaultSyncStatus,
+  DEFAULT_LAYOUT,
+} from "../lib/types";
 import { uid } from "../lib/utils";
 import { detectLocale, type Locale } from "../lib/i18n";
 
@@ -48,6 +57,10 @@ export type CoreState = {
   // store/samples.ts + lib/samples.ts. Persisted via partialize.
   hiddenSampleIds: string[];
   samplesSectionHidden: boolean;
+  // Optional git-based collection sync. `syncConfig` is persisted;
+  // `syncStatus` is runtime-only (omitted from the store's partialize).
+  syncConfig: SyncConfig;
+  syncStatus: SyncStatus;
 };
 
 // Cap for the recently-closed stack. Mirrors Chrome's "Recently
@@ -99,6 +112,8 @@ export function buildInitialState(): CoreState {
     recentlyClosed: [],
     hiddenSampleIds: [],
     samplesSectionHidden: false,
+    syncConfig: defaultSyncConfig(),
+    syncStatus: defaultSyncStatus(),
   };
 }
 
@@ -179,6 +194,8 @@ export function migrateV1toV2(persisted: unknown): V2State {
     recentlyClosed: old.recentlyClosed ?? [],
     hiddenSampleIds: old.hiddenSampleIds ?? [],
     samplesSectionHidden: old.samplesSectionHidden ?? false,
+    syncConfig: old.syncConfig ?? defaultSyncConfig(),
+    syncStatus: old.syncStatus ?? defaultSyncStatus(),
     toast: null,
   };
 }

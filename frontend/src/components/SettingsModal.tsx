@@ -8,6 +8,7 @@ import { APP_VERSION, formatBuildDate } from "../lib/changelog";
 import { cn } from "../lib/cn";
 import { SAMPLES } from "../lib/samples";
 import { BookOpen, ClockArrowUp, Eye, EyeOff, ExternalLink } from "lucide-react";
+import { SyncSettings } from "./SyncSettings";
 
 // =============================================================================
 // SettingsModal — central place for appearance + request defaults +
@@ -169,6 +170,9 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
               />
             </div>
           </section>
+
+          {/* ─── Collection sync ────────────────────────────────────── */}
+          <SyncSettings />
 
           {/* ─── Keyboard reference ─────────────────────────────────── */}
           <section aria-labelledby="settings-shortcuts">
