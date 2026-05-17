@@ -1,4 +1,4 @@
-# Phase E.2 — Request cancellation + progress
+# [BLOCKED] Phase E.2 — Request cancellation + progress
 
 Priority: P2
 
@@ -38,7 +38,17 @@ immediately and accept the late-arriving response is dropped.
 2. Use AbortController for fetch path (browser-native).
 3. For Zig path, add request-id mapping in `src/handlers/http.zig`.
 
-## Status — partial ship 2026-05-09 (UTC)
+## Status — partial ship 2026-05-09 (UTC), remainder BLOCKED 2026-05-17
+
+Items 1-3 + 6 shipped and merged to `main`. Items 4 (native PID
+cancel) and 5 (progress callback) are blocked on a zero-native bridge
+change and **fully delegated** to the two follow-up files below — those
+files are the live trackers for the remaining work. Title prefixed
+`[BLOCKED]` so `/backlog-next` skips this parent; the unchecked items
+4+5 stay unchecked (they are genuinely not done) but are not picked up
+again here. Unblock + close this file once the async-bridge migration
+(`P2-2026-05-09-215917-async-bridge-handler-migration-for-cancel-progress.md`)
+lands and items 4+5 are implemented against it.
 
 Shipped 4 of 6 items end-to-end on `feat/request-cancellation`. Items
 4 (native PID cancel) and 5 (progress callback) deferred to follow-up
