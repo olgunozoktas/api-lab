@@ -265,6 +265,10 @@ export type SendOptions = {
    *  fetch's native signal; native (curl-via-bridge) path soft-cancels
    *  on the JS side because the bridge is synchronous (see viaNative). */
   signal?: AbortSignal;
+  /** One iteration row from the collection runner. Threaded into the
+   *  pre/post script sandbox as `pm.iterationData`. Absent for an
+   *  ordinary single send. */
+  iterationData?: Record<string, string>;
 };
 
 export async function send(
@@ -296,6 +300,7 @@ export async function sendWithScripts(
     const result = await runScript(req.preScript, {
       request: req,
       env: activeEnv,
+      iterationData: opts.iterationData,
     });
     activeRequest = { ...req, ...result.request };
     activeEnv = result.env;
@@ -366,6 +371,7 @@ export async function sendWithScripts(
       request: activeRequest,
       env: activeEnv,
       response,
+      iterationData: opts.iterationData,
     });
     activeEnv = result.env;
     postOutcome = {

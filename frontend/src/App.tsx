@@ -17,6 +17,7 @@ import { useSyncEngine } from "./lib/syncEngine";
 import { Sidebar } from "./components/Sidebar";
 import { TabStripContainer } from "./components/TabStrip";
 import { QuickSwitcher } from "./components/QuickSwitcher";
+import { CollectionRunnerModal } from "./components/CollectionRunnerModal";
 import { RequestComposerContainer } from "./components/RequestComposer";
 import { ResponseViewerContainer } from "./components/ResponseViewer";
 import { WsPanelContainer } from "./components/WsPanel";
@@ -62,6 +63,18 @@ export function App() {
   // edit. No-op unless sync is configured + enabled in Settings.
   useSyncEngine();
   const [switcherOpen, setSwitcherOpen] = useState(false);
+  // Collection runner — the folder context menu dispatches
+  // `apilab:run-collection` (window-event channel, same pattern as
+  // apilab:open-guides); App owns the modal's open state.
+  const [runnerFolderId, setRunnerFolderId] = useState<string | null>(null);
+  useEffect(() => {
+    const onRun = (e: Event) => {
+      const id = (e as CustomEvent<{ folderId: string }>).detail?.folderId;
+      if (id) setRunnerFolderId(id);
+    };
+    window.addEventListener("apilab:run-collection", onRun);
+    return () => window.removeEventListener("apilab:run-collection", onRun);
+  }, []);
   // Holds the AbortController of the currently-flying request so the
   // Cancel button + ⌘+. shortcut can both reach it. Reset to null in
   // the onSend `finally` so subsequent ⌘+. presses no-op once the
@@ -363,6 +376,11 @@ export function App() {
       </main>
       <Toast />
       <QuickSwitcher open={switcherOpen} onOpenChange={setSwitcherOpen} />
+      <CollectionRunnerModal
+        open={runnerFolderId !== null}
+        folderId={runnerFolderId}
+        onOpenChange={(o) => !o && setRunnerFolderId(null)}
+      />
     </div>
   );
 }

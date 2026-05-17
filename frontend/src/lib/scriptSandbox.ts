@@ -24,6 +24,8 @@ export type ScriptInputState = {
   request: RequestSnapshot;
   env: Record<string, string>;
   response?: ResponseSnapshot;
+  // One collection-runner iteration row, exposed as `pm.iterationData`.
+  iterationData?: Record<string, string>;
 };
 
 export type ScriptResult = {
@@ -122,6 +124,13 @@ const pm = {
         return v === undefined ? "" : v;
       });
     },
+  },
+  iterationData: {
+    get: function(k) {
+      const v = (__state.iterationData || {})[k];
+      return v === undefined ? undefined : v;
+    },
+    toObject: function() { return Object.assign({}, __state.iterationData || {}); },
   },
   response: {
     code: __state.response ? __state.response.status : undefined,
