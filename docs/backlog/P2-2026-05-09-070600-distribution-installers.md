@@ -1,4 +1,4 @@
-# Phase H — Distribution (installers, packaging, auto-update)
+# [PAUSED] Phase H — Distribution (installers, packaging, auto-update)
 
 Created: 2026-05-09 07:06:00
 Refined: 2026-05-16 08:26:00
@@ -32,7 +32,7 @@ check have no such dependency and can ship first.
   (`olgunozoktas/homebrew-api-lab`) so `brew install` works; a
   homebrew-core PR can come later. Touchpoints: a new tap repo, a
   formula file, the release workflow (to bump the formula on tag).
-- [ ] **In-app update check.** On launch, query the GitHub Releases API
+- [x] **In-app update check.** On launch, query the GitHub Releases API
   for a newer version than `APP_VERSION` and surface a non-intrusive
   "update available" notification linking to the release. Touchpoints:
   `frontend/src/` (a launch-time check + notification UI), reuse the
@@ -45,6 +45,30 @@ check have no such dependency and can ship first.
   or WiX; optional `winget` manifest. Requires a Windows code-signing
   certificate (procurement). **Depends on Phase G Windows support.**
   Touchpoints: the release workflow, an installer script.
+
+## Progress (2026-05-17) — update check shipped; packaging PAUSED
+
+The **in-app update check** shipped and merged — on launch API Lab
+makes one GitHub Releases API request and shows an **Update** pill in
+the top bar when a newer release exists; opt out in Settings. It had
+no dependency on the rest of this file.
+
+The four packaging items are paused — each is blocked on a
+procurement action or on Phase G, not on code:
+
+- **macOS `.dmg`** — needs the Apple Developer certificate for
+  signing + notarization; also `create-dmg` is not on the dev box,
+  so even an unsigned `.dmg` can't be built/verified here.
+- **Homebrew tap** — needs a separate `olgunozoktas/homebrew-api-lab`
+  repo created.
+- **Linux** + **Windows** installers — gated on
+  `P2-2026-05-09-070500-cross-platform-linux-windows` (Phase G),
+  which is itself `[BLOCKED]` on Linux/Windows hardware.
+
+Title prefixed `[PAUSED]` so `/backlog-next` skips it; items 1-2 + 4-5
+stay unchecked. Unblock by procuring the Apple cert + creating the
+Homebrew tap repo (for the macOS half) and landing Phase G (for the
+Linux/Windows half).
 
 ## Acceptance
 

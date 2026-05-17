@@ -8,6 +8,7 @@ import { GuideHub } from "./GuideHub";
 import { MockControlPanel } from "./MockControlPanel";
 import { useChangelogAutoOpen } from "../lib/changelog_gate";
 import { APP_VERSION, formatBuildDate } from "../lib/changelog";
+import { useUpdateCheck } from "../lib/updateCheck";
 import { useGuideShortcut } from "../lib/guides_shortcut";
 import { useSettingsShortcut } from "../lib/settings_shortcut";
 import { useEnvEditorShortcut } from "../lib/env_editor_shortcut";
@@ -15,7 +16,7 @@ import { useT } from "../lib/i18n/useT";
 import { Button } from "./ui/button";
 import { KbdHint } from "./ui/kbd-hint";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
-import { HelpCircle, History, Server, Settings, Settings2 } from "lucide-react";
+import { Download, HelpCircle, History, Server, Settings, Settings2 } from "lucide-react";
 
 export function TopBar() {
   const envs = useStore((s) => s.envs);
@@ -26,6 +27,9 @@ export function TopBar() {
   const [editingSettings, setEditingSettings] = useState(false);
   const [guideOpen, setGuideOpen] = useState(false);
   const [mockOpen, setMockOpen] = useState(false);
+  // Launch-time GitHub-release check. Non-null only when a newer
+  // release exists; renders a small "Update" pill next to the version.
+  const update = useUpdateCheck();
   // Changelog auto-opens on first launch when APP_VERSION > lastSeen.
   // The hook handles the markSeen side-effect; we just bind the open
   // state and surface a manual-open button below.
@@ -87,6 +91,18 @@ export function TopBar() {
           >
             v{APP_VERSION}
           </button>
+          {update && (
+            <a
+              href={update.url}
+              target="_blank"
+              rel="noreferrer"
+              className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-[var(--color-accent)] text-white hover:opacity-90 transition-opacity inline-flex items-center gap-1 no-underline"
+              title={t("topbar.updateAvailable", { version: update.latestVersion })}
+            >
+              <Download className="w-3 h-3" />
+              {t("topbar.update")}
+            </a>
+          )}
         </div>
         <div className="flex-1" />
 

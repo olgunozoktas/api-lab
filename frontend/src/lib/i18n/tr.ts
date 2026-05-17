@@ -35,6 +35,9 @@ export const tr = {
   "settings.theme.github-light": "GitHub Light",
   "settings.theme.high-contrast": "Yüksek Kontrast",
   "settings.language": "Dil",
+  "settings.updateCheck": "Açılışta güncellemeleri denetle",
+  "settings.updateCheck.hint":
+    "Açılışta, daha yeni bir sürüm olup olmadığını görmek için GitHub Releases API'sine tek bir istek atar. Telemetri yok — tek seferlik, best-effort bir denetim. Tamamen atlamak için kapat.",
   "settings.section.defaults": "Varsayılan istek davranışı",
   "settings.timeoutMs": "Zaman aşımı (ms)",
   "settings.timeoutMs.hint":
@@ -79,6 +82,8 @@ export const tr = {
   "settings.about.built": "Derleme zamanı",
   "topbar.builtAt": "{date} tarihinde derlendi",
   "topbar.version.clickHint": "Bu sürümün notlarını görmek için tıkla",
+  "topbar.update": "Güncelle",
+  "topbar.updateAvailable": "{version} mevcut — indirmek için tıkla",
   "settings.about.openGuides": "Rehberler",
   "settings.about.openChangelog": "Değişiklikler",
   "settings.about.repo": "GitHub deposu",
