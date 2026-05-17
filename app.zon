@@ -4,7 +4,7 @@
     .display_name = "API Lab",
     .version = "0.1.0",
     .icons = .{ "assets/icon.icns" },
-    .platforms = .{ "macos" },
+    .platforms = .{ "macos", "linux", "windows" },
     .permissions = .{ "filesystem", "network" },
     .capabilities = .{ "webview", "js_bridge" },
     .security = .{

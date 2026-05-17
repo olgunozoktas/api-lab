@@ -1,4 +1,4 @@
-# Phase G — Cross-platform support (Linux + Windows)
+# [BLOCKED] Phase G — Cross-platform support (Linux + Windows)
 
 Created: 2026-05-09 07:05:00
 Refined: 2026-05-16 08:24:00
@@ -42,6 +42,43 @@ Known starting points from the capture:
   WebView2-runtime requirement note to the README. Build and run on a
   real Windows machine. Touchpoints: `app.zon`, `build.zig`,
   `src/handlers/http.zig`, `README.md`.
+
+## Progress (2026-05-16) — verifiable prep landed, runtime BLOCKED
+
+The portable prep work shipped on the macOS dev machine; both items
+stay `- [ ]` because their Acceptance ("build and run on a real
+Linux/Windows machine") cannot be met without that hardware. Title is
+prefixed `[BLOCKED]` so `/backlog-next` skips it until a Linux/Windows
+machine or VM is available — it is not abandoned, just gated.
+
+**Landed (verifiable on macOS):**
+- Path-discipline audit — `grep -rn '/Users/' src build.zig build.sh`
+  is clean; no hardcoded home paths, no macOS-only path literals in
+  the Zig sources or build glue.
+- `app.zon` `.platforms` now declares `macos`, `linux`, `windows`
+  (declarative manifest metadata; `build.zig` selects the real target
+  from the build flags).
+- `build.sh` resolves the webview cache + state directories per OS
+  via `uname` (macOS `~/Library`, Linux XDG base dirs, Windows
+  `%LOCALAPPDATA%`) and picks the `.exe` binary name on Windows. The
+  macOS branch is byte-identical to the previous hardcoded values.
+- `README.md` gained a **Platform support** section with the apt/dnf
+  dependency lists (`libwebkit2gtk-4.1-dev` + `libgtk-4-dev` /
+  `webkit2gtk4.1-devel` + `gtk4-devel`) and the WebView2-runtime note.
+
+**Still BLOCKED — needs real Linux + Windows hardware:**
+- Actually building + launching a working window on Linux (WebKitGTK)
+  and Windows (WebView2). zero-native's `build.zig` already has the
+  GTK / WebView2 link branches, but "compiles" ≠ "works" for a
+  webview host — the file's own How-to-work forbids compile-only sign-off.
+- The Windows `curl` decision (bundle `curl.exe` vs. native-HTTP
+  fallback in `src/handlers/http.zig`) — deliberately deferred to the
+  Windows slice, which needs a Windows machine to validate.
+- A cross-platform CI build matrix.
+
+Unblock by running the build on a Linux VM + Windows machine, fixing
+what breaks, then checking the two items and removing the `[BLOCKED]`
+prefix.
 
 ## Acceptance
 
