@@ -41,9 +41,36 @@ KEEP_CACHE=0         # default: wipe WebKit asset cache pre-launch
 RESET_STATE=0        # opt-in: also wipe LocalStorage (destructive)
 EXTRA_ZIG_ARGS=()
 
-# WKWebView's data store, keyed by the bundle's display name (with space).
-WK_CACHE_DIR="$HOME/Library/Caches/API Lab"
-WK_DATA_DIR="$HOME/Library/WebKit/API Lab"
+# The webview's on-disk cache + persisted-state dirs, resolved per OS:
+# macOS = WKWebView, Linux = WebKitGTK, Windows = WebView2. build.sh
+# wipes the cache dir pre-launch (so a fresh bundle is served) but
+# never the data dir unless --reset-state. The macOS values are the
+# long-standing ones; the Linux/Windows values follow the platform
+# conventions (XDG dirs / %LOCALAPPDATA%) but the build+run path on
+# those platforms is not yet verified on real hardware — see the
+# cross-platform backlog item.
+case "$(uname -s)" in
+  Darwin)
+    WK_CACHE_DIR="$HOME/Library/Caches/API Lab"
+    WK_DATA_DIR="$HOME/Library/WebKit/API Lab"
+    APP_BIN="zig-out/bin/api-lab"
+    ;;
+  Linux)
+    WK_CACHE_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/API Lab"
+    WK_DATA_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/API Lab"
+    APP_BIN="zig-out/bin/api-lab"
+    ;;
+  MINGW*|MSYS*|CYGWIN*)
+    WK_CACHE_DIR="${LOCALAPPDATA:-$HOME/AppData/Local}/API Lab/cache"
+    WK_DATA_DIR="${LOCALAPPDATA:-$HOME/AppData/Local}/API Lab/data"
+    APP_BIN="zig-out/bin/api-lab.exe"
+    ;;
+  *)
+    WK_CACHE_DIR="$HOME/.cache/API Lab"
+    WK_DATA_DIR="$HOME/.local/share/API Lab"
+    APP_BIN="zig-out/bin/api-lab"
+    ;;
+esac
 
 usage() {
   sed -n 's/^# \?//; 2,/^$/p' "$0" | head -22
@@ -191,19 +218,19 @@ fi
 
 # 3. Launch the app (default; opt out with --no-run).
 if [ "$RUN" = "1" ]; then
-  if [ ! -x zig-out/bin/api-lab ]; then
-    echo "::error:: zig-out/bin/api-lab missing — Zig build did not produce a binary" >&2
+  if [ ! -x "$APP_BIN" ]; then
+    echo "::error:: $APP_BIN missing — Zig build did not produce a binary" >&2
     exit 1
   fi
 
   # 3a. Stop any already-running instance so the cache wipe + relaunch
   # behave like a hot-reload. Match by full path to avoid hitting other
   # processes that happen to have "api-lab" in argv.
-  if pgrep -f "$SCRIPT_DIR/zig-out/bin/api-lab" >/dev/null 2>&1; then
+  if pgrep -f "$SCRIPT_DIR/$APP_BIN" >/dev/null 2>&1; then
     echo "→ stopping previous instance"
-    pkill -TERM -f "$SCRIPT_DIR/zig-out/bin/api-lab" 2>/dev/null || true
+    pkill -TERM -f "$SCRIPT_DIR/$APP_BIN" 2>/dev/null || true
     sleep 0.4
-    pkill -KILL -f "$SCRIPT_DIR/zig-out/bin/api-lab" 2>/dev/null || true
+    pkill -KILL -f "$SCRIPT_DIR/$APP_BIN" 2>/dev/null || true
   fi
 
   # 3b. Wipe WebKit's asset cache so the new bundle is served instead of
@@ -232,10 +259,10 @@ if [ "$RUN" = "1" ]; then
 
   # 3c. Launch in background so build.sh exits cleanly while the
   # WKWebView window stays open.
-  echo "→ launch: ./zig-out/bin/api-lab (background, PID will print)"
-  ./zig-out/bin/api-lab >/dev/null 2>&1 &
-  echo "✓ Build + launch complete (PID $!) — zig-out/bin/api-lab"
+  echo "→ launch: ./$APP_BIN (background, PID will print)"
+  "./$APP_BIN" >/dev/null 2>&1 &
+  echo "✓ Build + launch complete (PID $!) — $APP_BIN"
   exit 0
 fi
 
-echo "✓ Build complete: zig-out/bin/api-lab (--no-run, app not launched)"
+echo "✓ Build complete: $APP_BIN (--no-run, app not launched)"

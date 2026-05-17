@@ -75,6 +75,26 @@ If your `zero-native` checkout lives elsewhere:
 ./build.sh -Dzero-native-path=/path/to/zero-native
 ```
 
+### Platform support
+
+API Lab ships on **macOS** today (WKWebView). Linux and Windows are
+declared in `app.zon` and the Zig shell builds against zero-native's
+WebKitGTK / WebView2 hosts, but the build + run path on those platforms
+is **not yet verified on real hardware** — tracked in the cross-platform
+backlog item.
+
+Per-platform dependencies:
+
+| Platform | Webview | Extra deps |
+| --- | --- | --- |
+| macOS | WKWebView (system) | none — `curl` is preinstalled |
+| Linux | WebKitGTK | GTK 4 + WebKitGTK dev libs — `apt install libwebkit2gtk-4.1-dev libgtk-4-dev` (Debian/Ubuntu) or `dnf install webkit2gtk4.1-devel gtk4-devel` (Fedora); `curl` is preinstalled on most distros |
+| Windows | WebView2 | the **WebView2 runtime** — preinstalled on Windows 11, or the [Evergreen installer](https://developer.microsoft.com/microsoft-edge/webview2/) on older Windows. Resolving the `curl` dependency (bundle `curl.exe` vs. a native-HTTP bridge fallback) is still open |
+
+`./build.sh` resolves the webview cache + persisted-state directories
+per OS — `~/Library` on macOS, XDG base dirs on Linux, `%LOCALAPPDATA%`
+on Windows.
+
 ### How `./build.sh` picks its frontend builder
 
 The script auto-detects in this priority order. Override with `--use=<dnpm|docker|npm>`:
