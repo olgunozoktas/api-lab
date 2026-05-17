@@ -12,9 +12,22 @@ import { yaml } from "@codemirror/lang-yaml";
 import { graphql } from "cm6-graphql";
 import { closeBrackets, closeBracketsKeymap, autocompletion, completionKeymap } from "@codemirror/autocomplete";
 import { searchKeymap, highlightSelectionMatches } from "@codemirror/search";
+import { lintGutter, setDiagnostics, type Diagnostic } from "@codemirror/lint";
 import { cn } from "../../lib/cn";
 
 export type CodeLanguage = "json" | "yaml" | "graphql" | "text";
+
+// A diagnostic in 0-based line/column coordinates (Spectral / LSP
+// style). The editor converts these to document offsets internally,
+// so callers never deal with offsets.
+export type CodeDiagnostic = {
+  startLine: number;
+  startCol: number;
+  endLine: number;
+  endCol: number;
+  severity: "error" | "warning" | "info" | "hint";
+  message: string;
+};
 
 export type CodeEditorProps = {
   value: string;
@@ -24,7 +37,24 @@ export type CodeEditorProps = {
   placeholder?: string;
   minHeight?: number;
   className?: string;
+  // Gutter markers + inline underlines. Re-applied whenever the array
+  // identity changes; pass a stable empty array to clear.
+  diagnostics?: CodeDiagnostic[];
 };
+
+// Convert 0-based line/col diagnostics to CodeMirror offset ranges,
+// clamped to the live document so a stale finding can't throw.
+function toCmDiagnostics(view: EditorView, items: CodeDiagnostic[]): Diagnostic[] {
+  const doc = view.state.doc;
+  return items.map((d) => {
+    const fromLine = doc.line(Math.min(Math.max(d.startLine + 1, 1), doc.lines));
+    const toLine = doc.line(Math.min(Math.max(d.endLine + 1, 1), doc.lines));
+    const from = Math.min(fromLine.from + Math.max(d.startCol, 0), fromLine.to);
+    let to = Math.min(toLine.from + Math.max(d.endCol, 0), toLine.to);
+    if (to <= from) to = Math.min(from + 1, doc.length);
+    return { from, to, severity: d.severity, message: d.message };
+  });
+}
 
 const editorTheme = EditorView.theme(
   {
@@ -71,6 +101,7 @@ export function CodeEditor({
   placeholder,
   minHeight = 200,
   className,
+  diagnostics,
 }: CodeEditorProps) {
   const hostRef = useRef<HTMLDivElement | null>(null);
   const viewRef = useRef<EditorView | null>(null);
@@ -93,6 +124,7 @@ export function CodeEditor({
         highlightSelectionMatches(),        // Highlight all instances of selected text
         foldGutter(),
         lineNumbers(),
+        lintGutter(),
         EditorView.lineWrapping,
         syntaxHighlighting(defaultHighlightStyle, { fallback: true }),
         keymap.of([
@@ -147,6 +179,13 @@ export function CodeEditor({
       effects: readOnlyCompartment.reconfigure(EditorState.readOnly.of(readOnly)),
     });
   }, [readOnly, readOnlyCompartment]);
+
+  // Push lint diagnostics — gutter markers + inline underlines.
+  useEffect(() => {
+    const view = viewRef.current;
+    if (!view) return;
+    view.dispatch(setDiagnostics(view.state, toCmDiagnostics(view, diagnostics ?? [])));
+  }, [diagnostics]);
 
   return (
     <div

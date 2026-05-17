@@ -1,29 +1,26 @@
 /** Olgun Özoktaş geliştirdi · API Lab */
-// OpenAPI editor — a spec-editing surface that hosts a CodeMirror
-// editor (left) beside a live validation + operations panel (right).
-// Rendered by App.tsx whenever the active tab carries a `spec` payload.
+// OpenAPI editor — a CodeMirror spec editor (left) beside the
+// validation / Spectral-lint / outline panel (right). Rendered by
+// App.tsx whenever the active tab carries a `spec` payload.
 //
-// The outline reuses the Slice-1 `parseOpenApi` importer (dynamically
-// imported, debounced on edit). Validation is the zero-dep structural
-// `validateSpec` check — both run in the same debounced pass.
+// The debounced edit pass runs three things: the Slice-1 importer
+// (outline), the zero-dep structural `validateSpec`, and Spectral
+// linting (`lintSpec`, lazy — Spectral is ~500 KB). Spectral findings
+// also become CodeMirror gutter markers via the editor's `diagnostics`
+// prop.
 
 import { useEffect, useState } from "react";
 import { useStore } from "../store";
 import { useT } from "../lib/i18n/useT";
 import { cn } from "../lib/cn";
-import { methodClass } from "../lib/utils";
 import { validateSpec, type SpecIssue } from "../lib/specValidate";
+import { lintSpec, type LintFinding } from "../lib/spectralLint";
 import { downloadTextFile } from "../lib/responseDownload";
 import { CodeEditor, type CodeLanguage } from "./ui/code-editor";
 import { Button } from "./ui/button";
+import { SpecSidePanel, type Outline } from "./SpecSidePanel";
+import { SpecRulesetModal } from "./SpecRulesetModal";
 import { Download, FolderInput } from "lucide-react";
-import type { CollectionItem } from "../lib/types";
-
-type Outline = {
-  items: CollectionItem[];
-  requestCount: number;
-  folderCount: number;
-};
 
 // Pick the editor language from the file extension, falling back to a
 // content sniff (a leading `{` means JSON, otherwise YAML).
@@ -33,81 +30,14 @@ function specLanguage(fileName: string, text: string): CodeLanguage {
   return text.trimStart().startsWith("{") ? "json" : "yaml";
 }
 
-function OpRow({ item }: { item: CollectionItem }) {
-  const method = item.request?.method ?? "GET";
-  return (
-    <div className="px-3 py-1 flex items-center gap-2 text-[11px] hover:bg-[var(--color-bg-elev-2)]">
-      <span className={cn("font-mono font-semibold shrink-0 w-12", methodClass(method))}>
-        {method}
-      </span>
-      <span className="truncate text-[var(--color-fg)]" title={item.name}>
-        {item.name}
-      </span>
-    </div>
-  );
-}
-
-function SpecOutline({ items }: { items: CollectionItem[] }) {
-  const folders = items.filter((i) => i.kind === "folder");
-  const requestsOf = (parentId: string | null) =>
-    items.filter((i) => i.kind === "request" && i.parentId === parentId);
-  return (
-    <div className="py-1">
-      {requestsOf(null).map((r) => (
-        <OpRow key={r.id} item={r} />
-      ))}
-      {folders.map((f) => (
-        <div key={f.id}>
-          <div className="px-3 py-1 mt-1 text-[10px] uppercase tracking-wider font-semibold text-[var(--color-fg-muted)]">
-            {f.name}
-          </div>
-          {requestsOf(f.id).map((r) => (
-            <OpRow key={r.id} item={r} />
-          ))}
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function IssueRow({
-  issue,
-  errorTag,
-  warnTag,
-}: {
-  issue: SpecIssue;
-  errorTag: string;
-  warnTag: string;
-}) {
-  const isError = issue.severity === "error";
-  return (
-    <div className="px-3 py-1 text-[11px] flex gap-1.5">
-      <span
-        className={cn(
-          "font-mono font-semibold shrink-0 uppercase text-[9px] pt-0.5",
-          isError ? "text-[var(--color-danger)]" : "text-[var(--color-fg-muted)]"
-        )}
-      >
-        {isError ? errorTag : warnTag}
-      </span>
-      <span className="min-w-0">
-        <span className="text-[var(--color-fg)]">{issue.message}</span>
-        {issue.path ? (
-          <span className="ml-1 font-mono text-[10px] text-[var(--color-fg-muted)]">
-            {issue.path}
-          </span>
-        ) : null}
-      </span>
-    </div>
-  );
-}
-
 export type OpenApiEditorProps = {
   text: string;
   fileName: string;
+  ruleset: string;
   onChange: (text: string) => void;
   // Convert the current spec into a sidebar collection.
   onConvert: () => void;
+  onEditRuleset: () => void;
   className?: string;
 };
 
@@ -115,20 +45,26 @@ export type OpenApiEditorProps = {
 export function OpenApiEditor({
   text,
   fileName,
+  ruleset,
   onChange,
   onConvert,
+  onEditRuleset,
   className,
 }: OpenApiEditorProps) {
   const t = useT();
   const [outline, setOutline] = useState<Outline | null>(null);
   const [issues, setIssues] = useState<SpecIssue[]>([]);
+  const [lintFindings, setLintFindings] = useState<LintFinding[]>([]);
   const [busy, setBusy] = useState(true);
+  const [lintBusy, setLintBusy] = useState(true);
+  const lang = specLanguage(fileName, text);
 
-  // Re-parse + re-validate on edit, debounced so a fast typist doesn't
-  // re-run the parser on every keystroke.
+  // Re-parse + re-validate + re-lint on edit (or ruleset change),
+  // debounced so a fast typist doesn't re-run on every keystroke.
   useEffect(() => {
     let cancelled = false;
     setBusy(true);
+    setLintBusy(true);
     const handle = setTimeout(() => {
       void (async () => {
         const oas = await import("../lib/importers/openapi");
@@ -143,7 +79,9 @@ export function OpenApiEditor({
         if (!parsedOk) {
           setIssues([{ path: "", message: t("spec.validation.parseError"), severity: "error" }]);
           setOutline(null);
+          setLintFindings([]);
           setBusy(false);
+          setLintBusy(false);
           return;
         }
         setIssues(validateSpec(doc));
@@ -154,16 +92,23 @@ export function OpenApiEditor({
           setOutline(null);
         }
         setBusy(false);
+        // Spectral lint — parseable doc only; tolerate any engine error.
+        try {
+          const findings = await lintSpec(text, lang === "json", ruleset || undefined);
+          if (!cancelled) setLintFindings(findings);
+        } catch {
+          if (!cancelled) setLintFindings([]);
+        }
+        if (!cancelled) setLintBusy(false);
       })();
     }, 300);
     return () => {
       cancelled = true;
       clearTimeout(handle);
     };
-  }, [text, t]);
+  }, [text, ruleset, lang, t]);
 
   const errorCount = issues.filter((i) => i.severity === "error").length;
-  const lang = specLanguage(fileName, text);
 
   return (
     <div className={cn("flex h-full min-h-0", className)}>
@@ -201,65 +146,24 @@ export function OpenApiEditor({
           </div>
         </div>
         <div className="flex-1 min-h-0 p-2">
-          <CodeEditor value={text} onChange={onChange} language={lang} className="h-full" />
+          <CodeEditor
+            value={text}
+            onChange={onChange}
+            language={lang}
+            diagnostics={lintFindings}
+            className="h-full"
+          />
         </div>
       </div>
-      <div className="w-[300px] shrink-0 flex flex-col border-l border-[var(--color-border)] bg-[var(--color-bg-elev)]">
-        {/* Validation */}
-        <div className="shrink-0 max-h-[45%] flex flex-col border-b border-[var(--color-border)]">
-          <div className="px-3 py-2 flex items-center justify-between text-[11px] uppercase tracking-wider text-[var(--color-fg-muted)]">
-            <span>{t("spec.validation.title")}</span>
-            {issues.length > 0 ? (
-              <span
-                className={cn(
-                  "font-mono normal-case tracking-normal tabular-nums text-[10px] px-1 rounded",
-                  errorCount > 0
-                    ? "bg-[var(--color-danger)] text-white"
-                    : "bg-[var(--color-bg-elev-2)]"
-                )}
-              >
-                {issues.length}
-              </span>
-            ) : null}
-          </div>
-          <div className="flex-1 min-h-0 overflow-y-auto pb-1">
-            {issues.length === 0 ? (
-              <div className="px-3 py-1 text-[11px] text-[var(--color-fg-muted)]">
-                {busy ? t("spec.parsing") : t("spec.validation.ok")}
-              </div>
-            ) : (
-              issues.map((issue, i) => (
-                <IssueRow
-                  key={`${issue.path}-${i}`}
-                  issue={issue}
-                  errorTag={t("spec.validation.errorTag")}
-                  warnTag={t("spec.validation.warningTag")}
-                />
-              ))
-            )}
-          </div>
-        </div>
-        {/* Operations outline */}
-        <div className="flex-1 min-h-0 flex flex-col">
-          <div className="px-3 py-2 flex items-center justify-between text-[11px] uppercase tracking-wider text-[var(--color-fg-muted)]">
-            <span>{t("spec.outline.title")}</span>
-            {outline ? (
-              <span className="font-mono normal-case tracking-normal tabular-nums text-[10px] px-1 rounded bg-[var(--color-bg-elev-2)]">
-                {outline.requestCount}
-              </span>
-            ) : null}
-          </div>
-          <div className="flex-1 min-h-0 overflow-y-auto">
-            {outline && outline.requestCount > 0 ? (
-              <SpecOutline items={outline.items} />
-            ) : (
-              <div className="px-3 py-1 text-[11px] text-[var(--color-fg-muted)]">
-                {busy ? t("spec.parsing") : t("spec.outline.empty")}
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
+      <SpecSidePanel
+        issues={issues}
+        lintFindings={lintFindings}
+        outline={outline}
+        busy={busy}
+        lintBusy={lintBusy}
+        hasCustomRuleset={!!ruleset.trim()}
+        onEditRuleset={onEditRuleset}
+      />
     </div>
   );
 }
@@ -269,9 +173,11 @@ export function OpenApiEditorContainer() {
   const activeTabId = useStore((s) => s.activeTabId);
   const spec = useStore((s) => s.tabs.find((tab) => tab.id === s.activeTabId)?.spec);
   const updateSpecText = useStore((s) => s.updateSpecText);
+  const updateSpecRuleset = useStore((s) => s.updateSpecRuleset);
   const importItems = useStore((s) => s.importItems);
   const showToast = useStore((s) => s.showToast);
   const t = useT();
+  const [rulesetOpen, setRulesetOpen] = useState(false);
   if (!spec) return null;
 
   // Convert the current spec text into a sidebar collection via the
@@ -303,11 +209,21 @@ export function OpenApiEditorContainer() {
   };
 
   return (
-    <OpenApiEditor
-      text={spec.text}
-      fileName={spec.fileName}
-      onChange={(text) => updateSpecText(activeTabId, text)}
-      onConvert={() => void convert()}
-    />
+    <>
+      <OpenApiEditor
+        text={spec.text}
+        fileName={spec.fileName}
+        ruleset={spec.ruleset ?? ""}
+        onChange={(text) => updateSpecText(activeTabId, text)}
+        onConvert={() => void convert()}
+        onEditRuleset={() => setRulesetOpen(true)}
+      />
+      <SpecRulesetModal
+        open={rulesetOpen}
+        onOpenChange={setRulesetOpen}
+        ruleset={spec.ruleset ?? ""}
+        onSave={(r) => updateSpecRuleset(activeTabId, r)}
+      />
+    </>
   );
 }
