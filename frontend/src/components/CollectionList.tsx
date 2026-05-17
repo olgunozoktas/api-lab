@@ -4,7 +4,8 @@ import { useStore } from "../store";
 import { useT } from "../lib/i18n/useT";
 import { cn } from "../lib/cn";
 import type { CollectionItem } from "../lib/types";
-import { FolderRow, RequestRow } from "./CollectionRows";
+import { FolderRow } from "./CollectionFolderRow";
+import { RequestRow } from "./CollectionRequestRow";
 import { SamplesRestoreCta } from "./SamplesList";
 
 // CollectionList — tree-shaped sidebar list with folders + requests.
