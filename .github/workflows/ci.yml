@@ -17,9 +17,9 @@ env:
 
 jobs:
   zig-tests:
-    name: Zig tests + build (macOS)
+    name: Zig tests + build + E2E (macOS)
     runs-on: macos-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
     steps:
       - name: Checkout api-lab
         uses: actions/checkout@v4
@@ -55,6 +55,38 @@ jobs:
       - name: zig build (release artifact compiles)
         working-directory: api-lab
         run: zig build -Doptimize=ReleaseSafe -Dzero-native-path=../zero-native
+
+      # E2E runs in this job (not a separate macOS runner) — macOS minutes
+      # are 10x the Linux rate, and the harness reuses the zig + zero-native
+      # checkout already prepared above. It needs frontend/dist to exist
+      # (the WebView asset source), so the frontend is built here with plain
+      # npm — same rationale as the frontend-tests job: ephemeral runners
+      # share none of the secrets the dev-machine dnpm wrapper protects.
+      - name: Setup Node.js (for the E2E frontend build)
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: api-lab/frontend/package-lock.json
+
+      - name: Build frontend/dist for the E2E harness
+        working-directory: api-lab/frontend
+        # rm the lockfile so npm re-resolves optionalDependencies for this
+        # runner — see the frontend-tests job for the full explanation.
+        run: |
+          rm -f package-lock.json
+          npm install --no-audit --no-fund --ignore-scripts
+          npm run build
+        env:
+          NODE_ENV: production
+
+      - name: E2E — drive the app via zero-native automation hooks
+        working-directory: api-lab
+        # The harness pre-seeds command.txt, launches the app built with
+        # -Dautomation=true, and asserts the http.request bridge response
+        # for a happy path + an error path. macOS-only for v1 — zero-native's
+        # WebView shell is macOS-bound today.
+        run: bash scripts/e2e/run.sh
 
   frontend-tests:
     name: Frontend tests + typecheck
