@@ -685,4 +685,12 @@ export const tr = {
   "spec.lint.ruleset.hint":
     "Yerleşik `oas` kural setinin üzerine bir `rules` geçersiz kılma haritası ekle. Bir kuralı kapatmak için `off`/`false`, ya da `error` / `warn` / `info` / `hint` ile yeniden derecelendir. Yeni kural yazımı (JSONPath) bu sürümde desteklenmiyor.",
   "spec.lint.ruleset.save": "Kaydet",
+  "spec.docs.docs": "Dokümanlar",
+  "spec.docs.panel": "Panel",
+  "spec.docs.showDocs": "Redoc doküman önizlemesini göster",
+  "spec.docs.showPanel": "Doğrulama / lint paneline dön",
+  "spec.docs.export": "HTML dışa aktar",
+  "spec.docs.exportTitle": "Dokümanları taşınabilir bir Redoc HTML dosyası olarak indir",
+  "spec.docs.loading": "Redoc yükleniyor...",
+  "spec.docs.unavailable": "Doküman önizlemesi için spec'i ayrıştırılabilir hale getir.",
 };

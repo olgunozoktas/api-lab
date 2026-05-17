@@ -1,26 +1,32 @@
 /** Olgun Özoktaş geliştirdi · API Lab */
-// OpenAPI editor — a CodeMirror spec editor (left) beside the
-// validation / Spectral-lint / outline panel (right). Rendered by
-// App.tsx whenever the active tab carries a `spec` payload.
+// OpenAPI editor — a CodeMirror spec editor (left) beside either the
+// validation / Spectral-lint / outline panel or a live Redoc docs
+// preview (right). Rendered by App.tsx whenever the active tab carries
+// a `spec` payload.
 //
-// The debounced edit pass runs three things: the Slice-1 importer
-// (outline), the zero-dep structural `validateSpec`, and Spectral
-// linting (`lintSpec`, lazy — Spectral is ~500 KB). Spectral findings
-// also become CodeMirror gutter markers via the editor's `diagnostics`
-// prop.
+// The debounced edit pass parses the spec once and fans the result
+// out: the Slice-1 importer (outline), the structural `validateSpec`,
+// Spectral linting, and — for the docs view — the parsed document fed
+// to Redoc. Redoc (~1 MB) is lazy-loaded behind the Docs toggle.
 
-import { useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { useStore } from "../store";
 import { useT } from "../lib/i18n/useT";
 import { cn } from "../lib/cn";
 import { validateSpec, type SpecIssue } from "../lib/specValidate";
 import { lintSpec, type LintFinding } from "../lib/spectralLint";
 import { downloadTextFile } from "../lib/responseDownload";
+import { buildRedocHtml } from "../lib/redocHtml";
 import { CodeEditor, type CodeLanguage } from "./ui/code-editor";
 import { Button } from "./ui/button";
 import { SpecSidePanel, type Outline } from "./SpecSidePanel";
 import { SpecRulesetModal } from "./SpecRulesetModal";
-import { Download, FolderInput } from "lucide-react";
+import { Download, FileText, FolderInput, PanelRight } from "lucide-react";
+
+// Redoc + its peers are ~1 MB — only ever reached via this lazy import.
+const RedocPane = lazy(() => import("./RedocPane"));
+
+type ViewMode = "panel" | "docs";
 
 // Pick the editor language from the file extension, falling back to a
 // content sniff (a leading `{` means JSON, otherwise YAML).
@@ -34,6 +40,7 @@ export type OpenApiEditorProps = {
   text: string;
   fileName: string;
   ruleset: string;
+  dark: boolean;
   onChange: (text: string) => void;
   // Convert the current spec into a sidebar collection.
   onConvert: () => void;
@@ -46,6 +53,7 @@ export function OpenApiEditor({
   text,
   fileName,
   ruleset,
+  dark,
   onChange,
   onConvert,
   onEditRuleset,
@@ -55,12 +63,15 @@ export function OpenApiEditor({
   const [outline, setOutline] = useState<Outline | null>(null);
   const [issues, setIssues] = useState<SpecIssue[]>([]);
   const [lintFindings, setLintFindings] = useState<LintFinding[]>([]);
+  const [parsedDoc, setParsedDoc] = useState<object | null>(null);
   const [busy, setBusy] = useState(true);
   const [lintBusy, setLintBusy] = useState(true);
+  const [view, setView] = useState<ViewMode>("panel");
   const lang = specLanguage(fileName, text);
 
   // Re-parse + re-validate + re-lint on edit (or ruleset change),
-  // debounced so a fast typist doesn't re-run on every keystroke.
+  // debounced so a fast typist doesn't re-run on every keystroke. The
+  // parsed document also feeds the live Redoc preview.
   useEffect(() => {
     let cancelled = false;
     setBusy(true);
@@ -80,10 +91,12 @@ export function OpenApiEditor({
           setIssues([{ path: "", message: t("spec.validation.parseError"), severity: "error" }]);
           setOutline(null);
           setLintFindings([]);
+          setParsedDoc(null);
           setBusy(false);
           setLintBusy(false);
           return;
         }
+        setParsedDoc(doc && typeof doc === "object" ? (doc as object) : null);
         setIssues(validateSpec(doc));
         try {
           const r = oas.parseOpenApi(text);
@@ -110,12 +123,45 @@ export function OpenApiEditor({
 
   const errorCount = issues.filter((i) => i.severity === "error").length;
 
+  const exportDocs = () => {
+    if (!parsedDoc) return;
+    const base = fileName.replace(/\.[^.]+$/, "");
+    downloadTextFile(buildRedocHtml(parsedDoc, base), `${base}-docs.html`, "text/html");
+  };
+
   return (
     <div className={cn("flex h-full min-h-0", className)}>
       <div className="flex-1 min-w-0 flex flex-col">
         <div className="px-3 py-1 flex items-center justify-between gap-2 border-b border-[var(--color-border)]">
           <span className="text-[11px] text-[var(--color-fg-muted)] truncate">{fileName}</span>
           <div className="flex items-center gap-1 shrink-0">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setView((v) => (v === "docs" ? "panel" : "docs"))}
+              className="text-[11px] h-auto py-0.5 px-1.5"
+              title={view === "docs" ? t("spec.docs.showPanel") : t("spec.docs.showDocs")}
+            >
+              {view === "docs" ? (
+                <PanelRight className="w-3 h-3" />
+              ) : (
+                <FileText className="w-3 h-3" />
+              )}
+              {view === "docs" ? t("spec.docs.panel") : t("spec.docs.docs")}
+            </Button>
+            {view === "docs" && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={exportDocs}
+                disabled={!parsedDoc}
+                className="text-[11px] h-auto py-0.5 px-1.5"
+                title={t("spec.docs.exportTitle")}
+              >
+                <Download className="w-3 h-3" />
+                {t("spec.docs.export")}
+              </Button>
+            )}
             <Button
               variant="ghost"
               size="sm"
@@ -155,23 +201,52 @@ export function OpenApiEditor({
           />
         </div>
       </div>
-      <SpecSidePanel
-        issues={issues}
-        lintFindings={lintFindings}
-        outline={outline}
-        busy={busy}
-        lintBusy={lintBusy}
-        hasCustomRuleset={!!ruleset.trim()}
-        onEditRuleset={onEditRuleset}
-      />
+      {view === "docs" ? (
+        <div className="w-1/2 shrink-0 border-l border-[var(--color-border)] min-h-0">
+          {parsedDoc ? (
+            <Suspense
+              fallback={
+                <div className="h-full flex items-center justify-center text-[11px] text-[var(--color-fg-muted)]">
+                  {t("spec.docs.loading")}
+                </div>
+              }
+            >
+              <RedocPane spec={parsedDoc} dark={dark} />
+            </Suspense>
+          ) : (
+            <div className="h-full flex items-center justify-center px-6 text-center text-[11px] text-[var(--color-fg-muted)]">
+              {t("spec.docs.unavailable")}
+            </div>
+          )}
+        </div>
+      ) : (
+        <SpecSidePanel
+          issues={issues}
+          lintFindings={lintFindings}
+          outline={outline}
+          busy={busy}
+          lintBusy={lintBusy}
+          hasCustomRuleset={!!ruleset.trim()}
+          onEditRuleset={onEditRuleset}
+        />
+      )}
     </div>
   );
+}
+
+// Resolve whether the active theme renders dark, so Redoc's panels
+// match API Lab's chrome. `auto` follows the OS preference.
+function isDarkTheme(theme: string): boolean {
+  if (theme === "dark" || theme === "tokyo-night" || theme === "high-contrast") return true;
+  if (theme === "light" || theme === "github-light") return false;
+  return !!window.matchMedia?.("(prefers-color-scheme: dark)").matches;
 }
 
 /** Container — wires the active spec tab to the presenter. */
 export function OpenApiEditorContainer() {
   const activeTabId = useStore((s) => s.activeTabId);
   const spec = useStore((s) => s.tabs.find((tab) => tab.id === s.activeTabId)?.spec);
+  const theme = useStore((s) => s.ui.theme);
   const updateSpecText = useStore((s) => s.updateSpecText);
   const updateSpecRuleset = useStore((s) => s.updateSpecRuleset);
   const importItems = useStore((s) => s.importItems);
@@ -214,6 +289,7 @@ export function OpenApiEditorContainer() {
         text={spec.text}
         fileName={spec.fileName}
         ruleset={spec.ruleset ?? ""}
+        dark={isDarkTheme(theme)}
         onChange={(text) => updateSpecText(activeTabId, text)}
         onConvert={() => void convert()}
         onEditRuleset={() => setRulesetOpen(true)}
