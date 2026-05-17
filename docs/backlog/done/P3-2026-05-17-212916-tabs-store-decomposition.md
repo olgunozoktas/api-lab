@@ -23,12 +23,12 @@ of the open/activate/rename/reorder/spec actions.
 
 ## Items
 
-- [ ] Extract the close/reopen actions into `store/tabsClose.ts` (or
+- [x] Extract the close/reopen actions into `store/tabsClose.ts` (or
       lift their bodies into `store/internal.ts` helpers the slice
       composes), so `store/tabs.ts` lands comfortably under 400.
-- [ ] Keep `createTabsSlice` as the single exported slice creator —
+- [x] Keep `createTabsSlice` as the single exported slice creator —
       the split is internal; `store/index.ts` composition is unchanged.
-- [ ] No behaviour change — pure structural refactor (no changelog
+- [x] No behaviour change — pure structural refactor (no changelog
       entry, no version bump). Lean on `store/__tests__/tabs.test.ts`.
 
 ## Acceptance
