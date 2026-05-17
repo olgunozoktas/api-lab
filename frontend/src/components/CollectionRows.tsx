@@ -22,6 +22,7 @@ import {
   FolderPlus,
   Network,
   Pencil,
+  Play,
   Radio,
   Sparkles,
   Terminal,
@@ -86,6 +87,12 @@ export function FolderRow({
     loadCollection(created);
     if (!expanded[item.id]) toggleFolder(item.id);
   };
+
+  // Open the collection runner for this folder (App.tsx hosts the modal).
+  const onRunCollection = () =>
+    window.dispatchEvent(
+      new CustomEvent("apilab:run-collection", { detail: { folderId: item.id } })
+    );
 
   return (
     <ContextMenu>
@@ -206,6 +213,10 @@ export function FolderRow({
           {t("collections.context.newSubFolder")}
         </ContextMenuItem>
         <ContextMenuSeparator />
+        <ContextMenuItem onSelect={onRunCollection}>
+          <Play className="w-3.5 h-3.5" aria-hidden />
+          {t("collections.context.runCollection")}
+        </ContextMenuItem>
         <ContextMenuItem onSelect={() => setRenaming(true)}>
           <Pencil className="w-3.5 h-3.5" aria-hidden />
           {t("collections.context.rename")}

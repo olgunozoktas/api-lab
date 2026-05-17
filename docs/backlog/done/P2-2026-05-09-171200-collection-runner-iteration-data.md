@@ -10,12 +10,12 @@ Drives data-driven testing via CSV/JSON iteration files.
 
 ## Items
 
-- [ ] "Run collection" entry in folder/collection right-click context menu
-- [ ] Runner UI: select folder, sequential / parallel mode, iteration data picker (CSV / JSON), run button, live progress
-- [ ] Per-request status: pending / firing / pass (all asserts green) / fail (any assert red) / error (network/script crash)
-- [ ] Per-iteration variables: `pm.iterationData` available inside scripts (one row per iteration, all requests run with that row's vars)
-- [ ] Summary view at end: per-request duration histogram, total assertions pass/fail, total elapsed
-- [ ] Export run results as JSON (Newman-compatible reporter shape)
+- [x] "Run collection" entry in folder/collection right-click context menu
+- [x] Runner UI: select folder, sequential / parallel mode, iteration data picker (CSV / JSON), run button, live progress
+- [x] Per-request status: pending / firing / pass (all asserts green) / fail (any assert red) / error (network/script crash)
+- [x] Per-iteration variables: `pm.iterationData` available inside scripts (one row per iteration, all requests run with that row's vars)
+- [x] Summary view at end: per-request duration histogram, total assertions pass/fail, total elapsed
+- [x] Export run results as JSON (Newman-compatible reporter shape)
 
 ## Acceptance
 

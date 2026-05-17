@@ -288,3 +288,40 @@ describe("runScript — console capture", () => {
     expect(out.console_log).toEqual(["step 1", "count is 5", "[warn] warn1", "[error] err1"]);
   });
 });
+
+describe("runScript — pm.iterationData", () => {
+  it("get reads a value from the iteration row", async () => {
+    const out = await runScript(`pm.environment.set("echo", pm.iterationData.get("userId"));`, {
+      request: mkRequest(),
+      env: {},
+      iterationData: { userId: "u-42", role: "admin" },
+    });
+    expect(out.error).toBeUndefined();
+    expect(out.env.echo).toBe("u-42");
+  });
+
+  it("get returns undefined for an absent key", async () => {
+    const out = await runScript(
+      `pm.environment.set("missing", String(pm.iterationData.get("nope")));`,
+      { request: mkRequest(), env: {}, iterationData: { a: "1" } }
+    );
+    expect(out.env.missing).toBe("undefined");
+  });
+
+  it("toObject exposes the whole iteration row", async () => {
+    const out = await runScript(
+      `pm.environment.set("keys", Object.keys(pm.iterationData.toObject()).sort().join(","));`,
+      { request: mkRequest(), env: {}, iterationData: { b: "2", a: "1" } }
+    );
+    expect(out.env.keys).toBe("a,b");
+  });
+
+  it("is safe when no iteration data is supplied", async () => {
+    const out = await runScript(`pm.environment.set("v", String(pm.iterationData.get("x")));`, {
+      request: mkRequest(),
+      env: {},
+    });
+    expect(out.error).toBeUndefined();
+    expect(out.env.v).toBe("undefined");
+  });
+});
