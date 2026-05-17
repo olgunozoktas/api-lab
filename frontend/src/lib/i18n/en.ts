@@ -688,4 +688,12 @@ export const en: Dict = {
   "spec.lint.ruleset.hint":
     "Layer a `rules` override map on the built-in `oas` ruleset. Turn a rule off with `off`/`false`, or re-grade it to `error` / `warn` / `info` / `hint`. Authoring brand-new JSONPath rules isn't supported in this version.",
   "spec.lint.ruleset.save": "Save",
+  "spec.docs.docs": "Docs",
+  "spec.docs.panel": "Panel",
+  "spec.docs.showDocs": "Show the Redoc docs preview",
+  "spec.docs.showPanel": "Back to the validation / lint panel",
+  "spec.docs.export": "Export HTML",
+  "spec.docs.exportTitle": "Download the docs as a portable Redoc HTML file",
+  "spec.docs.loading": "Loading Redoc…",
+  "spec.docs.unavailable": "Fix the spec so it parses to preview the docs.",
 };
