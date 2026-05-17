@@ -634,4 +634,16 @@ export const tr = {
   "settings.samples.show": "Göster",
   "settings.samples.hide": "Gizle",
   "sidebar.samples.restoreCta": "Örnek istekleri geri yükle",
+  "topbar.diff": "Yanıtları karşılaştır",
+  "diff.title": "Yanıt karşılaştırma",
+  "diff.left": "Sol",
+  "diff.right": "Sağ",
+  "diff.summary": "{added} eklendi · {removed} kaldırıldı",
+  "diff.identical": "İki yanıt birebir aynı.",
+  "diff.truncated": "Yanıt çok uzun — yalnızca ilk {n} satır karşılaştırıldı.",
+  "diff.empty.title": "Karşılaştırılacak yanıt yok",
+  "diff.empty.body":
+    "Karşılaştırma için en az iki yanıt gerekir. Birkaç sekmede istek çalıştır ya da geçmişte istek biriktir; metin gövdeli yanıtlar burada listelenir.",
+  "diff.source.tab": "Sekme",
+  "diff.source.history": "Geçmiş",
 };

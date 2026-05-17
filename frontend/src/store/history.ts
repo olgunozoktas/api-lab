@@ -1,16 +1,15 @@
 /** Olgun Özoktaş geliştirdi · API Lab */
 import type { StateCreator } from "zustand";
-import type { HistoryItem, RequestSnapshot } from "../lib/types";
+import type { HistoryItem, RequestSnapshot, ResponseSnapshot } from "../lib/types";
 import { uid } from "../lib/utils";
+import { applyBodyBudget, extractRetainableBody } from "../lib/historyBody";
 import type { Store, StoreMutators } from "./types";
 
 export type HistoryActions = {
-  pushHistory: (
-    snap: RequestSnapshot,
-    status: number,
-    sizeBytes: number,
-    elapsedMs: number
-  ) => void;
+  // Records a completed request. The full ResponseSnapshot is passed so
+  // history can retain the response body (within a size budget — see
+  // lib/historyBody.ts) for the side-by-side diff feature.
+  pushHistory: (snap: RequestSnapshot, response: ResponseSnapshot) => void;
   // Batch-prepend a list of already-built HistoryItems to the top of
   // the queue. Used by the HAR importer — a HAR can carry dozens or
   // hundreds of entries, so we avoid the per-call cap reshuffle and
@@ -23,17 +22,24 @@ export type HistoryActions = {
 export const createHistorySlice: StateCreator<Store, StoreMutators, [], HistoryActions> = (
   set
 ) => ({
-  pushHistory: (snap, status, sizeBytes, elapsedMs) =>
+  pushHistory: (snap, response) =>
     set((s) => {
       const item: HistoryItem = {
         id: uid(),
         ts: Date.now(),
         request: snap,
-        response: { status, sizeBytes, elapsedMs },
+        response: {
+          status: response.status,
+          sizeBytes: response.sizeBytes,
+          elapsedMs: response.elapsedMs,
+          ...extractRetainableBody(response),
+        },
       };
       const next = [item, ...s.history];
       if (next.length > 200) next.length = 200;
-      return { history: next };
+      // Re-apply the retained-body budget after prepending — the new
+      // entry may push older bodies past the total budget.
+      return { history: applyBodyBudget(next) };
     }),
 
   importHistory: (items) =>

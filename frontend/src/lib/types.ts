@@ -257,7 +257,21 @@ export type HistoryItem = {
   id: string;
   ts: number;
   request: RequestSnapshot;
-  response: { status: number; sizeBytes: number; elapsedMs: number };
+  // `body` / `contentType` / `bodyOmitted` are optional so v3 persisted
+  // entries (recorded before history retained bodies) hydrate cleanly —
+  // a missing `body` just means that entry isn't diffable. `bodyOmitted`
+  // records WHY a body is absent: `too-large` (over the per-entry cap),
+  // `binary` (image/audio/video/PDF — not text-diffable), or `budget`
+  // (evicted because newer entries filled the total retention budget).
+  // See lib/historyBody.ts for the caps + budget walk.
+  response: {
+    status: number;
+    sizeBytes: number;
+    elapsedMs: number;
+    body?: string;
+    contentType?: string;
+    bodyOmitted?: "too-large" | "binary" | "budget";
+  };
 };
 
 export type ComposerTab = "params" | "headers" | "auth" | "body" | "graphql" | "scripts";

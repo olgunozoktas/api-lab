@@ -124,9 +124,7 @@ export function App() {
           gql: current.gql,
           isGraphql,
         },
-        res.status,
-        res.sizeBytes,
-        res.elapsedMs
+        res
       );
     } catch (e) {
       // AbortError → user pressed Cancel. Skip the network-error
