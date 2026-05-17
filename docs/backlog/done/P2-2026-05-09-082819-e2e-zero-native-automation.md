@@ -14,12 +14,12 @@ The `-Dautomation=true` flag already exists in `build.zig:40` (`automation_enabl
 
 ## Items
 
-- [ ] Read `~/Herd/zero-native/src/` for the automation surface — what the `-Dautomation=true` flag wires up, what the test driver protocol is, how zero-native projects (next/svelte/vue examples) write their E2E tests if any.
-- [ ] Decide the test runner: zero-native's own driver vs `playwright` driving the WKWebView vs a custom Zig harness that talks to the bridge directly.
-- [ ] Write at least one happy-path E2E: launch app → send `http.request` to a known fixture endpoint (or local stub) → assert the response renders in the Body tab.
-- [ ] Add at least one error-path E2E: send a request to an unreachable URL → assert the error UI shows the curl exit code + stderr.
-- [ ] Wire the E2E job into `.github/workflows/ci.yml` (probably a third matrix on `macos-latest` since the binary is macOS-only today).
-- [ ] If the local fixture endpoint requires a server, decide between (a) embedded Zig HTTP server in test mode, (b) `python -m http.server` shellout, (c) a public testing endpoint like httpbin.
+- [x] Read `~/Herd/zero-native/src/` for the automation surface — what the `-Dautomation=true` flag wires up, what the test driver protocol is, how zero-native projects (next/svelte/vue examples) write their E2E tests if any.
+- [x] Decide the test runner: zero-native's own driver vs `playwright` driving the WKWebView vs a custom Zig harness that talks to the bridge directly.
+- [x] Write at least one happy-path E2E: launch app → send `http.request` to a known fixture endpoint (or local stub) → assert the response renders in the Body tab.
+- [x] Add at least one error-path E2E: send a request to an unreachable URL → assert the error UI shows the curl exit code + stderr.
+- [x] Wire the E2E job into `.github/workflows/ci.yml` (probably a third matrix on `macos-latest` since the binary is macOS-only today).
+- [x] If the local fixture endpoint requires a server, decide between (a) embedded Zig HTTP server in test mode, (b) `python -m http.server` shellout, (c) a public testing endpoint like httpbin.
 
 ## Acceptance
 
@@ -37,3 +37,32 @@ The `-Dautomation=true` flag already exists in `build.zig:40` (`automation_enabl
 2. Build a tiny harness first — `zig build test -Dautomation=true` + a single bridge invocation, asserting the response shape — before any UI assertions.
 3. Add the UI-rendering assertion only after the bridge harness is reliable.
 4. Land in a `feat/e2e` worktree per `/backlog-ship` discipline; CEO+Eng ultrathink at end as usual.
+
+## Progress
+
+Shipped 2026-05-17 in `feat/e2e-zero-native-automation`.
+
+The research spike found that zero-native's automation is a
+**file-based protocol** (`.zig-cache/zero-native-automation/`) and
+that api-lab's `src/runner.zig` **already wires the automation
+server** — so the E2E needed zero Zig source changes. A `bridge`
+automation command synthesizes origin `zero://inline` (already in
+api-lab's `allowed_origins`), so it runs the real `http.request`
+handler end-to-end.
+
+Test runner decision: a standalone shell harness (`scripts/e2e/run.sh`)
+driving the file protocol — the same approach zero-native uses for
+its own `test-webview-smoke` step. Playwright and a separate Zig
+driver were rejected (see `docs/backlog/plans/e2e-zero-native-automation.md`).
+
+Fixture decision: option (b) — a Python `http.server` shellout
+(`scripts/e2e/fixtures/serve.py`), offline and deterministic.
+
+**Scope note on items 3 & 4:** the automation snapshot is
+window-granularity only — no DOM introspection — so the
+"renders in the Body tab" / "error UI shows" *DOM* assertions are not
+possible with zero-native today. The harness asserts the
+`http.request` **bridge response** instead (a genuine E2E of the
+process → runtime → automation → dispatch → policy → curl → JSON
+path). The DOM-level assertion is tracked as a P3 follow-up created
+by the Step 8 ultrathink.

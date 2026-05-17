@@ -1,0 +1,5 @@
+{
+  "message": "hello from the api-lab e2e fixture",
+  "ok": true,
+  "marker": "E2E_FIXTURE_OK"
+}
