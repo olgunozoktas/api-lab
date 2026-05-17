@@ -5,6 +5,7 @@ import { useT } from "../lib/i18n/useT";
 import { Button } from "./ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { CodeEditor } from "./ui/code-editor";
+import { BodyMultipart, BodyBinary } from "./BodyFilePanels";
 import { humanSize, sizeClass } from "../lib/utils";
 import { AlertTriangle, Check, Wand2 } from "lucide-react";
 import type { Body, BodyMode } from "../lib/types";
@@ -42,6 +43,8 @@ export function BodyPanel({ value, onChange, onInvalidJson }: BodyPanelProps) {
             <SelectItem value="none">{t("body.mode.none")}</SelectItem>
             <SelectItem value="json">{t("body.mode.json")}</SelectItem>
             <SelectItem value="form">{t("body.mode.form")}</SelectItem>
+            <SelectItem value="multipart">{t("body.mode.multipart")}</SelectItem>
+            <SelectItem value="binary">{t("body.mode.binary")}</SelectItem>
             <SelectItem value="raw">{t("body.mode.raw")}</SelectItem>
           </SelectContent>
         </Select>
@@ -60,6 +63,17 @@ export function BodyPanel({ value, onChange, onInvalidJson }: BodyPanelProps) {
           language="json"
           placeholder='{"key": "value"}'
           minHeight={240}
+        />
+      ) : value.mode === "multipart" ? (
+        <BodyMultipart
+          parts={value.parts ?? []}
+          onChange={(parts) => onChange({ ...value, parts })}
+        />
+      ) : value.mode === "binary" ? (
+        <BodyBinary
+          filePath={value.filePath ?? ""}
+          fileName={value.fileName ?? ""}
+          onChange={(filePath, fileName) => onChange({ ...value, filePath, fileName })}
         />
       ) : (
         <textarea

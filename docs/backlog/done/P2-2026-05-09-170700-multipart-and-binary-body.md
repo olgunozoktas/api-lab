@@ -12,13 +12,13 @@ Plan reference: `docs/plans/piped-dazzling-pretzel.md` § Phase E.1.
 
 ## Items
 
-- [ ] Extend `Body.mode` type with `"multipart"` and `"binary"`
-- [ ] Multipart UI: KvTable variant where value can be either text or a file picker (lucide `Paperclip` icon for the toggle)
-- [ ] Binary UI: single file picker, shows filename + size + content-type
-- [ ] Native file picker: new bridge command `dialog.openFile({multiple?, accept?}) -> [{path, name, size, contentType}]`
-- [ ] Send path: build `FormData` for multipart, `Blob` for binary; thread through both `viaNative` (Zig curl) and `viaFetch` (browser)
-- [ ] Zig handler: read file from disk (per `path`), append to curl's `-F` for multipart or `--data-binary @path` for binary
-- [ ] Tests: builders produce the right shape
+- [x] Extend `Body.mode` type with `"multipart"` and `"binary"`
+- [x] Multipart UI: KvTable variant where value can be either text or a file picker (lucide `Paperclip` icon for the toggle)
+- [x] Binary UI: single file picker, shows filename + size + content-type
+- [x] Native file picker: new bridge command `dialog.openFile({multiple?, accept?}) -> [{path, name, size, contentType}]`
+- [x] Send path: build `FormData` for multipart, `Blob` for binary; thread through both `viaNative` (Zig curl) and `viaFetch` (browser)
+- [x] Zig handler: read file from disk (per `path`), append to curl's `-F` for multipart or `--data-binary @path` for binary
+- [x] Tests: builders produce the right shape
 
 ## Acceptance
 

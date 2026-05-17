@@ -12,6 +12,12 @@ import {
   isBinaryContentType,
   MAX_BINARY_RAW,
 } from "./binaryBody";
+import {
+  binaryPath as pickBinaryPath,
+  buildMultipartWire,
+  contentTypeForPath,
+  type MultipartWire,
+} from "./fileBody";
 
 export type { ScriptOutcome };
 
@@ -79,7 +85,11 @@ export function buildBody(
     }
     return JSON.stringify({ query: envSubst(req.gql.query, vars), variables: parsedVars });
   }
-  if (req.body.mode === "none") return undefined;
+  // Multipart + binary bodies travel as structured fields / file
+  // paths, not a body string — see buildMultipartWire / pickBinaryPath.
+  if (req.body.mode === "none" || req.body.mode === "multipart" || req.body.mode === "binary") {
+    return undefined;
+  }
   return envSubst(req.body.text, vars);
 }
 
@@ -96,7 +106,14 @@ export function effectiveContentType(
     headers.set("Content-Type", "application/json");
   } else if (req.body.mode === "form" && req.body.text) {
     headers.set("Content-Type", "application/x-www-form-urlencoded");
+  } else if (req.body.mode === "binary" && req.body.filePath && !headers.has("Content-Type")) {
+    // Raw-binary upload — default the Content-Type from the file's
+    // extension so the server sees e.g. image/png rather than the
+    // curl default. The user can still override via a header.
+    headers.set("Content-Type", contentTypeForPath(req.body.filePath));
   }
+  // multipart: deliberately no Content-Type set here — curl owns the
+  // `multipart/form-data; boundary=...` header when given `-F` args.
 }
 
 // Standard browser AbortError shape so callers can `e.name === "AbortError"`.
@@ -110,7 +127,9 @@ async function viaNative(
   headers: Headers,
   body: string | undefined,
   defaults: RequestDefaults,
-  signal?: AbortSignal
+  signal?: AbortSignal,
+  multipart?: MultipartWire[],
+  binaryPath?: string
 ): Promise<ResponseSnapshot> {
   // Soft cancel: the zero-native bridge dispatches synchronously on the
   // main thread — an in-flight `http.request` blocks the bridge thread
@@ -131,6 +150,8 @@ async function viaNative(
     timeout_ms: defaults.timeoutMs,
     follow_redirects: defaults.followRedirects,
     insecure: defaults.insecure,
+    ...(multipart && multipart.length > 0 ? { multipart } : {}),
+    ...(binaryPath ? { binary_path: binaryPath } : {}),
   });
   const r: HttpResponse = signal
     ? await Promise.race([
@@ -183,8 +204,15 @@ async function viaFetch(
   headers: Headers,
   body: string | undefined,
   t0: number,
-  signal?: AbortSignal
+  signal?: AbortSignal,
+  hasFileBody?: boolean
 ): Promise<ResponseSnapshot> {
+  // The browser fetch path has only a file PATH, not a File object,
+  // and cannot read arbitrary disk paths — multipart-with-files and
+  // raw-binary uploads only work through the native (curl) path.
+  if (hasFileBody) {
+    throw new Error("File uploads require the native app (browser fetch can't read disk paths)");
+  }
   const res = await fetch(url, { method, headers, body, redirect: "follow", signal });
   const respHeaders: { k: string; v: string }[] = [];
   res.headers.forEach((v, k) => respHeaders.push({ k, v }));
@@ -277,15 +305,21 @@ export async function sendWithScripts(
   const method = isGraphql ? "POST" : activeRequest.method;
   const headers = buildHeadersList(activeRequest, activeEnv);
   effectiveContentType(activeRequest, isGraphql, headers);
-  const body =
-    method === "GET" || method === "HEAD"
-      ? undefined
-      : buildBody(activeRequest, isGraphql, activeEnv);
+  const isBodyless = method === "GET" || method === "HEAD";
+  const body = isBodyless ? undefined : buildBody(activeRequest, isGraphql, activeEnv);
+  const multipart =
+    !isBodyless && !isGraphql && activeRequest.body.mode === "multipart"
+      ? buildMultipartWire(activeRequest.body.parts, activeEnv)
+      : undefined;
+  const binPath =
+    !isBodyless && !isGraphql && activeRequest.body.mode === "binary"
+      ? pickBinaryPath(activeRequest.body)
+      : undefined;
 
   const t0 = performance.now();
   const response = bridge.available
-    ? await viaNative(url, method, headers, body, defaults, opts.signal)
-    : await viaFetch(url, method, headers, body, t0, opts.signal);
+    ? await viaNative(url, method, headers, body, defaults, opts.signal, multipart, binPath)
+    : await viaFetch(url, method, headers, body, t0, opts.signal, !!(multipart?.length || binPath));
 
   let postOutcome: ScriptOutcome | undefined;
   if (req.postScript && req.postScript.trim()) {

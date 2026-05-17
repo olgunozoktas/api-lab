@@ -223,6 +223,8 @@ export const en: Dict = {
   "composer.tabBadge.auth.oauth2": "OAuth",
   "composer.tabBadge.body.json": "JSON",
   "composer.tabBadge.body.form": "Form",
+  "composer.tabBadge.body.multipart": "Multipart",
+  "composer.tabBadge.body.binary": "Binary",
   "composer.tabBadge.body.raw": "Raw",
 
   "scripts.preLabel": "Pre-request Script",
@@ -258,6 +260,7 @@ export const en: Dict = {
   "headers.hint":
     "Request headers sent verbatim. You can override headers the Auth or Body tab would otherwise add (e.g. to set your own `Content-Type`). Values support {{var}} references.",
   "kv.addEnv": "+ Add environment",
+  "kv.enabled": "Enabled",
   "kv.delete": "Delete",
   "kv.confirmDelete": "Delete this?",
 
@@ -299,6 +302,8 @@ export const en: Dict = {
   "body.mode.none": "None",
   "body.mode.json": "JSON",
   "body.mode.form": "x-www-form-urlencoded",
+  "body.mode.multipart": "multipart/form-data",
+  "body.mode.binary": "Binary",
   "body.mode.raw": "Raw",
   "body.prettyFormat": "Pretty format",
   "body.invalidJson": "Invalid JSON: {error}",
@@ -311,6 +316,18 @@ export const en: Dict = {
     "`key1=value1&key2=value2` format, sent with `Content-Type: application/x-www-form-urlencoded`. Mimics HTML form posts.",
   "body.hint.raw":
     "Body is sent as-is; set the Content-Type yourself in the Headers tab (none added otherwise). Use for XML, plain text, custom formats.",
+  "body.hint.multipart":
+    "Each field is sent as a `multipart/form-data` part. Toggle a field to file mode to attach a file from disk — curl reads it and sets the boundary. File uploads run through the native app only.",
+  "body.hint.binary":
+    "A single file from disk is sent as the raw request body. The Content-Type defaults from the file extension. File uploads run through the native app only.",
+  "body.multipart.addField": "Add field",
+  "body.multipart.fieldName": "field name",
+  "body.multipart.textValue": "value",
+  "body.multipart.toggleText": "Switch to a text field",
+  "body.multipart.toggleFile": "Switch to a file field",
+  "body.multipart.pickFile": "Choose file",
+  "body.binary.pickFile": "Choose file",
+  "body.binary.clear": "Remove file",
 
   "graphql.note": "Method is automatically POST; body sent as application/json.",
   "graphql.query": "Query",

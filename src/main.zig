@@ -56,6 +56,14 @@ const command_policies = [_]zero_native.BridgeCommandPolicy{
     .{ .name = "mock.list", .permissions = &.{"network"}, .origins = &allowed_origins },
 };
 
+// Builtin-bridge commands provided by zero-native itself (not our
+// handlers). `zero-native.dialog.openFile` powers the multipart /
+// binary body file pickers; it stays denied unless the builtin-bridge
+// policy is explicitly enabled below.
+const builtin_command_policies = [_]zero_native.BridgeCommandPolicy{
+    .{ .name = "zero-native.dialog.openFile", .permissions = &.{"filesystem"}, .origins = &allowed_origins },
+};
+
 const policy_permissions = [_][]const u8{ "network", "filesystem" };
 
 pub fn main(init: std.process.Init) !void {
@@ -111,6 +119,13 @@ pub fn main(init: std.process.Init) !void {
         .bundle_id = "dev.olgun.api-lab",
         .icon_path = "assets/icon.icns",
         .bridge = dispatcher,
+        // Enable zero-native's builtin bridge so the file-picker dialog
+        // (`zero-native.dialog.openFile`) is reachable from the webview.
+        .builtin_bridge = .{
+            .enabled = true,
+            .permissions = &policy_permissions,
+            .commands = &builtin_command_policies,
+        },
         .security = .{
             .navigation = .{ .allowed_origins = &allowed_origins },
         },
@@ -122,11 +137,13 @@ pub fn main(init: std.process.Init) !void {
 // reachable through a `test` declaration in the root. Without this
 // block the handler tests silently report "0 tests".
 //
-// Only `handlers/mock.zig` is wired in for now: the pre-existing
-// http / grpc test files were never reachable here and some have
-// bit-rotted against the Zig 0.16 std API (e.g. grpc_tls_test.zig
-// calls a removed `Io.File.readAll` overload). Wiring them back is a
-// separate cleanup — see the follow-up backlog item.
+// `handlers/http.zig` and `handlers/mock.zig` are wired in (each
+// chains its own `*_test.zig`). The grpc test files are still out —
+// some have bit-rotted against the Zig 0.16 std API (e.g.
+// grpc_tls_test.zig calls a removed `Io.File.readAll` overload);
+// wiring them back is a separate cleanup, see the follow-up backlog
+// item.
 test {
+    _ = @import("handlers/http.zig");
     _ = @import("handlers/mock.zig");
 }

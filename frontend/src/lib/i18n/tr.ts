@@ -222,6 +222,8 @@ export const tr = {
   "composer.tabBadge.auth.oauth2": "OAuth",
   "composer.tabBadge.body.json": "JSON",
   "composer.tabBadge.body.form": "Form",
+  "composer.tabBadge.body.multipart": "Multipart",
+  "composer.tabBadge.body.binary": "Binary",
   "composer.tabBadge.body.raw": "Raw",
 
   "scripts.preLabel": "Pre-request Script",
@@ -258,6 +260,7 @@ export const tr = {
   "headers.hint":
     "İstek header'ları olduğu gibi gönderilir. Auth & Body sekmesinin eklediği header'ları override edebilirsiniz (örn. `Content-Type`'ı kendiniz vermek için). Değerlerde {{var}} desteklenir.",
   "kv.addEnv": "+ Environment ekle",
+  "kv.enabled": "Etkin",
   "kv.delete": "Sil",
   "kv.confirmDelete": "Silinsin mi?",
 
@@ -299,6 +302,8 @@ export const tr = {
   "body.mode.none": "Yok",
   "body.mode.json": "JSON",
   "body.mode.form": "x-www-form-urlencoded",
+  "body.mode.multipart": "multipart/form-data",
+  "body.mode.binary": "Binary",
   "body.mode.raw": "Raw",
   "body.prettyFormat": "Pretty Format",
   "body.invalidJson": "Geçersiz JSON: {error}",
@@ -311,6 +316,18 @@ export const tr = {
     "`key1=value1&key2=value2` formatı, `Content-Type: application/x-www-form-urlencoded` ile gönderilir. HTML form post'larını taklit eder.",
   "body.hint.raw":
     "Body olduğu gibi gönderilir; Content-Type'ı Headers sekmesinden siz belirleyin (yoksa eklenmez). XML, plain text, custom format için uygundur.",
+  "body.hint.multipart":
+    "Her alan bir `multipart/form-data` parçası olarak gönderilir. Bir alanı dosya moduna alıp diskten dosya ekleyebilirsin — curl dosyayı okur ve boundary'yi ayarlar. Dosya yüklemeleri yalnızca masaüstü uygulamada çalışır.",
+  "body.hint.binary":
+    "Diskten tek bir dosya ham request body olarak gönderilir. Content-Type, dosya uzantısından otomatik belirlenir. Dosya yüklemeleri yalnızca masaüstü uygulamada çalışır.",
+  "body.multipart.addField": "Alan ekle",
+  "body.multipart.fieldName": "alan adı",
+  "body.multipart.textValue": "değer",
+  "body.multipart.toggleText": "Metin alanına geç",
+  "body.multipart.toggleFile": "Dosya alanına geç",
+  "body.multipart.pickFile": "Dosya seç",
+  "body.binary.pickFile": "Dosya seç",
+  "body.binary.clear": "Dosyayı kaldır",
 
   "graphql.note": "Method otomatik POST, body application/json olarak gönderilir.",
   "graphql.query": "Query",

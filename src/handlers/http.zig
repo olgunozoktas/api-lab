@@ -35,10 +35,23 @@ pub const HttpRequest = struct {
     timeout_ms: u32 = 60000,
     follow_redirects: u32 = 10,
     insecure: bool = false,
+    /// multipart/form-data fields. When non-empty, curl `-F` args are
+    /// built (`name=value` for text, `name=@path` for files) and the
+    /// `body` string is ignored. curl reads file parts off disk.
+    multipart: []const MultipartPart = &.{},
+    /// Raw-binary body — an absolute file path. When non-empty, curl
+    /// `--data-binary @path` is used and `body` is ignored.
+    binary_path: []const u8 = "",
 
     pub const Header = struct {
         name: []const u8,
         value: []const u8,
+    };
+
+    pub const MultipartPart = struct {
+        name: []const u8,
+        value: []const u8,
+        is_file: bool = false,
     };
 };
 
@@ -260,7 +273,22 @@ pub fn buildArgv(a: std.mem.Allocator, req: HttpRequest) ![]const []const u8 {
         try argv.append(a, "--header");
         try argv.append(a, try std.fmt.allocPrint(a, "{s}: {s}", .{ h.name, h.value }));
     }
-    if (req.body) |b| if (b.len > 0) {
+    // Body precedence: binary file > multipart fields > raw body
+    // string. curl reads `@path` files itself, so a 10 MB upload never
+    // crosses the 1 MB bridge buffer — only the path does.
+    if (req.binary_path.len > 0) {
+        try argv.append(a, "--data-binary");
+        try argv.append(a, try std.fmt.allocPrint(a, "@{s}", .{req.binary_path}));
+    } else if (req.multipart.len > 0) {
+        for (req.multipart) |part| {
+            try argv.append(a, "--form");
+            if (part.is_file) {
+                try argv.append(a, try std.fmt.allocPrint(a, "{s}=@{s}", .{ part.name, part.value }));
+            } else {
+                try argv.append(a, try std.fmt.allocPrint(a, "{s}={s}", .{ part.name, part.value }));
+            }
+        }
+    } else if (req.body) |b| if (b.len > 0) {
         try argv.append(a, "--data-binary");
         try argv.append(a, b);
     };

@@ -308,3 +308,66 @@ test "writeBodyJson: oversize binary body reports body_too_large" {
         buf[0..w.end],
     );
 }
+
+fn argvHas(argv: []const []const u8, want: []const u8) bool {
+    for (argv) |arg| if (std.mem.eql(u8, arg, want)) return true;
+    return false;
+}
+
+test "buildArgv: binary_path emits --data-binary @path" {
+    var arena = std.heap.ArenaAllocator.init(testing.allocator);
+    defer arena.deinit();
+    const a = arena.allocator();
+
+    const req = http.HttpRequest{ .url = "https://x.test", .binary_path = "/tmp/photo.png" };
+    const argv = try http.buildArgv(a, req);
+
+    try testing.expect(argvHas(argv, "--data-binary"));
+    try testing.expect(argvHas(argv, "@/tmp/photo.png"));
+}
+
+test "buildArgv: binary_path wins over a body string" {
+    var arena = std.heap.ArenaAllocator.init(testing.allocator);
+    defer arena.deinit();
+    const a = arena.allocator();
+
+    const req = http.HttpRequest{
+        .url = "https://x.test",
+        .body = "ignored body",
+        .binary_path = "/tmp/data.bin",
+    };
+    const argv = try http.buildArgv(a, req);
+
+    try testing.expect(argvHas(argv, "@/tmp/data.bin"));
+    for (argv) |arg| try testing.expect(!std.mem.eql(u8, arg, "ignored body"));
+}
+
+test "buildArgv: multipart text + file parts emit --form name=value / name=@path" {
+    var arena = std.heap.ArenaAllocator.init(testing.allocator);
+    defer arena.deinit();
+    const a = arena.allocator();
+
+    const parts = [_]http.HttpRequest.MultipartPart{
+        .{ .name = "caption", .value = "hello", .is_file = false },
+        .{ .name = "photo", .value = "/tmp/cat.jpg", .is_file = true },
+    };
+    const req = http.HttpRequest{ .url = "https://x.test", .method = "POST", .multipart = &parts };
+    const argv = try http.buildArgv(a, req);
+
+    try testing.expect(argvHas(argv, "--form"));
+    try testing.expect(argvHas(argv, "caption=hello"));
+    try testing.expect(argvHas(argv, "photo=@/tmp/cat.jpg"));
+}
+
+test "buildArgv: no multipart / binary_path keeps the plain body path" {
+    var arena = std.heap.ArenaAllocator.init(testing.allocator);
+    defer arena.deinit();
+    const a = arena.allocator();
+
+    const req = http.HttpRequest{ .url = "https://x.test", .method = "POST", .body = "{\"k\":1}" };
+    const argv = try http.buildArgv(a, req);
+
+    try testing.expect(argvHas(argv, "--data-binary"));
+    try testing.expect(argvHas(argv, "{\"k\":1}"));
+    for (argv) |arg| try testing.expect(!std.mem.eql(u8, arg, "--form"));
+}
