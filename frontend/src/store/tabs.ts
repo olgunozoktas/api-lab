@@ -54,6 +54,9 @@ export type TabsActions = {
   // Patch the spec text of an editor tab (the CodeMirror onChange
   // sink). No-op if `id` isn't a spec tab.
   updateSpecText: (id: string, text: string) => void;
+  // Patch the custom Spectral ruleset (YAML) of a spec tab. No-op if
+  // `id` isn't a spec tab.
+  updateSpecRuleset: (id: string, ruleset: string) => void;
 };
 
 export const createTabsSlice: StateCreator<Store, StoreMutators, [], TabsActions> = (set) => ({
@@ -403,5 +406,10 @@ export const createTabsSlice: StateCreator<Store, StoreMutators, [], TabsActions
   updateSpecText: (id, text) =>
     set((s) => ({
       tabs: s.tabs.map((t) => (t.id === id && t.spec ? { ...t, spec: { ...t.spec, text } } : t)),
+    })),
+
+  updateSpecRuleset: (id, ruleset) =>
+    set((s) => ({
+      tabs: s.tabs.map((t) => (t.id === id && t.spec ? { ...t, spec: { ...t.spec, ruleset } } : t)),
     })),
 });

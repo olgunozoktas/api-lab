@@ -678,4 +678,14 @@ export const en: Dict = {
   "runner.summary.elapsed": "Total time",
   "runner.summary.seconds": "{s}s",
   "runner.summary.histogram": "Average time per request",
+  "spec.lint.title": "Spectral lint",
+  "spec.lint.running": "Linting…",
+  "spec.lint.ok": "No lint findings.",
+  "spec.lint.ruleset.edit": "Edit ruleset",
+  "spec.lint.ruleset.custom": "Custom rules",
+  "spec.lint.ruleset.default": "Default rules",
+  "spec.lint.ruleset.title": "Custom Spectral ruleset",
+  "spec.lint.ruleset.hint":
+    "Layer a `rules` override map on the built-in `oas` ruleset. Turn a rule off with `off`/`false`, or re-grade it to `error` / `warn` / `info` / `hint`. Authoring brand-new JSONPath rules isn't supported in this version.",
+  "spec.lint.ruleset.save": "Save",
 };

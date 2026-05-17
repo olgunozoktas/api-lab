@@ -675,4 +675,14 @@ export const tr = {
   "runner.summary.elapsed": "Toplam süre",
   "runner.summary.seconds": "{s} sn",
   "runner.summary.histogram": "İstek başına ortalama süre",
+  "spec.lint.title": "Spectral lint",
+  "spec.lint.running": "Lint çalışıyor...",
+  "spec.lint.ok": "Lint uyarısı yok.",
+  "spec.lint.ruleset.edit": "Kural setini düzenle",
+  "spec.lint.ruleset.custom": "Özel kurallar",
+  "spec.lint.ruleset.default": "Varsayılan kurallar",
+  "spec.lint.ruleset.title": "Özel Spectral kural seti",
+  "spec.lint.ruleset.hint":
+    "Yerleşik `oas` kural setinin üzerine bir `rules` geçersiz kılma haritası ekle. Bir kuralı kapatmak için `off`/`false`, ya da `error` / `warn` / `info` / `hint` ile yeniden derecelendir. Yeni kural yazımı (JSONPath) bu sürümde desteklenmiyor.",
+  "spec.lint.ruleset.save": "Kaydet",
 };

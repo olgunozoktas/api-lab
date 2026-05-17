@@ -386,6 +386,10 @@ export type SpecTabState = {
   text: string;
   // Display name (the imported file's name); also the tab title.
   fileName: string;
+  // Optional custom Spectral ruleset (YAML) edited in-app. Layers a
+  // `rules` override map on the built-in `oas` ruleset; applied
+  // automatically on every lint pass. Absent → built-in `oas` only.
+  ruleset?: string;
 };
 
 export type OpenTab = {

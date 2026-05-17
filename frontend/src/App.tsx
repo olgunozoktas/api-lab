@@ -10,7 +10,7 @@
  * ⌘+1..9 / ⌥⌘→← / ⌘+K / ⌘+P / ⌘+L / ⌘+B / ⌘+. / ⌘+Shift+T), HTTP↔WS↔SSE↔gRPC
  * URL-prefix routing.
  */
-import { useCallback, useEffect, useRef, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { TopBar } from "./components/TopBar";
 import { SyncBanner } from "./components/SyncBanner";
 import { useSyncEngine } from "./lib/syncEngine";
@@ -23,7 +23,12 @@ import { ResponseViewerContainer } from "./components/ResponseViewer";
 import { WsPanelContainer } from "./components/WsPanel";
 import { GrpcPanelContainer } from "./components/GrpcPanelContainer";
 import { SsePanelContainer } from "./components/SsePanel";
-import { OpenApiEditorContainer } from "./components/OpenApiEditor";
+// The OpenAPI editor is a whole-screen alternate surface shown only
+// for spec tabs, and it pulls in Spectral (~500 KB). Lazy-load it so
+// neither the editor nor the linter lands in the first-paint bundle.
+const OpenApiEditorContainer = lazy(() =>
+  import("./components/OpenApiEditor").then((m) => ({ default: m.OpenApiEditorContainer }))
+);
 import { UrlBarContainer } from "./components/UrlBar";
 import { Toast } from "./components/Toast";
 import { ResizableDivider } from "./components/ResizableDivider";
@@ -337,7 +342,9 @@ export function App() {
           <div className="flex flex-col min-h-0 min-w-0 overflow-hidden">
             <TabStripContainer />
             <div className="flex-1 min-h-0 overflow-hidden">
-              <OpenApiEditorContainer />
+              <Suspense fallback={<div className="flex-1" />}>
+                <OpenApiEditorContainer />
+              </Suspense>
             </div>
           </div>
         ) : singleColumn ? (
