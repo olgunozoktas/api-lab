@@ -637,4 +637,16 @@ export const en: Dict = {
   "settings.samples.show": "Show",
   "settings.samples.hide": "Hide",
   "sidebar.samples.restoreCta": "Restore sample requests",
+  "topbar.diff": "Compare responses",
+  "diff.title": "Response diff",
+  "diff.left": "Left",
+  "diff.right": "Right",
+  "diff.summary": "{added} added · {removed} removed",
+  "diff.identical": "The two responses are identical.",
+  "diff.truncated": "Response too long — only the first {n} lines were compared.",
+  "diff.empty.title": "Nothing to compare yet",
+  "diff.empty.body":
+    "A diff needs at least two responses. Run requests in a couple of tabs, or build up some history — responses with a text body show up here.",
+  "diff.source.tab": "Tab",
+  "diff.source.history": "History",
 };

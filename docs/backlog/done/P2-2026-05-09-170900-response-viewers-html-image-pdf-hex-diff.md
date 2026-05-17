@@ -21,7 +21,7 @@ promise.
 - [x] Video: `<video controls>` with object URL
 - [x] Hex viewer: byte-grid view for unknown content types (offset / hex / ASCII columns)
 - [x] XML tree view: collapsible element tree (DOMParser-based; the `@uiw/react-json-view` pattern is JSON-only)
-- [ ] Response diff: pick two history entries OR two open tabs, render side-by-side diff (json-diff for JSON, line-diff for text)
+- [x] Response diff: pick two history entries OR two open tabs, render side-by-side diff (json-diff for JSON, line-diff for text)
 
 ## Acceptance
 
@@ -76,3 +76,25 @@ and the XML tree view.
 - **Response diff (item 9).** Needs a "pick two responses" UX
   (two history entries / two open tabs) which is its own surface,
   plus a diff library. Deferred to keep this slice cohesive.
+
+## Final ship — 2026-05-17 (UTC)
+
+Shipped the last item (Response diff) as **v0.8.0** in
+`feat/response-viewers-html-image-pdf-hex-diff`. Phase E.3 complete.
+
+**What landed:**
+
+- `lib/historyBody.ts` — history now retains the response body for
+  diffing, bounded by a 256 KiB per-entry cap + a 2 MiB total budget
+  (binary / over-cap / budget-evicted bodies keep only a marker).
+  `HistoryItem.response` widened with optional `body` / `contentType`
+  / `bodyOmitted` — old persisted entries stay valid, so no schema
+  migration is needed.
+- `lib/responseDiff.ts` — a hand-rolled LCS line diff + a JSON
+  prepare step (sorted-key re-serialise → order-independent diff). No
+  new dependency.
+- `components/ResponseDiff.tsx` (presenter) + `ResponseDiffModal.tsx`
+  (container) — side-by-side diff, sources = open tabs with a
+  response + history entries with a retained body. Opened from a new
+  TopBar **Compare responses** button.
+- 24 new vitest cases (`historyBody` + `responseDiff`).

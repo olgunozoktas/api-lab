@@ -6,6 +6,7 @@ import { SettingsModal } from "./SettingsModal";
 import { ChangelogModal } from "./ChangelogModal";
 import { GuideHub } from "./GuideHub";
 import { MockControlPanel } from "./MockControlPanel";
+import { ResponseDiffModal } from "./ResponseDiffModal";
 import { useChangelogAutoOpen } from "../lib/changelog_gate";
 import { APP_VERSION, formatBuildDate } from "../lib/changelog";
 import { useUpdateCheck } from "../lib/updateCheck";
@@ -16,7 +17,15 @@ import { useT } from "../lib/i18n/useT";
 import { Button } from "./ui/button";
 import { KbdHint } from "./ui/kbd-hint";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
-import { Download, HelpCircle, History, Server, Settings, Settings2 } from "lucide-react";
+import {
+  Download,
+  GitCompare,
+  HelpCircle,
+  History,
+  Server,
+  Settings,
+  Settings2,
+} from "lucide-react";
 
 export function TopBar() {
   const envs = useStore((s) => s.envs);
@@ -27,6 +36,7 @@ export function TopBar() {
   const [editingSettings, setEditingSettings] = useState(false);
   const [guideOpen, setGuideOpen] = useState(false);
   const [mockOpen, setMockOpen] = useState(false);
+  const [diffOpen, setDiffOpen] = useState(false);
   // Launch-time GitHub-release check. Non-null only when a newer
   // release exists; renders a small "Update" pill next to the version.
   const update = useUpdateCheck();
@@ -162,6 +172,15 @@ export function TopBar() {
         <Button
           variant="ghost"
           size="sm"
+          onClick={() => setDiffOpen(true)}
+          aria-label={t("topbar.diff")}
+          title={t("topbar.diff")}
+        >
+          <GitCompare className="w-3.5 h-3.5" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
           onClick={() => setGuideOpen(true)}
           aria-label={t("topbar.guides")}
           title={t("topbar.guides")}
@@ -194,6 +213,7 @@ export function TopBar() {
       <ChangelogModal open={changelogOpen} onOpenChange={setChangelogOpen} />
       <GuideHub open={guideOpen} onOpenChange={setGuideOpen} />
       <MockControlPanel open={mockOpen} onOpenChange={setMockOpen} />
+      <ResponseDiffModal open={diffOpen} onOpenChange={setDiffOpen} />
     </>
   );
 }
