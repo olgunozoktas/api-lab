@@ -1,7 +1,7 @@
 /** Olgun Özoktaş geliştirdi · API Lab */
 export type KvRow = { enabled: boolean; k: string; v: string };
 
-export type AuthType = "none" | "bearer" | "basic" | "apikey" | "oauth2";
+export type AuthType = "none" | "bearer" | "basic" | "apikey" | "oauth2" | "aws-sigv4" | "mtls";
 export type Auth = {
   type: AuthType;
   // bearer
@@ -12,6 +12,24 @@ export type Auth = {
   // apikey
   header?: string;
   value?: string;
+  // AWS Signature v4 — signs the request with AWS credentials. Signing
+  // runs JS-side (lib/awsSigv4.ts) just before the request is sent.
+  awsSigv4?: {
+    accessKey?: string;
+    secretKey?: string;
+    region?: string;
+    service?: string;
+    sessionToken?: string; // for temporary (STS) credentials
+  };
+  // Mutual-TLS client-certificate auth. `certPath` / `keyPath` are
+  // absolute paths to PEM files on disk; curl loads them via
+  // `--cert` / `--key`. Native path only — browser fetch has no
+  // client-certificate API.
+  mtls?: {
+    certPath?: string;
+    keyPath?: string;
+    passphrase?: string;
+  };
   // oauth2 — manual helper variant. Full popup + redirect flow needs
   // zero-native upstream changes (popup WKWebView + redirect interception
   // + Keychain bridge); see backlog P2 follow-ups. v1 lets the user paste
@@ -297,12 +315,17 @@ export type RequestDefaults = {
   timeoutMs: number;
   followRedirects: number;
   insecure: boolean;
+  // Outbound proxy URL applied to every request via curl `--proxy`
+  // (HTTP / HTTPS / SOCKS5 — the scheme is part of the URL). Empty
+  // string = no proxy. Optional so older persisted snapshots hydrate.
+  proxyUrl?: string;
 };
 
 export const defaultRequestDefaults = (): RequestDefaults => ({
   timeoutMs: 60000,
   followRedirects: 10,
   insecure: false,
+  proxyUrl: "",
 });
 
 // One open tab in the multi-request workspace. `request` is the editable

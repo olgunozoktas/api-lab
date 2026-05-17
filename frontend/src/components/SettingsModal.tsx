@@ -139,6 +139,16 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
                   aria-label={t("settings.insecure")}
                 />
               </Field>
+              <Field label={t("settings.proxy")} hint={t("settings.proxy.hint")}>
+                <input
+                  type="text"
+                  value={defaults.proxyUrl ?? ""}
+                  placeholder="http://127.0.0.1:8080"
+                  onChange={(e) => setDefaults({ proxyUrl: e.target.value })}
+                  className="bg-[var(--color-bg-elev)] border border-[var(--color-border)] rounded px-2 py-1 font-mono text-xs outline-none focus:border-[var(--color-accent)] text-[var(--color-fg)] w-full"
+                  aria-label={t("settings.proxy")}
+                />
+              </Field>
               <ResetDefaultsRow
                 defaults={defaults}
                 onReset={() => setDefaults(defaultRequestDefaults())}

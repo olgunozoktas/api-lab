@@ -42,6 +42,13 @@ pub const HttpRequest = struct {
     /// Raw-binary body — an absolute file path. When non-empty, curl
     /// `--data-binary @path` is used and `body` is ignored.
     binary_path: []const u8 = "",
+    /// Outbound proxy URL — curl `--proxy` (scheme picks HTTP/SOCKS5).
+    proxy: []const u8 = "",
+    /// mTLS client certificate / key — absolute PEM file paths, plus
+    /// an optional key passphrase. curl `--cert` / `--key` / `--pass`.
+    client_cert: []const u8 = "",
+    client_key: []const u8 = "",
+    client_key_pass: []const u8 = "",
 
     pub const Header = struct {
         name: []const u8,
@@ -258,6 +265,23 @@ pub fn buildArgv(a: std.mem.Allocator, req: HttpRequest) ![]const []const u8 {
     try argv.append(a, "--include"); // include response headers in stdout
     try argv.append(a, "--no-buffer");
     if (req.insecure) try argv.append(a, "--insecure");
+    if (req.proxy.len > 0) {
+        try argv.append(a, "--proxy");
+        try argv.append(a, req.proxy);
+    }
+    // mTLS client certificate — curl loads the PEM files by path.
+    if (req.client_cert.len > 0) {
+        try argv.append(a, "--cert");
+        try argv.append(a, req.client_cert);
+    }
+    if (req.client_key.len > 0) {
+        try argv.append(a, "--key");
+        try argv.append(a, req.client_key);
+    }
+    if (req.client_key_pass.len > 0) {
+        try argv.append(a, "--pass");
+        try argv.append(a, req.client_key_pass);
+    }
     try argv.append(a, "--max-time");
     try argv.append(a, try std.fmt.allocPrint(a, "{d}", .{@max(req.timeout_ms / 1000, 1)}));
     if (req.follow_redirects > 0) {

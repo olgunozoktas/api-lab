@@ -45,6 +45,9 @@ export const tr = {
   "settings.insecure": "TLS doğrulamasını atla (insecure)",
   "settings.insecure.hint":
     "Sertifika geçerliliği kontrolünü atlar (curl'ün -k bayrağı). Self-signed dev API'leri için pratik; production'a karşı kullanmayın.",
+  "settings.proxy": "Proxy URL",
+  "settings.proxy.hint":
+    "Her isteği bu proxy üzerinden yönlendirir (curl'ün --proxy bayrağı). http://, https:// ve socks5:// destekler — kurumsal ağlar veya Charles / mitmproxy ile debugging için. Proxy istemiyorsanız boş bırakın.",
   "settings.defaults.dirtyHint": "Varsayılanlardan farklı değerler var.",
   "settings.defaults.reset": "Varsayılana dön",
   "settings.section.shortcuts": "Klavye kısayolları",
@@ -279,6 +282,20 @@ export const tr = {
     "Header adını ve değerini siz belirlersiniz (ör. `X-API-Key: abc123`). İstek header'larına aynen eklenir.",
   "auth.hint.oauth2":
     "Authorization-code, client-credentials veya password grantı çalıştırır; token'ı saklayıp `Authorization: Bearer <token>` olarak ekler. Süresi dolduğunda refresh-token akışını otomatik tetikler.",
+  "auth.awsSigv4": "AWS Signature v4",
+  "auth.mtls": "mTLS (client cert)",
+  "auth.hint.aws-sigv4":
+    "İsteği AWS Signature v4 ile imzalar — `Authorization`, `X-Amz-Date` ve `X-Amz-Content-Sha256` başlıklarını ekler. S3, API Gateway ve her AWS servisi için. İmzalama yerel çalışır; secret key uygulamadan çıkmaz.",
+  "auth.hint.mtls":
+    "Mutual-TLS istemci sertifikası kimlik doğrulaması. Diskteki PEM cert + key dosyalarını gösterin; curl bunları handshake'te sunar. Yalnızca masaüstü uygulamada — tarayıcı fetch'in istemci sertifikası API'si yok.",
+  "auth.sigv4.accessKey": "Access key ID",
+  "auth.sigv4.secretKey": "Secret access key",
+  "auth.sigv4.region": "Bölge",
+  "auth.sigv4.service": "Servis",
+  "auth.sigv4.sessionToken": "Session token (STS, opsiyonel)",
+  "auth.mtls.certPath": "İstemci sertifikası (PEM yolu)",
+  "auth.mtls.keyPath": "İstemci anahtarı (PEM yolu)",
+  "auth.mtls.passphrase": "Anahtar parolası (opsiyonel)",
   "auth.user": "Kullanıcı",
   "auth.pass": "Parola",
   "auth.token": "Token",

@@ -46,6 +46,9 @@ export const en: Dict = {
   "settings.insecure": "Skip TLS verification (insecure)",
   "settings.insecure.hint":
     "Skip certificate validation (curl's -k flag). Useful for self-signed dev APIs; never use against production.",
+  "settings.proxy": "Proxy URL",
+  "settings.proxy.hint":
+    "Route every request through this proxy (curl's --proxy). Supports http://, https://, and socks5:// — useful for corporate networks or debugging via Charles / mitmproxy. Leave empty for no proxy.",
   "settings.defaults.dirtyHint": "Some values differ from the shipped defaults.",
   "settings.defaults.reset": "Reset to defaults",
   "settings.section.shortcuts": "Keyboard shortcuts",
@@ -279,6 +282,20 @@ export const en: Dict = {
     "You pick the header name and value (e.g. `X-API-Key: abc123`). Appended to the request headers as-is.",
   "auth.hint.oauth2":
     "Runs the authorization-code, client-credentials, or password grant; caches the token and attaches it as `Authorization: Bearer <token>`. Auto-refreshes via refresh-token when expired.",
+  "auth.awsSigv4": "AWS Signature v4",
+  "auth.mtls": "mTLS (client cert)",
+  "auth.hint.aws-sigv4":
+    "Signs the request with AWS Signature v4 — adds the `Authorization`, `X-Amz-Date` and `X-Amz-Content-Sha256` headers. Use for S3, API Gateway, and any AWS service. Signing runs locally; your secret key never leaves the app.",
+  "auth.hint.mtls":
+    "Mutual-TLS client-certificate auth. Point at the PEM cert + key files on disk; curl presents them on the handshake. Native app only — browser fetch has no client-certificate API.",
+  "auth.sigv4.accessKey": "Access key ID",
+  "auth.sigv4.secretKey": "Secret access key",
+  "auth.sigv4.region": "Region",
+  "auth.sigv4.service": "Service",
+  "auth.sigv4.sessionToken": "Session token (STS, optional)",
+  "auth.mtls.certPath": "Client cert (PEM path)",
+  "auth.mtls.keyPath": "Client key (PEM path)",
+  "auth.mtls.passphrase": "Key passphrase (optional)",
   "auth.user": "User",
   "auth.pass": "Password",
   "auth.token": "Token",

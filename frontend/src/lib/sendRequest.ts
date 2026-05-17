@@ -5,6 +5,7 @@ import type { CurrentRequest, RequestDefaults, ResponseSnapshot, ScriptOutcome }
 import { defaultRequestDefaults } from "./types";
 import { envSubst } from "./utils";
 import { runScript } from "./scriptSandbox";
+import { signRequestV4 } from "./awsSigv4";
 import {
   base64ToText,
   bytesToBase64,
@@ -121,6 +122,8 @@ export function makeAbortError(): DOMException {
   return new DOMException("Request cancelled", "AbortError");
 }
 
+type MtlsWire = { certPath?: string; keyPath?: string; passphrase?: string };
+
 async function viaNative(
   url: string,
   method: string,
@@ -129,7 +132,8 @@ async function viaNative(
   defaults: RequestDefaults,
   signal?: AbortSignal,
   multipart?: MultipartWire[],
-  binaryPath?: string
+  binaryPath?: string,
+  mtls?: MtlsWire
 ): Promise<ResponseSnapshot> {
   // Soft cancel: the zero-native bridge dispatches synchronously on the
   // main thread — an in-flight `http.request` blocks the bridge thread
@@ -152,6 +156,10 @@ async function viaNative(
     insecure: defaults.insecure,
     ...(multipart && multipart.length > 0 ? { multipart } : {}),
     ...(binaryPath ? { binary_path: binaryPath } : {}),
+    ...(defaults.proxyUrl ? { proxy: defaults.proxyUrl } : {}),
+    ...(mtls?.certPath ? { client_cert: mtls.certPath } : {}),
+    ...(mtls?.keyPath ? { client_key: mtls.keyPath } : {}),
+    ...(mtls?.passphrase ? { client_key_pass: mtls.passphrase } : {}),
   });
   const r: HttpResponse = signal
     ? await Promise.race([
@@ -316,9 +324,40 @@ export async function sendWithScripts(
       ? pickBinaryPath(activeRequest.body)
       : undefined;
 
+  // AWS SigV4 — sign the final request just before sending. Signs the
+  // string body; multipart/binary bodies sign as an empty payload (a
+  // v1 limitation — those callers are rare for SigV4).
+  const auth = activeRequest.auth;
+  if (auth.type === "aws-sigv4" && auth.awsSigv4) {
+    const s = auth.awsSigv4;
+    if (s.accessKey && s.secretKey && s.region && s.service) {
+      const signed = await signRequestV4({
+        method,
+        url,
+        body: body ?? "",
+        accessKey: envSubst(s.accessKey, activeEnv),
+        secretKey: envSubst(s.secretKey, activeEnv),
+        region: envSubst(s.region, activeEnv),
+        service: envSubst(s.service, activeEnv),
+        sessionToken: s.sessionToken ? envSubst(s.sessionToken, activeEnv) : undefined,
+      });
+      for (const h of signed) headers.set(h.name, h.value);
+    }
+  }
+
+  // mTLS — resolve env vars in the cert/key paths.
+  const mtls =
+    auth.type === "mtls" && auth.mtls
+      ? {
+          certPath: auth.mtls.certPath ? envSubst(auth.mtls.certPath, activeEnv) : undefined,
+          keyPath: auth.mtls.keyPath ? envSubst(auth.mtls.keyPath, activeEnv) : undefined,
+          passphrase: auth.mtls.passphrase,
+        }
+      : undefined;
+
   const t0 = performance.now();
   const response = bridge.available
-    ? await viaNative(url, method, headers, body, defaults, opts.signal, multipart, binPath)
+    ? await viaNative(url, method, headers, body, defaults, opts.signal, multipart, binPath, mtls)
     : await viaFetch(url, method, headers, body, t0, opts.signal, !!(multipart?.length || binPath));
 
   let postOutcome: ScriptOutcome | undefined;
