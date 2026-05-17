@@ -22,11 +22,11 @@ list/dispatch shell) restores headroom and matches the project's
 
 ## Items
 
-- [ ] Extract `FolderRow` into `components/CollectionFolderRow.tsx`.
-- [ ] Extract `RequestRow` into `components/CollectionRequestRow.tsx`.
-- [ ] `CollectionRows.tsx` keeps only the list shell + the row-kind
+- [x] Extract `FolderRow` into `components/CollectionFolderRow.tsx`.
+- [x] Extract `RequestRow` into `components/CollectionRequestRow.tsx`.
+- [x] `CollectionRows.tsx` keeps only the list shell + the row-kind
       dispatch; confirm all three files land comfortably under 400.
-- [ ] No behaviour change — pure structural refactor (no changelog
+- [x] No behaviour change — pure structural refactor (no changelog
       entry, no version bump).
 
 ## Acceptance
