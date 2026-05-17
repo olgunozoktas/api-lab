@@ -16,6 +16,8 @@ request just before send.
 | `Basic Auth`         | `Authorization: Basic base64(user:pass)`                  |
 | `API Key`            | Custom header (you pick the name)                         |
 | `OAuth 2.0` (helper) | `Authorization: Bearer {{access_token}}` + Refresh button |
+| `AWS SigV4`          | `Authorization: AWS4-HMAC-SHA256 …` + `X-Amz-Date`        |
+| `mTLS`               | (client certificate on the TLS handshake — no header)     |
 
 `{{var}}` substitution runs over every field, so a Bearer token
 field of `{{access_token}}` resolves from the active environment.
@@ -35,6 +37,37 @@ most setups:
    refresh creds and updates the access_token in place.
 
 Send fires with `Authorization: Bearer <access_token>` automatic.
+
+## AWS Signature v4
+
+For AWS services — S3, API Gateway, Lambda function URLs, anything
+that expects SigV4. Pick **AWS SigV4** and fill:
+
+- **Access key ID** / **Secret access key** — your IAM credentials.
+- **Region** — e.g. `us-east-1`.
+- **Service** — e.g. `s3`, `execute-api`.
+- **Session token** — only for temporary (STS) credentials; leave
+  blank otherwise.
+
+API Lab signs the request locally just before send: it builds the
+SigV4 canonical request, derives the signing key, and adds the
+`Authorization`, `X-Amz-Date`, and `X-Amz-Content-Sha256` headers.
+The secret key is used only for the local HMAC — it never leaves
+the app. `{{var}}` substitution works on every field.
+
+## mTLS (client certificate)
+
+For endpoints that require a client certificate on the TLS
+handshake — mutual TLS, common for internal services. Pick **mTLS**
+and point at the PEM files on disk:
+
+- **Client cert (PEM path)** — path to the certificate file.
+- **Client key (PEM path)** — path to the private-key file.
+- **Key passphrase** — only if the key is encrypted.
+
+curl presents the certificate during the handshake. mTLS runs
+through the native request path only — a browser has no
+client-certificate API.
 
 ## Where credentials live
 

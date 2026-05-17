@@ -23,18 +23,21 @@ Built on top of **[vercel-labs/zero-native](https://github.com/vercel-labs/zero-
 - **Native HTTP** via Zig handler that shells out to `curl` — sidesteps WebView CORS, exposes timing breakdown (DNS / connect / TTFB / total). Hover the elapsed-ms badge in the response head to see the breakdown; hover the status pill to see a plain-English description of the status class (1xx / 2xx / 3xx / 4xx / 5xx).
 - **Request cancellation** — Send button morphs to a red Cancel; `⌘+.` (canonical macOS abort) fires the same handler. AbortSignal threaded through the fetch path.
 - **Pre / post-request scripts** — QuickJS sandbox with a `pm.*` API subset (5s CPU / 10MB heap, no fetch/XHR). pm.test pass/fail tally + console output rendered inline.
-- **Auth helpers**: Bearer, Basic, API Key (header), OAuth 2.0 helper variant (paste-token + Refresh)
+- **Request body modes** — JSON (validated), `x-www-form-urlencoded`, raw, plus **multipart/form-data** and **binary** file uploads. Files are picked from disk and read by the native request path, so a large upload never crosses the JS bridge.
+- **Local mock server** — turn a request's saved Examples into a real loopback HTTP server (`http://127.0.0.1:<port>`); curl, a browser, or any tool can hit it and get the saved response back, matched by method + path. Start / stop / list mocks from the top-bar Mock server panel.
+- **Auth helpers**: Bearer, Basic, API Key (header), OAuth 2.0 helper variant (paste-token + Refresh), **AWS Signature v4** (S3 / API Gateway — signed locally, secret never leaves the app), and **mTLS** client certificates
 - **JSON & GraphQL editor** powered by CodeMirror 6 (auto-close brackets, auto-indent, search, fold gutter, line numbers)
 - **JSON tree response viewer** powered by `@uiw/react-json-view` (expand/collapse, copy-path)
+- **Binary response viewers** — images, audio, video, and PDFs preview inline (PDFs page-by-page); other binary falls back to a hex view fed faithful bytes. Downloads are byte-identical.
 - **Save as variable** — right-click any value in the response viewer to extract it into an environment variable (`{{access_token}}` etc.) for later requests.
 - **Environments** with `{{var}}` substitution. URL bar shows a faded `→ resolved` preview below the input whenever the URL contains a `{{var}}`. Top-bar env switcher hides when there's only one; when multiple exist, each entry shows its `N vars` count badge. Single-env users see a clean top bar; the env switcher only appears once a second environment exists.
 - **Collections** + history (last 200 requests) — persisted via IndexedDB with v1→v2→v3 migrations. Saved requests + history rows have right-click context menus (Replay / Open in new tab / Copy URL / Delete). History sidebar has status-class filter pills (All / 2xx / 3xx / 4xx / 5xx) on top, and the search box stacks with them. Collection items auto-name themselves from the URL like tabs do; ⌘+S commits the derived name so a folder of saved requests is never just three "New request" rows.
 - **Postman v2.1 import** — drag-drop a collection JSON to bring the whole tree + variables over.
 - **Recent history suggestions in the empty response pane** — when a fresh request hasn't been sent, the right pane lists deduped (`method + url`) recent calls as one-click loads with colored status pills, relative time, response size, and right-click context menu.
 - **Richer empty states + per-panel hints** — the composer's Params / Headers / Auth / Body tabs each lead with a one-line "what this sends on the wire" note. The Environments modal greets you with a `{{name}}` explainer. Collection + History sidebars walk you through 2-3 concrete ways to populate them when empty.
-- **In-app feature guides** — press `?` (or click the help-circle icon) for 14 curated walkthroughs (Quick start, Environments, Collections, Body modes, Auth, gRPC, Cancellation, Streaming, Examples, Scripts, Save as variable, Copy as code, Postman import, Quick switcher). Live search across title / group / body. Localized in TR + EN; falls back to EN per slug if a translation is missing.
+- **In-app feature guides** — press `?` (or click the help-circle icon) for 17 curated walkthroughs (Quick start, Environments, Collections, Body modes, Auth, Mock server, Response viewers, gRPC, Cancellation, Streaming, Examples, Scripts, Save as variable, Copy as code, Postman import, Quick switcher, Keyboard shortcuts). Live search across title / group / body. Localized in TR + EN; falls back to EN per slug if a translation is missing.
 - **In-app changelog** — top-bar clock-history icon opens "What's new". Auto-opens once on first launch after a version bump; manual opens don't touch lastSeen. Markdown bodies (incl. GFM tables) bundled at build time. Localized in TR + EN.
-- **Settings hub** — single modal for theme, language, request defaults (per-field hints + "Reset to defaults" appears when anything differs from baseline), keyboard shortcut reference, and an **About** card showing app version + stack (Platform / Native shell / Frontend / Storage) + quick-link buttons (Guides / Changelog / GitHub) + a **Your data** stats grid (Requests / Folders / History / Environments / Examples). ⌘+B toggles the sidebar.
+- **Settings hub** — single modal for theme, language, request defaults (timeout, redirect cap, TLS-skip, **outbound proxy** — HTTP / HTTPS / SOCKS5 — with per-field hints + "Reset to defaults" when anything differs from baseline), keyboard shortcut reference, and an **About** card showing app version + stack (Platform / Native shell / Frontend / Storage) + quick-link buttons (Guides / Changelog / GitHub) + a **Your data** stats grid (Requests / Folders / History / Environments / Examples). ⌘+B toggles the sidebar.
 - **Themes** — auto / light / dark / Tokyo Night (dark) / GitHub Light / high-contrast, applied via `:root[data-theme="..."]` CSS variable swaps
 - **i18n** — TR + EN today; adding a new language is 3 mechanical steps. Guide / changelog content also localized as `<slug>.<lang>.md` markdown.
 - **Keyboard shortcuts** — see the [Keyboard reference](#keyboard-reference) below
@@ -146,11 +149,14 @@ ZERO_NATIVE_FRONTEND_URL=http://127.0.0.1:5173/ zig build run
 
 **Bridge contract** — the only Zig↔JS surface (`src/main.zig`):
 
-| Command         | Permissions  | Origin       | Purpose                          |
-|-----------------|--------------|--------------|----------------------------------|
-| `http.request`  | `network`    | `zero://app` | curl subprocess; CORS-free HTTP  |
+| Command                                  | Permissions  | Origin       | Purpose                                          |
+|-------------------------------------------|--------------|--------------|--------------------------------------------------|
+| `http.request`                            | `network`    | `zero://app` | curl subprocess; CORS-free HTTP                  |
+| `grpc.invoke` / `grpc.reflect.*`          | `network`    | `zero://app` | grpcurl subprocess; gRPC unary + reflection      |
+| `mock.start` / `mock.stop` / `mock.list`  | `network`    | `zero://app` | local mock-server sidecar (loopback HTTP)        |
+| `zero-native.dialog.openFile`             | `filesystem` | `zero://app` | native file picker (multipart / binary uploads)  |
 
-The handler at `src/handlers/http.zig` accepts `{method, url, headers[], body, timeout_ms, follow_redirects, insecure}` and returns `{status, headers[], body, size_bytes, timing_ms, timing:{namelookup_ms, connect_ms, ttfb_ms, total_ms}, url}`. On failure: `{error, exit_code, stderr}`.
+The handler at `src/handlers/http.zig` accepts `{method, url, headers[], body, timeout_ms, follow_redirects, insecure}` plus the optional `{multipart[], binary_path, proxy, client_cert, client_key, client_key_pass}` fields, and returns `{status, headers[], body, size_bytes, timing_ms, timing:{namelookup_ms, connect_ms, ttfb_ms, total_ms}, url}` (binary bodies add `body_base64` / `body_too_large`). On failure: `{error, exit_code, stderr}`.
 
 **Frontend layout:**
 
