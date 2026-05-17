@@ -36,6 +36,9 @@ export const en: Dict = {
   "settings.theme.github-light": "GitHub Light",
   "settings.theme.high-contrast": "High Contrast",
   "settings.language": "Language",
+  "settings.updateCheck": "Check for updates on launch",
+  "settings.updateCheck.hint":
+    "On launch, make one request to the GitHub Releases API to see if a newer version exists. No telemetry — a single best-effort check. Turn off to skip it entirely.",
   "settings.section.defaults": "Request defaults",
   "settings.timeoutMs": "Timeout (ms)",
   "settings.timeoutMs.hint":
@@ -80,6 +83,8 @@ export const en: Dict = {
   "settings.about.built": "Built",
   "topbar.builtAt": "Built {date}",
   "topbar.version.clickHint": "Click to see what changed in this release",
+  "topbar.update": "Update",
+  "topbar.updateAvailable": "{version} is available — click to download",
   "settings.about.openGuides": "Guides",
   "settings.about.openChangelog": "Changelog",
   "settings.about.repo": "GitHub repo",

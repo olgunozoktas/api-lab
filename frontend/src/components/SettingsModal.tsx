@@ -77,6 +77,20 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
                   ))}
                 </div>
               </Field>
+
+              <Field
+                label={t("settings.updateCheck")}
+                hint={t("settings.updateCheck.hint")}
+                layout="row"
+              >
+                <input
+                  type="checkbox"
+                  checked={ui.updateCheck !== false}
+                  onChange={(e) => setUi({ updateCheck: e.target.checked })}
+                  className="cursor-pointer"
+                  aria-label={t("settings.updateCheck")}
+                />
+              </Field>
             </div>
           </section>
 

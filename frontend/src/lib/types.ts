@@ -306,6 +306,9 @@ export type UiState = {
   // ⌘B toggles the sidebar visibility. Optional so v3 persisted
   // snapshots without the field hydrate cleanly (`undefined` → open).
   sidebarCollapsed?: boolean;
+  // Launch-time GitHub-release update check. Optional + default-on:
+  // `undefined` / `true` → check; only an explicit `false` opts out.
+  updateCheck?: boolean;
 };
 
 // Default request behaviors — surfaced in the Settings modal so power
