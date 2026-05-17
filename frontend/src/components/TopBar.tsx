@@ -5,6 +5,7 @@ import { EnvEditorModal } from "./EnvEditorModal";
 import { SettingsModal } from "./SettingsModal";
 import { ChangelogModal } from "./ChangelogModal";
 import { GuideHub } from "./GuideHub";
+import { MockControlPanel } from "./MockControlPanel";
 import { useChangelogAutoOpen } from "../lib/changelog_gate";
 import { APP_VERSION, formatBuildDate } from "../lib/changelog";
 import { useGuideShortcut } from "../lib/guides_shortcut";
@@ -14,7 +15,7 @@ import { useT } from "../lib/i18n/useT";
 import { Button } from "./ui/button";
 import { KbdHint } from "./ui/kbd-hint";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
-import { HelpCircle, History, Settings, Settings2 } from "lucide-react";
+import { HelpCircle, History, Server, Settings, Settings2 } from "lucide-react";
 
 export function TopBar() {
   const envs = useStore((s) => s.envs);
@@ -24,6 +25,7 @@ export function TopBar() {
   const [editingEnv, setEditingEnv] = useState(false);
   const [editingSettings, setEditingSettings] = useState(false);
   const [guideOpen, setGuideOpen] = useState(false);
+  const [mockOpen, setMockOpen] = useState(false);
   // Changelog auto-opens on first launch when APP_VERSION > lastSeen.
   // The hook handles the markSeen side-effect; we just bind the open
   // state and surface a manual-open button below.
@@ -135,6 +137,15 @@ export function TopBar() {
         <Button
           variant="ghost"
           size="sm"
+          onClick={() => setMockOpen(true)}
+          aria-label={t("topbar.mock")}
+          title={t("topbar.mock")}
+        >
+          <Server className="w-3.5 h-3.5" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
           onClick={() => setGuideOpen(true)}
           aria-label={t("topbar.guides")}
           title={t("topbar.guides")}
@@ -166,6 +177,7 @@ export function TopBar() {
       <SettingsModal open={editingSettings} onOpenChange={setEditingSettings} />
       <ChangelogModal open={changelogOpen} onOpenChange={setChangelogOpen} />
       <GuideHub open={guideOpen} onOpenChange={setGuideOpen} />
+      <MockControlPanel open={mockOpen} onOpenChange={setMockOpen} />
     </>
   );
 }

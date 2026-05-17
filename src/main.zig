@@ -17,6 +17,10 @@ const zero_native = @import("zero-native");
 const http_handler = @import("handlers/http.zig");
 const grpc_handler = @import("handlers/grpc.zig");
 const grpc_reflect_handler = @import("handlers/grpc_reflect.zig");
+// `mock.start` / `mock.stop` / `mock.list` — local mock-server sidecar
+// that serves saved response examples over a loopback HTTP listener.
+// See handlers/mock.zig for the Zig-net-API decision + protocol.
+const mock_handler = @import("handlers/mock.zig");
 
 pub const panic = std.debug.FullPanic(zero_native.debug.capturePanic);
 
@@ -44,6 +48,12 @@ const command_policies = [_]zero_native.BridgeCommandPolicy{
     .{ .name = "grpc.invoke", .permissions = &.{"network"}, .origins = &allowed_origins },
     .{ .name = "grpc.reflect.list", .permissions = &.{"network"}, .origins = &allowed_origins },
     .{ .name = "grpc.reflect.skeleton", .permissions = &.{"network"}, .origins = &allowed_origins },
+    // The mock sidecar binds a loopback port — a network capability,
+    // so it reuses the existing `network` permission rather than
+    // introducing a separate `mock-server` permission to app.zon.
+    .{ .name = "mock.start", .permissions = &.{"network"}, .origins = &allowed_origins },
+    .{ .name = "mock.stop", .permissions = &.{"network"}, .origins = &allowed_origins },
+    .{ .name = "mock.list", .permissions = &.{"network"}, .origins = &allowed_origins },
 };
 
 const policy_permissions = [_][]const u8{ "network", "filesystem" };
@@ -66,12 +76,20 @@ pub fn main(init: std.process.Init) !void {
         .io = init.io,
         .env_map = init.environ_map,
     };
+    // Mock sidecar context. `deinit` stops every active mock + joins
+    // its worker thread — deferred here so closing API Lab tears the
+    // listeners down cleanly (backlog Item: app lifecycle).
+    var mock_ctx = mock_handler.Context{ .gpa = gpa };
+    defer mock_ctx.deinit();
 
     var handler_list = [_]zero_native.BridgeHandler{
         http_handler.handler(&http_ctx),
         grpc_handler.handler(&grpc_ctx),
         grpc_reflect_handler.listHandler(&grpc_reflect_ctx),
         grpc_reflect_handler.skeletonHandler(&grpc_reflect_ctx),
+        mock_handler.startHandler(&mock_ctx),
+        mock_handler.stopHandler(&mock_ctx),
+        mock_handler.listHandler(&mock_ctx),
     };
     const registry = zero_native.BridgeRegistry{ .handlers = &handler_list };
 
@@ -97,4 +115,18 @@ pub fn main(init: std.process.Init) !void {
             .navigation = .{ .allowed_origins = &allowed_origins },
         },
     }, init);
+}
+
+// Test-discovery root. `zig build test` compiles `app_mod` with
+// `main.zig` as its root; Zig only surfaces `test` blocks from files
+// reachable through a `test` declaration in the root. Without this
+// block the handler tests silently report "0 tests".
+//
+// Only `handlers/mock.zig` is wired in for now: the pre-existing
+// http / grpc test files were never reachable here and some have
+// bit-rotted against the Zig 0.16 std API (e.g. grpc_tls_test.zig
+// calls a removed `Io.File.readAll` overload). Wiring them back is a
+// separate cleanup — see the follow-up backlog item.
+test {
+    _ = @import("handlers/mock.zig");
 }
