@@ -273,6 +273,9 @@ export const en: Dict = {
   "tabs.duplicate": "Duplicate tab",
   "tabs.pin": "Pin tab",
   "tabs.unpin": "Unpin tab",
+  "tabs.lastResponseAria": "Last response",
+  "xml.collapse": "Collapse",
+  "xml.expand": "Expand",
   "tabs.openInNewTab": "Open in new tab",
 
   "switcher.placeholder": "Search requests… (Esc cancels, ↑↓ navigate, ↵ open)",
