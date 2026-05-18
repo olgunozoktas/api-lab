@@ -203,6 +203,9 @@ export type CollectionItem = {
   // sidebar badge it and lets `removeIntegrationCollection` find and
   // purge it on disable. Absent on the user's own folders.
   integrationId?: string;
+  // Optional one-line description — set on requests imported from a
+  // curated integration; surfaced as the sidebar row's hover tooltip.
+  description?: string;
 };
 
 export type Environment = {

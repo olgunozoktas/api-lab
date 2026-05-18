@@ -18,15 +18,15 @@ ready-to-use".
 
 ## Items
 
-- [ ] Add an optional `body?` field to `CuratedEndpoint` — a JSON
+- [x] Add an optional `body?` field to `CuratedEndpoint` — a JSON
       skeleton string applied to the request's body when the method
       takes one.
-- [ ] Add an optional `description?` field surfaced somewhere the user
+- [x] Add an optional `description?` field surfaced somewhere the user
       sees it (request name tooltip, or a `// ...` comment in the body).
-- [ ] Fill in body skeletons for the POST/PUT endpoints in the
+- [x] Fill in body skeletons for the POST/PUT endpoints in the
       Cloudflare and Stripe curated sets (create customer, create
       payment intent, create/update DNS record, upload Worker script).
-- [ ] `buildCuratedItems` applies `body` to the `RequestSnapshot`
+- [x] `buildCuratedItems` applies `body` to the `RequestSnapshot`
       (`{mode:"raw"/"json", text:<skeleton>}`); extend `curated.test.ts`.
 
 ## Acceptance

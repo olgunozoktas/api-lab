@@ -5,7 +5,7 @@
 // the builder is unit-testable on its own.
 import { uid } from "../../utils";
 import type { CollectionItem, RequestSnapshot } from "../../types";
-import type { CuratedProvider } from "./types";
+import type { CuratedEndpoint, CuratedProvider } from "./types";
 
 export type CuratedBuildResult = {
   items: CollectionItem[];
@@ -13,18 +13,25 @@ export type CuratedBuildResult = {
   folderCount: number;
 };
 
-// A neutral request snapshot for a curated endpoint. Auth stays
-// `none` here — IntegrationsModal applies the provider's scaffolded
-// auth to every imported request afterwards. A `graphql` endpoint
-// arrives in GraphQL mode (POST is the only verb GraphQL uses).
-function curatedSnapshot(method: string, url: string, graphql: boolean): RequestSnapshot {
+// A request snapshot for a curated endpoint. Auth stays `none` here —
+// IntegrationsModal applies the provider's scaffolded auth to every
+// imported request afterwards. A `graphql` endpoint arrives in GraphQL
+// mode (POST is the only verb GraphQL uses). A curated `body` skeleton
+// seeds the body for REST endpoints; it's ignored on graphql ones,
+// which carry their payload in the gql query.
+function curatedSnapshot(
+  method: string,
+  url: string,
+  graphql: boolean,
+  body: CuratedEndpoint["body"]
+): RequestSnapshot {
   return {
     method: graphql ? "POST" : method,
     url,
     params: [{ enabled: true, k: "", v: "" }],
     headers: [{ enabled: true, k: "", v: "" }],
     auth: { type: "none" },
-    body: { mode: "none", text: "" },
+    body: body && !graphql ? { mode: body.mode, text: body.text } : { mode: "none", text: "" },
     gql: { query: "", vars: "" },
     isGraphql: graphql || undefined,
   };
@@ -63,7 +70,8 @@ export function buildCuratedItems(provider: CuratedProvider): CuratedBuildResult
       kind: "request",
       name: ep.name,
       order: order++,
-      request: curatedSnapshot(ep.method, provider.baseUrl + ep.path, ep.graphql ?? false),
+      request: curatedSnapshot(ep.method, provider.baseUrl + ep.path, ep.graphql ?? false, ep.body),
+      ...(ep.description ? { description: ep.description } : {}),
     });
   }
 

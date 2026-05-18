@@ -135,7 +135,9 @@ export function RequestRow({ item, depth }: { item: CollectionItem; depth: numbe
             <span
               className="flex-1 truncate"
               title={
-                item.name || displayTabName({ name: "", method: m, url: item.request?.url ?? "" })
+                item.description ||
+                item.name ||
+                displayTabName({ name: "", method: m, url: item.request?.url ?? "" })
               }
             >
               {/* Mirrors the tab strip pattern: if the user hasn't
