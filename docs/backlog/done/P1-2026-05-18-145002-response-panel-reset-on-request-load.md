@@ -29,7 +29,7 @@ and the right panel should always open the default Body tab."
 
 ## Items
 
-- [ ] **Clear the stale response on request load** — `loadCollection`
+- [x] **Clear the stale response on request load** — `loadCollection`
       and `loadHistoryItem` set `lastResponse: null` on both the
       top-level mirror and the active tab record, mirroring what
       `loadSample` and `loadCollectionInNewTab` already do. A
@@ -42,7 +42,7 @@ and the right panel should always open the default Body tab."
     absent) — after `loadCollection`, top-level `lastResponse` is null
     AND the active tab record's `lastResponse` is null; same for
     `loadHistoryItem`.
-- [ ] **Default the response panel to Body on request load** — all
+- [x] **Default the response panel to Body on request load** — all
       three in-place loaders (`loadCollection`, `loadHistoryItem`,
       `loadSample`) reset `ui.responseTab` to `"body"` on both the
       `ui` object and the active tab record, so switching requests

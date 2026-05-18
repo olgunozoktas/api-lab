@@ -105,10 +105,22 @@ export const createCurrentSlice: StateCreator<Store, StoreMutators, [], CurrentA
       const composerTab: ComposerTab = r.isGraphql ? "graphql" : "params";
       return {
         current: nextCurrent,
-        ui: { ...s.ui, composerTab },
+        // Selecting a saved request resets the response panel — a saved
+        // request carries no response of its own, so the previous
+        // request's response must not linger, and the panel returns to
+        // the Body tab.
+        lastResponse: null,
+        ui: { ...s.ui, composerTab, responseTab: "body" },
         tabs: s.tabs.map((t) =>
           t.id === s.activeTabId
-            ? { ...t, name: c.name, request: clone(nextCurrent), composerTab }
+            ? {
+                ...t,
+                name: c.name,
+                request: clone(nextCurrent),
+                composerTab,
+                responseTab: "body",
+                lastResponse: null,
+              }
             : t
         ),
       };
@@ -130,9 +142,20 @@ export const createCurrentSlice: StateCreator<Store, StoreMutators, [], CurrentA
       const composerTab: ComposerTab = h.request.isGraphql ? "graphql" : "params";
       return {
         current: nextCurrent,
-        ui: { ...s.ui, composerTab },
+        // Loading a History entry restores the request only, never its
+        // response — clear the stale response and return to Body.
+        lastResponse: null,
+        ui: { ...s.ui, composerTab, responseTab: "body" },
         tabs: s.tabs.map((t) =>
-          t.id === s.activeTabId ? { ...t, request: clone(nextCurrent), composerTab } : t
+          t.id === s.activeTabId
+            ? {
+                ...t,
+                request: clone(nextCurrent),
+                composerTab,
+                responseTab: "body",
+                lastResponse: null,
+              }
+            : t
         ),
       };
     }),
@@ -158,10 +181,16 @@ export const createCurrentSlice: StateCreator<Store, StoreMutators, [], CurrentA
         sample.kind === "graphql" ? "graphql" : sample.body ? "body" : "params";
       return {
         current: nextCurrent,
-        ui: { ...s.ui, composerTab },
+        ui: { ...s.ui, composerTab, responseTab: "body" },
         tabs: s.tabs.map((t) =>
           t.id === s.activeTabId
-            ? { ...t, request: clone(nextCurrent), composerTab, lastResponse: null }
+            ? {
+                ...t,
+                request: clone(nextCurrent),
+                composerTab,
+                responseTab: "body",
+                lastResponse: null,
+              }
             : t
         ),
         lastResponse: null,
