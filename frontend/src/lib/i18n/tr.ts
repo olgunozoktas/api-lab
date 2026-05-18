@@ -413,6 +413,7 @@ export const tr = {
   "response.viz.columnAria": "Grafiklenecek sütunu seç",
   "response.viz.chartAria": "{column} sütununun grafiği",
   "response.viz.rowCount": "{n} satır",
+  "response.viz.unwrapped": "{key}[] gösteriliyor",
   "response.viz.noNumeric": "Grafiklenecek sayısal sütun yok",
   "response.viz.chartCapped": "{total} satırın ilk {shown} tanesi gösteriliyor.",
   "response.viz.sortBy": "{name} sütununa göre sırala",

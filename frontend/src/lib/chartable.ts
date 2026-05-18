@@ -24,6 +24,10 @@ export type VizAnalysis =
       numericColumns: string[];
       // Column used for the chart's category / x-axis. null → row index.
       labelColumn: string | null;
+      // When the body was an envelope object (`{"data":[...]}`) rather
+      // than a top-level array, the property the array was unwrapped
+      // from — surfaced as a UI hint. undefined for a top-level array.
+      unwrappedFrom?: string;
     }
   | { kind: "not-chartable"; reason: VizReason };
 
@@ -96,6 +100,27 @@ function analyzeNumericArray(values: number[]): VizAnalysis {
   };
 }
 
+// Property names that conventionally wrap a list payload. Checked
+// first (in this order) when unwrapping an envelope object — covers
+// the common REST / JSON:API / pagination wrappers.
+export const ENVELOPE_KEYS = ["data", "results", "items", "rows", "records", "list"];
+
+// When the body is a non-array object, pick the array property to
+// analyze: the first ENVELOPE_KEYS match wins; with no known key, the
+// longest array wins. Returns null when no property holds an array.
+function unwrapEnvelope(obj: VizRow): { key: string; arr: unknown[] } | null {
+  const arrayKeys = Object.keys(obj).filter((k) => Array.isArray(obj[k]));
+  if (arrayKeys.length === 0) return null;
+  for (const known of ENVELOPE_KEYS) {
+    if (arrayKeys.includes(known)) return { key: known, arr: obj[known] as unknown[] };
+  }
+  let best = arrayKeys[0];
+  for (const k of arrayKeys) {
+    if ((obj[k] as unknown[]).length > (obj[best] as unknown[]).length) best = k;
+  }
+  return { key: best, arr: obj[best] as unknown[] };
+}
+
 // Entry point: analyze a raw response body string.
 export function analyzeResponse(body: string): VizAnalysis {
   let parsed: unknown;
@@ -105,21 +130,43 @@ export function analyzeResponse(body: string): VizAnalysis {
     return { kind: "not-chartable", reason: "invalid-json" };
   }
 
+  // Envelope unwrap — a non-array object frequently wraps the list
+  // under a property (`{"data":[...]}`); analyze that array instead
+  // so the Visualize tab doesn't misfire on the most common API shape.
+  let unwrappedFrom: string | undefined;
   if (!Array.isArray(parsed)) {
-    return { kind: "not-chartable", reason: "not-array" };
+    if (!isPlainObject(parsed)) {
+      return { kind: "not-chartable", reason: "not-array" };
+    }
+    const unwrapped = unwrapEnvelope(parsed);
+    if (!unwrapped) {
+      return { kind: "not-chartable", reason: "not-array" };
+    }
+    parsed = unwrapped.arr;
+    unwrappedFrom = unwrapped.key;
   }
-  if (parsed.length === 0) {
+
+  const arr = parsed as unknown[];
+  if (arr.length === 0) {
     return { kind: "not-chartable", reason: "empty" };
   }
 
-  if (parsed.every(isFiniteNumber)) {
-    return analyzeNumericArray(parsed as number[]);
+  let result: VizAnalysis;
+  if (arr.every(isFiniteNumber)) {
+    result = analyzeNumericArray(arr as number[]);
+  } else if (arr.every(isPlainObject)) {
+    result = analyzeObjectRows(arr as VizRow[]);
+  } else {
+    // Array of primitives / arrays / mixed shapes — nothing to tabulate.
+    return { kind: "not-chartable", reason: "no-objects" };
   }
-  if (parsed.every(isPlainObject)) {
-    return analyzeObjectRows(parsed as VizRow[]);
+
+  // Thread the envelope path onto the chartable result so the view
+  // can show a "showing data[]" hint.
+  if (result.kind === "chartable" && unwrappedFrom !== undefined) {
+    return { ...result, unwrappedFrom };
   }
-  // Array of primitives / arrays / mixed shapes — nothing to tabulate.
-  return { kind: "not-chartable", reason: "no-objects" };
+  return result;
 }
 
 // Build a chart series from analyzed rows: one point per row, value

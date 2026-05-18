@@ -413,6 +413,7 @@ export const en: Dict = {
   "response.viz.columnAria": "Select column to chart",
   "response.viz.chartAria": "Chart of column {column}",
   "response.viz.rowCount": "{n} rows",
+  "response.viz.unwrapped": "showing {key}[]",
   "response.viz.noNumeric": "No numeric columns to chart",
   "response.viz.chartCapped": "Showing the first {shown} of {total} rows.",
   "response.viz.sortBy": "Sort by {name}",

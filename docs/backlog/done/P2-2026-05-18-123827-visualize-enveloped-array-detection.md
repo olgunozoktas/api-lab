@@ -19,16 +19,16 @@ common shape it will ever see.
 
 ## Items
 
-- [ ] In `analyzeResponse`, when the parsed body is a non-array object,
+- [x] In `analyzeResponse`, when the parsed body is a non-array object,
       look for a single array-valued property — or the first match
       among a known key list (`data`, `results`, `items`, `rows`,
       `records`, `list`) — and analyze that array instead.
-- [ ] Surface which path was unwrapped in the Visualize UI (e.g. a
+- [x] Surface which path was unwrapped in the Visualize UI (e.g. a
       small "showing `data[]`" hint) so the user knows the table isn't
       the whole response.
-- [ ] If multiple array properties exist, prefer the known-key match;
+- [x] If multiple array properties exist, prefer the known-key match;
       fall back to the longest array. Document the precedence.
-- [ ] Extend `chartable.test.ts` — enveloped arrays, JSON:API shape,
+- [x] Extend `chartable.test.ts` — enveloped arrays, JSON:API shape,
       multiple-array tie-break, nothing-array-valued (still
       not-chartable).
 
