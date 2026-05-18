@@ -10,6 +10,7 @@ import {
   TOAST_DEFAULT_DURATION,
 } from "../lib/toast";
 import { uid } from "../lib/utils";
+import { putBounded, RESPONSE_CACHE_CAP } from "./responseCache";
 
 export type ResponseActions = {
   setLastResponse: (r: ResponseSnapshot | null) => void;
@@ -24,10 +25,22 @@ export const createResponseSlice: StateCreator<Store, StoreMutators, [], Respons
   set
 ) => ({
   setLastResponse: (r) =>
-    set((s) => ({
-      lastResponse: r,
-      tabs: s.tabs.map((t) => (t.id === s.activeTabId ? { ...t, lastResponse: r } : t)),
-    })),
+    set((s) => {
+      // Remember this response against the active request's saved id
+      // so re-selecting the request later restores it. Only saved
+      // requests have an id; unsaved / history / sample requests
+      // (id === null) and cleared responses (r === null) are skipped.
+      const cacheId = s.current.id;
+      const responseCache =
+        r !== null && cacheId
+          ? putBounded(s.responseCache, cacheId, r, RESPONSE_CACHE_CAP)
+          : s.responseCache;
+      return {
+        lastResponse: r,
+        responseCache,
+        tabs: s.tabs.map((t) => (t.id === s.activeTabId ? { ...t, lastResponse: r } : t)),
+      };
+    }),
 
   showToast: (msg, opts) =>
     set((s) => ({
