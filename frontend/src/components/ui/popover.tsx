@@ -1,4 +1,7 @@
 /** Olgun Özoktaş geliştirdi · API Lab */
+// Popover primitive — Radix Popover wrapped + theme-styled. Content
+// sits at z-1100, above dialogs (z-1000/1001), so a popover opened
+// from inside a dialog stays clickable.
 import * as PopoverPrimitive from "@radix-ui/react-popover";
 import * as React from "react";
 import { cn } from "../../lib/cn";

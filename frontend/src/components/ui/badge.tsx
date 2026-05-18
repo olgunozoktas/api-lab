@@ -1,4 +1,7 @@
 /** Olgun Özoktaş geliştirdi · API Lab */
+// Badge primitive — a small pill (cva tones × sizes), plus
+// methodBadgeTone / statusBadgeTone which map an HTTP method or status
+// code to the matching tone so method + status pills render as badges.
 import { cva, type VariantProps } from "class-variance-authority";
 import * as React from "react";
 import { cn } from "../../lib/cn";

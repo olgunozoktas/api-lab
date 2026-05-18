@@ -1,4 +1,6 @@
 /** Olgun Özoktaş geliştirdi · API Lab */
+// Select primitive — Radix Select wrapped + theme-styled. Content sits
+// at z-1100 (above dialogs), matching the other floating primitives.
 import * as SelectPrimitive from "@radix-ui/react-select";
 import { Check, ChevronDown } from "lucide-react";
 import * as React from "react";

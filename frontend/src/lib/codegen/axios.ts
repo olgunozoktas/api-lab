@@ -1,4 +1,5 @@
 /** Olgun Özoktaş geliştirdi · API Lab */
+// Code generator — turns a CodegenInput into an Axios request snippet.
 import type { CodegenInput } from "./types";
 import { methodHasBody } from "./types";
 

@@ -1,4 +1,9 @@
 /** Olgun Özoktaş geliştirdi · API Lab */
+// The HTTP send pipeline — builds the final URL / headers / body from a
+// CurrentRequest, then dispatches over the native bridge (curl, so it's
+// CORS-free) or, as a fallback, browser fetch. Auth (Bearer / Basic /
+// API-key / AWS SigV4 / mTLS) is resolved here before the request
+// leaves; pre/post-request scripts run around the send.
 import { bridge } from "./bridge";
 import type { HttpHeader, HttpResponse } from "./bridge";
 import type { CurrentRequest, RequestDefaults, ResponseSnapshot, ScriptOutcome } from "./types";

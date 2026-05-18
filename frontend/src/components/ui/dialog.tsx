@@ -1,4 +1,5 @@
 /** Olgun Özoktaş geliştirdi · API Lab */
+// Dialog primitive — Radix Dialog wrapped + theme-styled.
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { X } from "lucide-react";
 import * as React from "react";
@@ -9,6 +10,9 @@ export const DialogTrigger = DialogPrimitive.Trigger;
 export const DialogClose = DialogPrimitive.Close;
 export const DialogPortal = DialogPrimitive.Portal;
 
+// Overlay sits at z-1000, content at z-1001 — deliberately below the
+// floating primitives (popover / tooltip / select at z-1100) so those
+// stay clickable when opened from inside a dialog.
 export const DialogOverlay = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Overlay>,
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Overlay>

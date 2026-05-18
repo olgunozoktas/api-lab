@@ -1,4 +1,6 @@
 /** Olgun Özoktaş geliştirdi · API Lab */
+// Button primitive — cva variants × sizes. `asChild` swaps in Radix
+// Slot so a link (or any element) can render with button styling.
 import { Slot } from "@radix-ui/react-slot";
 import { cva, type VariantProps } from "class-variance-authority";
 import * as React from "react";

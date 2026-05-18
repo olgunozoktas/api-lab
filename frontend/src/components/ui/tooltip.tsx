@@ -1,4 +1,7 @@
 /** Olgun Özoktaş geliştirdi · API Lab */
+// Tooltip primitive — Radix Tooltip wrapped + theme-styled. Each
+// Tooltip carries its own Provider (see the note below) so it works
+// without app-root setup; content sits at z-1100.
 import * as TooltipPrimitive from "@radix-ui/react-tooltip";
 import * as React from "react";
 import { cn } from "../../lib/cn";

@@ -1,4 +1,6 @@
 /** Olgun Özoktaş geliştirdi · API Lab */
+// Tabs primitive — Radix Tabs wrapped + theme-styled (the underline
+// tab strip used across the request composer + response viewer).
 import * as TabsPrimitive from "@radix-ui/react-tabs";
 import * as React from "react";
 import { cn } from "../../lib/cn";
