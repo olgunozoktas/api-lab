@@ -19,7 +19,7 @@ again loses A's response. This item adds per-request response memory.
 
 ## Items
 
-- [ ] **Store the last response against the saved request id** — when
+- [x] **Store the last response against the saved request id** — when
       a send completes for a request with a `CollectionItem` id, keep
       its response (keyed by that id) in a bounded in-memory map (or
       persisted slice with a size budget).
@@ -27,10 +27,10 @@ again loses A's response. This item adds per-request response memory.
     similar); the send-completion path (`lib/sendRequest.ts` /
     wherever `lastResponse` is set); `loadCollection` reads the cache.
   - Tests: cache set/get, eviction at the size budget, miss → null.
-- [ ] **Restore on load** — `loadCollection` (and the new-tab twin)
+- [x] **Restore on load** — `loadCollection` (and the new-tab twin)
       hydrate `lastResponse` from the cache when an entry exists for
       that request id; otherwise clear it (the P1 behavior).
-- [ ] **Budget + eviction** — cap the cache (count and/or bytes);
+- [x] **Budget + eviction** — cap the cache (count and/or bytes);
       large bodies must not blow the persisted-state budget. Decide
       session-only vs persisted (the native bridge result buffer and
       IDB budget are the constraints — see `lib/changelog`-adjacent

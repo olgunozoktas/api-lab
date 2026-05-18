@@ -174,11 +174,14 @@ export const createTabsSlice: StateCreator<Store, StoreMutators, [], TabsActions
         currentFromSnapshot(r, c.id, c.name),
         composerTabFor(r.isGraphql)
       );
+      // Per-request response memory — restore the saved request's last
+      // response into the new tab; null when nothing is cached.
+      const restored = c.id ? (s.responseCache[c.id] ?? null) : null;
       const fresh: OpenTab = {
         id: uid(),
         name: c.name,
         request: ld.current,
-        lastResponse: ld.lastResponse,
+        lastResponse: restored,
         composerTab: ld.composerTab,
         responseTab: ld.responseTab,
       };
@@ -186,7 +189,7 @@ export const createTabsSlice: StateCreator<Store, StoreMutators, [], TabsActions
         tabs: [...tabs, fresh],
         activeTabId: fresh.id,
         current: clone(fresh.request),
-        lastResponse: ld.lastResponse,
+        lastResponse: restored,
         ui: { ...s.ui, composerTab: ld.composerTab, responseTab: ld.responseTab },
       };
     }),

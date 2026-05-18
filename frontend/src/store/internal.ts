@@ -45,6 +45,11 @@ export type CoreState = {
   activeTabId: string;
   current: CurrentRequest;
   lastResponse: ResponseSnapshot | null;
+  // Per-saved-request response memory, keyed by CollectionItem id.
+  // Session-only — NOT in `partialize` — so re-selecting a request
+  // restores its last response without persisting bodies to IDB.
+  // See store/responseCache.ts.
+  responseCache: Record<string, ResponseSnapshot>;
   ui: UiState;
   locale: Locale;
   defaults: RequestDefaults;
@@ -103,6 +108,7 @@ export function buildInitialState(): CoreState {
     activeTabId: firstTab.id,
     current: clone(firstTab.request),
     lastResponse: firstTab.lastResponse,
+    responseCache: {},
     ui: {
       theme: "auto",
       composerTab: firstTab.composerTab,
@@ -203,6 +209,7 @@ export function migrateV1toV2(persisted: unknown): V2State {
     syncStatus: old.syncStatus ?? defaultSyncStatus(),
     toasts: [],
     enabledIntegrations: [],
+    responseCache: {},
   };
 }
 
