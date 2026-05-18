@@ -30,7 +30,7 @@ export type SpecSidePanelProps = {
 function OpRow({ item }: { item: CollectionItem }) {
   const method = item.request?.method ?? "GET";
   return (
-    <div className="px-3 py-1 flex items-center gap-2 text-[11px] hover:bg-[var(--color-bg-elev-2)]">
+    <div className="px-3 py-1 flex items-center gap-2 text-2xs hover:bg-[var(--color-bg-elev-2)]">
       <span className={cn("font-mono font-semibold shrink-0 w-12", methodClass(method))}>
         {method}
       </span>
@@ -52,7 +52,7 @@ function SpecOutline({ items }: { items: CollectionItem[] }) {
       ))}
       {folders.map((f) => (
         <div key={f.id}>
-          <div className="px-3 py-1 mt-1 text-[10px] uppercase tracking-wider font-semibold text-[var(--color-fg-muted)]">
+          <div className="px-3 py-1 mt-1 text-3xs uppercase tracking-wider font-semibold text-[var(--color-fg-muted)]">
             {f.name}
           </div>
           {requestsOf(f.id).map((r) => (
@@ -76,10 +76,10 @@ function IssueRow({
   detail?: string;
 }) {
   return (
-    <div className="px-3 py-1 text-[11px] flex gap-1.5">
+    <div className="px-3 py-1 text-2xs flex gap-1.5">
       <span
         className={cn(
-          "font-mono font-semibold shrink-0 uppercase text-[9px] pt-0.5",
+          "font-mono font-semibold shrink-0 uppercase text-4xs pt-0.5",
           danger ? "text-[var(--color-danger)]" : "text-[var(--color-fg-muted)]"
         )}
       >
@@ -88,7 +88,7 @@ function IssueRow({
       <span className="min-w-0">
         <span className="text-[var(--color-fg)]">{message}</span>
         {detail ? (
-          <span className="ml-1 font-mono text-[10px] text-[var(--color-fg-muted)]">{detail}</span>
+          <span className="ml-1 font-mono text-3xs text-[var(--color-fg-muted)]">{detail}</span>
         ) : null}
       </span>
     </div>
@@ -105,12 +105,12 @@ function SectionHeader({
   danger?: boolean;
 }) {
   return (
-    <div className="px-3 py-2 flex items-center justify-between text-[11px] uppercase tracking-wider text-[var(--color-fg-muted)]">
+    <div className="px-3 py-2 flex items-center justify-between text-2xs uppercase tracking-wider text-[var(--color-fg-muted)]">
       <span>{title}</span>
       {count !== undefined && count > 0 ? (
         <span
           className={cn(
-            "font-mono normal-case tracking-normal tabular-nums text-[10px] px-1 rounded",
+            "font-mono normal-case tracking-normal tabular-nums text-3xs px-1 rounded",
             danger ? "bg-[var(--color-danger)] text-white" : "bg-[var(--color-bg-elev-2)]"
           )}
         >
@@ -145,7 +145,7 @@ export function SpecSidePanel({
         />
         <div className="flex-1 min-h-0 overflow-y-auto pb-1">
           {issues.length === 0 ? (
-            <div className="px-3 py-1 text-[11px] text-[var(--color-fg-muted)]">
+            <div className="px-3 py-1 text-2xs text-[var(--color-fg-muted)]">
               {busy ? t("spec.parsing") : t("spec.validation.ok")}
             </div>
           ) : (
@@ -178,7 +178,7 @@ export function SpecSidePanel({
             variant="ghost"
             size="sm"
             onClick={onEditRuleset}
-            className="text-[10px] h-auto py-0.5 px-1.5 shrink-0"
+            className="text-3xs h-auto py-0.5 px-1.5 shrink-0"
             title={t("spec.lint.ruleset.edit")}
           >
             <SlidersHorizontal className="w-3 h-3" />
@@ -187,7 +187,7 @@ export function SpecSidePanel({
         </div>
         <div className="flex-1 min-h-0 overflow-y-auto pb-1">
           {lintFindings.length === 0 ? (
-            <div className="px-3 py-1 text-[11px] text-[var(--color-fg-muted)]">
+            <div className="px-3 py-1 text-2xs text-[var(--color-fg-muted)]">
               {lintBusy ? t("spec.lint.running") : t("spec.lint.ok")}
             </div>
           ) : (
@@ -211,7 +211,7 @@ export function SpecSidePanel({
           {outline && outline.requestCount > 0 ? (
             <SpecOutline items={outline.items} />
           ) : (
-            <div className="px-3 py-1 text-[11px] text-[var(--color-fg-muted)]">
+            <div className="px-3 py-1 text-2xs text-[var(--color-fg-muted)]">
               {busy ? t("spec.parsing") : t("spec.outline.empty")}
             </div>
           )}

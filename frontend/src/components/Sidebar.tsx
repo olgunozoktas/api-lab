@@ -49,13 +49,13 @@ export function Sidebar() {
         <TabsList className="px-1 py-1 gap-0.5">
           <TabsTrigger
             value="collections"
-            className="flex-1 px-1 py-1 border-b-0 rounded-md text-[11px] data-[state=active]:bg-[var(--color-bg-elev-2)]"
+            className="flex-1 px-1 py-1 border-b-0 rounded-md text-2xs data-[state=active]:bg-[var(--color-bg-elev-2)]"
           >
             {t("sidebar.tab.collections")}
           </TabsTrigger>
           <TabsTrigger
             value="history"
-            className="flex-1 px-1 py-1 border-b-0 rounded-md text-[11px] data-[state=active]:bg-[var(--color-bg-elev-2)]"
+            className="flex-1 px-1 py-1 border-b-0 rounded-md text-2xs data-[state=active]:bg-[var(--color-bg-elev-2)]"
           >
             {t("sidebar.tab.history")}
           </TabsTrigger>
@@ -161,11 +161,11 @@ function SectionHeader({
   rightSlot?: React.ReactNode;
 }) {
   return (
-    <div className="px-3 py-2 flex items-center justify-between text-[11px] uppercase tracking-wider text-[var(--color-fg-muted)]">
+    <div className="px-3 py-2 flex items-center justify-between text-2xs uppercase tracking-wider text-[var(--color-fg-muted)]">
       <span className="flex items-center gap-1.5">
         <span>{children}</span>
         {typeof count === "number" && (
-          <span className="text-[10px] font-mono normal-case tracking-normal tabular-nums px-1 py-0 rounded bg-[var(--color-bg-elev-2)] text-[var(--color-fg-muted)]">
+          <span className="text-3xs font-mono normal-case tracking-normal tabular-nums px-1 py-0 rounded bg-[var(--color-bg-elev-2)] text-[var(--color-fg-muted)]">
             {count}
           </span>
         )}
@@ -192,7 +192,7 @@ function ClearHistoryButton() {
         });
         if (ok) clearHistory();
       }}
-      className="text-[11px] h-auto py-0.5 px-1.5"
+      className="text-2xs h-auto py-0.5 px-1.5"
     >
       {t("sidebar.clearHistory")}
     </Button>
@@ -340,7 +340,7 @@ function ImportPostmanButton() {
         variant="ghost"
         size="sm"
         onClick={() => fileRef.current?.click()}
-        className="text-[11px] h-auto py-0.5 px-1.5"
+        className="text-2xs h-auto py-0.5 px-1.5"
         title={t("import.title")}
       >
         {t("import.button")}
@@ -374,7 +374,7 @@ function OpenSpecButton() {
         variant="ghost"
         size="sm"
         onClick={() => fileRef.current?.click()}
-        className="text-[11px] h-auto py-0.5 px-1.5"
+        className="text-2xs h-auto py-0.5 px-1.5"
         title={t("spec.button.title")}
       >
         {t("spec.button")}
@@ -398,7 +398,7 @@ function NewFolderButton() {
         // double-click handler in CollectionList's FolderRow.
         addFolder(null, t("collections.newFolderDefault"));
       }}
-      className="text-[11px] h-auto py-0.5 px-1.5"
+      className="text-2xs h-auto py-0.5 px-1.5"
       title={t("collections.newFolderPrompt")}
     >
       {t("collections.newFolder")}

@@ -17,8 +17,8 @@ export function GraphqlPanel({ value, onChange }: GraphqlPanelProps) {
   const t = useT();
   return (
     <div>
-      <div className="mb-2 text-[11px] text-[var(--color-fg-muted)]">{t("graphql.note")}</div>
-      <label className="text-[11px] text-[var(--color-fg-muted)]">{t("graphql.query")}</label>
+      <div className="mb-2 text-2xs text-[var(--color-fg-muted)]">{t("graphql.note")}</div>
+      <label className="text-2xs text-[var(--color-fg-muted)]">{t("graphql.query")}</label>
       <CodeEditor
         value={value.query}
         onChange={(query) => onChange({ ...value, query })}
@@ -27,7 +27,7 @@ export function GraphqlPanel({ value, onChange }: GraphqlPanelProps) {
         minHeight={120}
         className="mb-2"
       />
-      <label className="text-[11px] text-[var(--color-fg-muted)] block mt-1">
+      <label className="text-2xs text-[var(--color-fg-muted)] block mt-1">
         {t("graphql.vars")}
       </label>
       <CodeEditor
@@ -61,7 +61,7 @@ function VariablesStatus({ text }: { text: string }) {
   }, [text]);
   if (!status && bytes === 0) return null;
   return (
-    <div className="mt-1.5 flex items-center gap-3 px-0.5 text-[10px] font-mono">
+    <div className="mt-1.5 flex items-center gap-3 px-0.5 text-3xs font-mono">
       <span className={sizeClass(bytes)}>{humanSize(bytes)}</span>
       {status &&
         (status.ok ? (

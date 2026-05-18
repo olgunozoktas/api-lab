@@ -214,13 +214,13 @@ export function TabStripPresenter({
                 {/* Method-color indicator — or a SPEC tag for an
                 OpenAPI-editor tab (it carries no real HTTP method). */}
                 {tab.spec ? (
-                  <span className="text-[10px] font-mono font-semibold uppercase tracking-tight shrink-0 text-[var(--color-accent)]">
+                  <span className="text-3xs font-mono font-semibold uppercase tracking-tight shrink-0 text-[var(--color-accent)]">
                     SPEC
                   </span>
                 ) : (
                   <span
                     className={cn(
-                      "text-[10px] font-mono font-semibold uppercase tracking-tight shrink-0",
+                      "text-3xs font-mono font-semibold uppercase tracking-tight shrink-0",
                       methodClass(tab.request.method)
                     )}
                   >
@@ -234,7 +234,7 @@ export function TabStripPresenter({
                 {tab.lastResponse ? (
                   <span
                     className={cn(
-                      "text-[9px] font-mono font-semibold leading-none px-1 py-0.5 rounded shrink-0",
+                      "text-4xs font-mono font-semibold leading-none px-1 py-0.5 rounded shrink-0",
                       statusPillClass(tab.lastResponse.status)
                     )}
                     title={`${tab.lastResponse.status} ${statusText(tab.lastResponse.status)}`}

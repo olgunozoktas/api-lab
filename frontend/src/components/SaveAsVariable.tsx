@@ -170,7 +170,7 @@ function SaveAsVariableDialog({
           <label className="block text-xs space-y-1">
             <span className="text-[var(--color-fg-muted)]">{t("chain.value.label")}</span>
             <pre
-              className="m-0 px-2 py-1.5 bg-[var(--color-bg)] border border-[var(--color-border)] rounded font-mono text-[11px] whitespace-pre-wrap break-all max-h-32 overflow-y-auto"
+              className="m-0 px-2 py-1.5 bg-[var(--color-bg)] border border-[var(--color-border)] rounded font-mono text-2xs whitespace-pre-wrap break-all max-h-32 overflow-y-auto"
               aria-readonly
             >
               {initialValue}
@@ -193,7 +193,7 @@ function SaveAsVariableDialog({
           <label className="block text-xs space-y-1">
             <span className="text-[var(--color-fg-muted)]">{t("chain.env.label")}</span>
             {envs.length === 0 ? (
-              <p className="text-[var(--color-warning)] text-[11px]">{t("chain.env.empty")}</p>
+              <p className="text-[var(--color-warning)] text-2xs">{t("chain.env.empty")}</p>
             ) : (
               <Select value={targetEnvId} onValueChange={setTargetEnvId}>
                 <SelectTrigger className="w-full">

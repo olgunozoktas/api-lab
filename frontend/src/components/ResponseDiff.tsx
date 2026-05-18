@@ -52,7 +52,7 @@ function Cell({ cell, bg, sign }: { cell: DiffPair["left"]; bg: string; sign: ""
 
 export function ResponseDiff({ leftLabel, rightLabel, result, className }: ResponseDiffProps) {
   return (
-    <div className={cn("flex flex-col min-h-0 font-mono text-[11px] leading-5", className)}>
+    <div className={cn("flex flex-col min-h-0 font-mono text-2xs leading-5", className)}>
       <div className="grid grid-cols-[auto_1fr_auto_1fr] shrink-0 border-b border-[var(--color-border)] bg-[var(--color-bg-elev)] font-semibold">
         <div className="col-span-2 px-2 py-1.5 truncate border-r border-[var(--color-border)]">
           {leftLabel}

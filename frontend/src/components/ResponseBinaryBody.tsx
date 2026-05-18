@@ -82,7 +82,7 @@ function VideoPreview({ bytes, mimeType }: { bytes: Uint8Array<ArrayBuffer>; mim
 function PdfLoading() {
   const t = useT();
   return (
-    <div className="flex-1 flex items-center justify-center text-[11px] text-[var(--color-fg-muted)]">
+    <div className="flex-1 flex items-center justify-center text-2xs text-[var(--color-fg-muted)]">
       {t("response.binary.pdf.loading")}
     </div>
   );
@@ -98,7 +98,7 @@ export function ResponseBinaryBody({ response: r }: ResponseBinaryBodyProps) {
   if (r.bodyTooLarge) {
     return (
       <div className="flex-1 flex items-center justify-center p-6 text-center">
-        <p className="text-[12px] text-[var(--color-fg-muted)] max-w-sm leading-6">
+        <p className="text-xs text-[var(--color-fg-muted)] max-w-sm leading-6">
           {t("response.binary.tooLarge", {
             size: humanSize(r.sizeBytes),
             limit: humanSize(MAX_BINARY_RAW),

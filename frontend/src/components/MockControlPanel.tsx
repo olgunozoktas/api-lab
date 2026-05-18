@@ -134,13 +134,13 @@ export function MockControlPanel({ open, onOpenChange }: MockControlPanelProps) 
 
           {/* Current request → start a mock from its saved examples. */}
           <section className="flex flex-col gap-2">
-            <h3 className="text-[11px] uppercase tracking-wide font-semibold text-[var(--color-fg-muted)]">
+            <h3 className="text-2xs uppercase tracking-wide font-semibold text-[var(--color-fg-muted)]">
               {t("mock.current.title")}
             </h3>
             <div className="flex items-center justify-between gap-3 border border-[var(--color-border)] rounded px-3 py-2.5">
               <div className="min-w-0">
                 <p className="text-sm truncate">{current.name}</p>
-                <p className="text-[11px] text-[var(--color-fg-muted)]">
+                <p className="text-2xs text-[var(--color-fg-muted)]">
                   {examples.length === 0
                     ? t("mock.current.noExamples")
                     : t("mock.exampleCount", { n: String(examples.length) })}
@@ -161,7 +161,7 @@ export function MockControlPanel({ open, onOpenChange }: MockControlPanelProps) 
           {/* Active mocks. */}
           <section className="flex flex-col gap-2">
             <div className="flex items-center justify-between">
-              <h3 className="text-[11px] uppercase tracking-wide font-semibold text-[var(--color-fg-muted)]">
+              <h3 className="text-2xs uppercase tracking-wide font-semibold text-[var(--color-fg-muted)]">
                 {t("mock.active.title")}
               </h3>
               {mocks.length > 0 && (
@@ -183,7 +183,7 @@ export function MockControlPanel({ open, onOpenChange }: MockControlPanelProps) 
                   >
                     <div className="min-w-0">
                       <p className="text-xs font-mono truncate">{mockBaseUrl(m.port)}</p>
-                      <p className="text-[11px] text-[var(--color-fg-muted)]">
+                      <p className="text-2xs text-[var(--color-fg-muted)]">
                         {t("mock.exampleCount", { n: String(m.exampleCount) })}
                       </p>
                     </div>

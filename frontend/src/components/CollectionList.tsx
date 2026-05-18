@@ -83,7 +83,7 @@ export function CollectionList({ query = "" }: { query?: string }) {
 
   if (items.length === 0) {
     return (
-      <div className="px-3 py-4 text-[11px] text-[var(--color-fg-muted)] leading-relaxed space-y-3">
+      <div className="px-3 py-4 text-2xs text-[var(--color-fg-muted)] leading-relaxed space-y-3">
         <p className="text-[var(--color-fg)] font-medium text-xs">
           {t("sidebar.empty.collections")}
         </p>
@@ -101,7 +101,7 @@ export function CollectionList({ query = "" }: { query?: string }) {
   if (filtering && !hasMatches) {
     return (
       <div className="px-1.5 pb-3">
-        <div className="text-center text-[11px] text-[var(--color-fg-muted)] py-3">
+        <div className="text-center text-2xs text-[var(--color-fg-muted)] py-3">
           {t("collections.search.empty")}
         </div>
       </div>
@@ -147,7 +147,7 @@ function TreeNode({
   if (ancestors?.has(item.id)) {
     return (
       <div
-        className="text-[10px] text-[var(--color-danger)] px-2 py-1"
+        className="text-3xs text-[var(--color-danger)] px-2 py-1"
         style={{ paddingLeft: 8 + depth * 12 }}
         title={`parentId chain loops on ${item.id}`}
       >
@@ -159,7 +159,7 @@ function TreeNode({
   if (depth > 32) {
     return (
       <div
-        className="text-[10px] text-[var(--color-warning)] px-2 py-1"
+        className="text-3xs text-[var(--color-warning)] px-2 py-1"
         style={{ paddingLeft: 8 + depth * 12 }}
       >
         ⚠ folder depth &gt; 32 — render aborted

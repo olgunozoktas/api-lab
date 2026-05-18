@@ -54,7 +54,7 @@ export function GrpcServicesSidebar({
           <Globe className="w-3.5 h-3.5" />
           {t("grpc.reflect.browse")}
         </Button>
-        <p className="text-[10px] text-[var(--color-fg-muted)]">{t("grpc.reflect.idleHint")}</p>
+        <p className="text-3xs text-[var(--color-fg-muted)]">{t("grpc.reflect.idleHint")}</p>
       </div>
     );
   }
@@ -76,7 +76,7 @@ export function GrpcServicesSidebar({
           <div className="flex-1">
             <div>{t("grpc.reflect.error.title")}</div>
             {state.hint && (
-              <div className="text-[10px] text-[var(--color-fg-muted)] mt-1 font-mono">
+              <div className="text-3xs text-[var(--color-fg-muted)] mt-1 font-mono">
                 {state.hint}
               </div>
             )}
@@ -94,7 +94,7 @@ export function GrpcServicesSidebar({
   return (
     <div className="space-y-1">
       <div className="flex items-center justify-between">
-        <span className="text-[10px] text-[var(--color-fg-muted)] uppercase tracking-wide flex items-center gap-1.5">
+        <span className="text-3xs text-[var(--color-fg-muted)] uppercase tracking-wide flex items-center gap-1.5">
           {t("grpc.reflect.servicesCount", { count: String(services.length) })}
           {state.cachedAt !== undefined && <CachedBadge cachedAt={state.cachedAt} />}
         </span>
@@ -138,7 +138,7 @@ function ServiceRow({
         <span>{service.name}</span>
       </button>
       {service.error && (
-        <div className="text-[10px] text-[var(--color-warning)] ml-4 mt-1">
+        <div className="text-3xs text-[var(--color-warning)] ml-4 mt-1">
           {t("grpc.reflect.serviceError", { error: service.error })}
         </div>
       )}
@@ -195,7 +195,7 @@ function StreamBadge({ client, server }: { client: boolean; server: boolean }) {
   else if (server) label = t("grpc.reflect.stream.server");
   if (!label) return null;
   return (
-    <span className="ml-auto text-[9px] uppercase tracking-wide text-[var(--color-fg-muted)] bg-[var(--color-bg-elev-2)] px-1 py-px rounded">
+    <span className="ml-auto text-4xs uppercase tracking-wide text-[var(--color-fg-muted)] bg-[var(--color-bg-elev-2)] px-1 py-px rounded">
       {label}
     </span>
   );
@@ -213,7 +213,7 @@ function CachedBadge({ cachedAt }: { cachedAt: number }) {
   const t = useT();
   const age = formatCachedAge(Date.now() - cachedAt);
   return (
-    <span className="text-[9px] normal-case tracking-normal text-[var(--color-fg-muted)] italic">
+    <span className="text-4xs normal-case tracking-normal text-[var(--color-fg-muted)] italic">
       {age.unit === "seconds"
         ? t("grpc.reflect.cachedAgo.seconds", { count: String(age.count) })
         : t("grpc.reflect.cachedAgo.minutes", { count: String(age.count) })}

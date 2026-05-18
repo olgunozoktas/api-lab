@@ -9,7 +9,7 @@ import type React from "react";
 export function KbdHint({ children }: { children: React.ReactNode }) {
   return (
     <kbd
-      className="ml-1 px-1 py-px rounded text-[10px] font-mono bg-black/10 text-current/70 opacity-70"
+      className="ml-1 px-1 py-px rounded text-3xs font-mono bg-black/10 text-current/70 opacity-70"
       aria-hidden
     >
       {children}

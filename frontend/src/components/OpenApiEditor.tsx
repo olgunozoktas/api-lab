@@ -133,13 +133,13 @@ export function OpenApiEditor({
     <div className={cn("flex h-full min-h-0", className)}>
       <div className="flex-1 min-w-0 flex flex-col">
         <div className="px-3 py-1 flex items-center justify-between gap-2 border-b border-[var(--color-border)]">
-          <span className="text-[11px] text-[var(--color-fg-muted)] truncate">{fileName}</span>
+          <span className="text-2xs text-[var(--color-fg-muted)] truncate">{fileName}</span>
           <div className="flex items-center gap-1 shrink-0">
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setView((v) => (v === "docs" ? "panel" : "docs"))}
-              className="text-[11px] h-auto py-0.5 px-1.5"
+              className="text-2xs h-auto py-0.5 px-1.5"
               title={view === "docs" ? t("spec.docs.showPanel") : t("spec.docs.showDocs")}
             >
               {view === "docs" ? (
@@ -155,7 +155,7 @@ export function OpenApiEditor({
                 size="sm"
                 onClick={exportDocs}
                 disabled={!parsedDoc}
-                className="text-[11px] h-auto py-0.5 px-1.5"
+                className="text-2xs h-auto py-0.5 px-1.5"
                 title={t("spec.docs.exportTitle")}
               >
                 <Download className="w-3 h-3" />
@@ -167,7 +167,7 @@ export function OpenApiEditor({
               size="sm"
               onClick={onConvert}
               disabled={errorCount > 0}
-              className="text-[11px] h-auto py-0.5 px-1.5"
+              className="text-2xs h-auto py-0.5 px-1.5"
               title={errorCount > 0 ? t("spec.convert.blocked") : t("spec.convert.title")}
             >
               <FolderInput className="w-3 h-3" />
@@ -183,7 +183,7 @@ export function OpenApiEditor({
                   lang === "json" ? "application/json" : "application/yaml"
                 )
               }
-              className="text-[11px] h-auto py-0.5 px-1.5"
+              className="text-2xs h-auto py-0.5 px-1.5"
               title={t("spec.save.title")}
             >
               <Download className="w-3 h-3" />
@@ -206,7 +206,7 @@ export function OpenApiEditor({
           {parsedDoc ? (
             <Suspense
               fallback={
-                <div className="h-full flex items-center justify-center text-[11px] text-[var(--color-fg-muted)]">
+                <div className="h-full flex items-center justify-center text-2xs text-[var(--color-fg-muted)]">
                   {t("spec.docs.loading")}
                 </div>
               }
@@ -214,7 +214,7 @@ export function OpenApiEditor({
               <RedocPane spec={parsedDoc} dark={dark} />
             </Suspense>
           ) : (
-            <div className="h-full flex items-center justify-center px-6 text-center text-[11px] text-[var(--color-fg-muted)]">
+            <div className="h-full flex items-center justify-center px-6 text-center text-2xs text-[var(--color-fg-muted)]">
               {t("spec.docs.unavailable")}
             </div>
           )}

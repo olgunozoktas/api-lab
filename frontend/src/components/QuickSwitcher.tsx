@@ -239,7 +239,7 @@ export function QuickSwitcher({ open, onOpenChange }: QuickSwitcherProps) {
 
                     <span
                       className={cn(
-                        "shrink-0 text-[10px] font-mono font-semibold uppercase w-12",
+                        "shrink-0 text-3xs font-mono font-semibold uppercase w-12",
                         item.kind === "sample"
                           ? "text-[var(--color-fg-muted)]"
                           : methodClass(
@@ -273,7 +273,7 @@ export function QuickSwitcher({ open, onOpenChange }: QuickSwitcherProps) {
                     {item.kind === "history" ? (
                       <span
                         className={
-                          "shrink-0 font-mono text-[10px] font-bold px-1.5 py-0.5 rounded " +
+                          "shrink-0 font-mono text-3xs font-bold px-1.5 py-0.5 rounded " +
                           statusPillClass(item.entry.response.status)
                         }
                         title={
@@ -287,7 +287,7 @@ export function QuickSwitcher({ open, onOpenChange }: QuickSwitcherProps) {
                         {item.entry.response.status > 0 ? item.entry.response.status : "—"}
                       </span>
                     ) : (
-                      <span className="shrink-0 text-[10px] text-[var(--color-fg-muted)] truncate max-w-[200px]">
+                      <span className="shrink-0 text-3xs text-[var(--color-fg-muted)] truncate max-w-[200px]">
                         {item.kind === "tab"
                           ? item.tab.request.url
                           : item.kind === "collection"
@@ -304,7 +304,7 @@ export function QuickSwitcher({ open, onOpenChange }: QuickSwitcherProps) {
           <div
             className={cn(
               "px-3 py-2 border-t border-[var(--color-border)]",
-              "text-[10px] text-[var(--color-fg-muted)] flex items-center gap-3 justify-end"
+              "text-3xs text-[var(--color-fg-muted)] flex items-center gap-3 justify-end"
             )}
           >
             <kbd className="font-mono">↵</kbd>

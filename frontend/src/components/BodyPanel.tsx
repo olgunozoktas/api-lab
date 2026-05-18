@@ -113,7 +113,7 @@ function BodyStatusLine({ value }: { value: Body }) {
   }, [value.mode, value.text]);
   if (value.mode === "none" || (bytes === 0 && !jsonStatus)) return null;
   return (
-    <div className="mt-1.5 flex items-center gap-3 px-0.5 text-[10px] font-mono">
+    <div className="mt-1.5 flex items-center gap-3 px-0.5 text-3xs font-mono">
       <span className={sizeClass(bytes)}>{humanSize(bytes)}</span>
       {jsonStatus &&
         (jsonStatus.ok ? (
@@ -145,7 +145,7 @@ function BodyModeHint({ mode }: { mode: BodyMode }) {
   const hintKey = `body.hint.${mode}` as import("../lib/i18n").TKey;
   return (
     <div
-      className="mb-2 rounded-md border border-[var(--color-border)] bg-[var(--color-bg-elev)] px-3 py-2 text-[11px] leading-relaxed text-[var(--color-fg-muted)]"
+      className="mb-2 rounded-md border border-[var(--color-border)] bg-[var(--color-bg-elev)] px-3 py-2 text-2xs leading-relaxed text-[var(--color-fg-muted)]"
       role="note"
     >
       {t(hintKey)}

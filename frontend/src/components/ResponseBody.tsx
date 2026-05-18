@@ -243,7 +243,7 @@ function ResponseHeadersTable({ headers }: { headers: ResponseHeader[] }) {
           onChange={(e) => setQuery(e.target.value)}
           placeholder={t("response.headers.searchPlaceholder")}
           aria-label={t("response.headers.searchAria")}
-          className="w-full bg-[var(--color-bg-elev-2)] border border-[var(--color-border)] rounded-md pl-7 pr-7 py-1 text-[11px] font-mono outline-none focus:border-[var(--color-accent)]"
+          className="w-full bg-[var(--color-bg-elev-2)] border border-[var(--color-border)] rounded-md pl-7 pr-7 py-1 text-2xs font-mono outline-none focus:border-[var(--color-accent)]"
         />
         {query && (
           <button
@@ -258,11 +258,11 @@ function ResponseHeadersTable({ headers }: { headers: ResponseHeader[] }) {
       </div>
       <div className="flex-1 overflow-auto px-3 pb-3">
         {filtered.length === 0 ? (
-          <div className="text-center text-[11px] text-[var(--color-fg-muted)] py-6">
+          <div className="text-center text-2xs text-[var(--color-fg-muted)] py-6">
             {t("collections.search.empty")}
           </div>
         ) : (
-          <table className="w-full border-collapse font-mono text-[11px] select-text">
+          <table className="w-full border-collapse font-mono text-2xs select-text">
             <tbody>
               {filtered.map((h, i) => (
                 <tr key={i} className="group border-b border-[var(--color-border)]">

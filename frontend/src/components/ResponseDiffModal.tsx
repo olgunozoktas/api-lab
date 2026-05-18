@@ -120,12 +120,12 @@ export function ResponseDiffModal({ open, onOpenChange }: ResponseDiffModalProps
             </div>
 
             {diff?.truncated && (
-              <p className="px-5 py-1.5 shrink-0 text-[11px] text-[var(--color-warning)] bg-[var(--color-warning)]/10">
+              <p className="px-5 py-1.5 shrink-0 text-2xs text-[var(--color-warning)] bg-[var(--color-warning)]/10">
                 {t("diff.truncated", { n: String(MAX_DIFF_LINES) })}
               </p>
             )}
             {stats?.identical && (
-              <p className="px-5 py-1.5 shrink-0 text-[11px] text-[var(--color-fg-muted)]">
+              <p className="px-5 py-1.5 shrink-0 text-2xs text-[var(--color-fg-muted)]">
                 {t("diff.identical")}
               </p>
             )}
@@ -160,7 +160,7 @@ function SourcePicker({
 }) {
   return (
     <label className="flex flex-col gap-1">
-      <span className="text-[11px] font-medium text-[var(--color-fg-muted)]">{label}</span>
+      <span className="text-2xs font-medium text-[var(--color-fg-muted)]">{label}</span>
       <Select value={value} onValueChange={onChange}>
         <SelectTrigger aria-label={label} className="w-full">
           <SelectValue />

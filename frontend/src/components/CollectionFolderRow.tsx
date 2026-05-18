@@ -167,7 +167,7 @@ export function FolderRow({
           ) : (
             <span className="flex-1 truncate font-medium">{item.name}</span>
           )}
-          <span className="text-[10px] text-[var(--color-fg-muted)]">{childCount}</span>
+          <span className="text-3xs text-[var(--color-fg-muted)]">{childCount}</span>
           <button
             aria-label={t("kv.delete")}
             onClick={async (e) => {

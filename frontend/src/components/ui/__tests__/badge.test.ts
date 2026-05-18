@@ -52,6 +52,6 @@ describe("badgeVariants", () => {
   });
 
   it("applies the requested size", () => {
-    expect(badgeVariants({ size: "sm" })).toContain("text-[10px]");
+    expect(badgeVariants({ size: "sm" })).toContain("text-3xs");
   });
 });

@@ -50,7 +50,7 @@ export function GrpcStatusPill({
     return t("grpc.status.idle");
   })();
   return (
-    <span className={"font-mono font-bold text-[10px] px-2.5 py-0.5 rounded-full " + tone}>
+    <span className={"font-mono font-bold text-3xs px-2.5 py-0.5 rounded-full " + tone}>
       {label}
     </span>
   );
@@ -107,7 +107,7 @@ export function GrpcResponseSection({ response, status, tab }: ResponseSectionPr
         {rows.length === 0 ? (
           <div className="text-xs text-[var(--color-fg-muted)] italic">{t("grpc.kv.empty")}</div>
         ) : (
-          <table className="w-full border-collapse font-mono text-[11px] select-text">
+          <table className="w-full border-collapse font-mono text-2xs select-text">
             <tbody>
               {rows.map((h, i) => (
                 <tr key={i} className="border-b border-[var(--color-border)]">
@@ -149,7 +149,7 @@ export function GrpcResponseSection({ response, status, tab }: ResponseSectionPr
       ) : (
         <>
           {messages.length > 1 && (
-            <div className="text-[10px] uppercase tracking-wider text-[var(--color-fg-muted)] font-semibold">
+            <div className="text-3xs uppercase tracking-wider text-[var(--color-fg-muted)] font-semibold">
               {t("grpc.streaming.received", { count: String(messages.length) })}
             </div>
           )}
@@ -187,7 +187,7 @@ function MessageTree({ raw, index }: { raw: string; index: number | null }) {
   if (index === null) return body;
   return (
     <div className="border-l-2 border-[var(--color-border)] pl-3">
-      <div className="text-[10px] font-mono text-[var(--color-fg-muted)] mb-1.5">#{index}</div>
+      <div className="text-3xs font-mono text-[var(--color-fg-muted)] mb-1.5">#{index}</div>
       {body}
     </div>
   );

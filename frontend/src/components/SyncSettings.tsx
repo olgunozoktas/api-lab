@@ -61,9 +61,7 @@ export function SyncSettings() {
         {t("settings.section.sync")}
       </h3>
       <div className="space-y-3">
-        <p className="text-[11px] text-[var(--color-fg-muted)] leading-relaxed">
-          {t("sync.intro")}
-        </p>
+        <p className="text-2xs text-[var(--color-fg-muted)] leading-relaxed">{t("sync.intro")}</p>
 
         <div>
           <label className="text-xs text-[var(--color-fg-muted)] block mb-1">
@@ -77,7 +75,7 @@ export function SyncSettings() {
             className={inputCls}
             aria-label={t("sync.repoUrl")}
           />
-          <p className="text-[10px] text-[var(--color-fg-muted)] mt-1">{t("sync.repoUrl.hint")}</p>
+          <p className="text-3xs text-[var(--color-fg-muted)] mt-1">{t("sync.repoUrl.hint")}</p>
         </div>
 
         <div className="flex items-center gap-2">
@@ -110,7 +108,7 @@ export function SyncSettings() {
         {syncStatus.state !== "idle" && (
           <p
             className={
-              "text-[11px] " +
+              "text-2xs " +
               (syncStatus.state === "error" || syncStatus.state === "conflict"
                 ? "text-[var(--color-danger)]"
                 : "text-[var(--color-fg-muted)]")

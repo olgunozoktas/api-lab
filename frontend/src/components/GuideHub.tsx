@@ -80,7 +80,7 @@ export function GuideHub({ open, onOpenChange, initialSlug }: GuideHubProps) {
               ) : (
                 groups.map((g) => (
                   <div key={g.group} className="mb-3">
-                    <p className="text-[10px] uppercase tracking-wide font-semibold text-[var(--color-fg-muted)] px-2 mb-1">
+                    <p className="text-3xs uppercase tracking-wide font-semibold text-[var(--color-fg-muted)] px-2 mb-1">
                       {g.group}
                     </p>
                     <ul role="list">

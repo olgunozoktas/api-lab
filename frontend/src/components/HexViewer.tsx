@@ -15,11 +15,11 @@ export function HexViewer({ body }: HexViewerProps) {
   return (
     <div className="flex-1 overflow-auto p-3">
       {truncated ? (
-        <div className="mb-2 text-[11px] text-[var(--color-fg-muted)]">
+        <div className="mb-2 text-2xs text-[var(--color-fg-muted)]">
           {t("response.hex.truncated", { limit: String(HEXDUMP_DEFAULT_LIMIT) })}
         </div>
       ) : null}
-      <pre className="m-0 font-mono text-[11px] leading-5 whitespace-pre select-text text-[var(--color-fg)]">
+      <pre className="m-0 font-mono text-2xs leading-5 whitespace-pre select-text text-[var(--color-fg)]">
         {dump}
       </pre>
     </div>

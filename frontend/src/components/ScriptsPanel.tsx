@@ -51,7 +51,7 @@ export function ScriptsPanel({
           '// pm.environment.set("user_id", j.id);'
         }
       />
-      <p className="text-[10px] text-[var(--color-fg-muted)] mt-1">{t("scripts.sandboxNote")}</p>
+      <p className="text-3xs text-[var(--color-fg-muted)] mt-1">{t("scripts.sandboxNote")}</p>
     </div>
   );
 }
@@ -75,8 +75,8 @@ function Block({
   return (
     <div>
       <div className="flex items-baseline gap-2 mb-1">
-        <label className="text-[11px] font-medium text-[var(--color-fg)]">{t(labelKey)}</label>
-        <span className="text-[10px] text-[var(--color-fg-muted)]">{t(helpKey)}</span>
+        <label className="text-2xs font-medium text-[var(--color-fg)]">{t(labelKey)}</label>
+        <span className="text-3xs text-[var(--color-fg-muted)]">{t(helpKey)}</span>
       </div>
       <textarea
         value={value}

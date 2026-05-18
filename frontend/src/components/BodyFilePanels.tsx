@@ -150,7 +150,7 @@ export function BodyBinary({ filePath, fileName, onChange }: BodyBinaryProps) {
       <File className="w-4 h-4 flex-shrink-0 text-[var(--color-fg-muted)]" />
       <div className="min-w-0 flex-1">
         <p className="text-sm truncate">{fileName}</p>
-        <p className="text-[11px] font-mono text-[var(--color-fg-muted)]">
+        <p className="text-2xs font-mono text-[var(--color-fg-muted)]">
           {contentTypeForPath(filePath)}
         </p>
       </div>

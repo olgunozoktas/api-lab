@@ -144,13 +144,13 @@ function MessageRow({ m }: { m: WsMessage }) {
   return (
     <div className="flex gap-2 text-xs">
       <Icon className={cn("w-3 h-3 mt-0.5 shrink-0", tone)} aria-hidden />
-      <span className="font-mono text-[10px] text-[var(--color-fg-muted)] mt-0.5 shrink-0 tabular-nums">
+      <span className="font-mono text-3xs text-[var(--color-fg-muted)] mt-0.5 shrink-0 tabular-nums">
         {time}
       </span>
       <div className="flex-1 min-w-0">
         {m.isJson && (
           <span
-            className="text-[9px] uppercase tracking-wider text-[var(--color-fg-muted)] mr-1.5"
+            className="text-4xs uppercase tracking-wider text-[var(--color-fg-muted)] mr-1.5"
             title={t("ws.msg.json")}
           >
             JSON

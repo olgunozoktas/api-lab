@@ -16,7 +16,7 @@ export function GuideCard({ entry, className }: GuideCardProps) {
   return (
     <article className={cn("space-y-3", className)} aria-labelledby={`guide-${entry.slug}-title`}>
       <header>
-        <p className="text-[10px] uppercase tracking-wide font-semibold text-[var(--color-fg-muted)] mb-1">
+        <p className="text-3xs uppercase tracking-wide font-semibold text-[var(--color-fg-muted)] mb-1">
           {entry.group}
         </p>
         <h2 id={`guide-${entry.slug}-title`} className="text-xl font-semibold">
