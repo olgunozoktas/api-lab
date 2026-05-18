@@ -38,8 +38,14 @@ direction — export, not import).
 
 ## Items
 
-- [ ] **Integrations registry + gallery modal** — a curated registry
+- [x] **Integrations registry + gallery modal** — a curated registry
       and an opt-in browse surface.
+      → shipped: `lib/integrations/registry.ts` (`IntegrationDef` +
+        `INTEGRATIONS` + `findIntegration`), `components/IntegrationsModal.tsx`
+        + `components/IntegrationCard.tsx`, `store/integrations.ts`
+        (`enabledIntegrations: string[]`, persisted), TopBar `Plug`
+        button. Command palette has no generic entry registry — TopBar
+        button is the entry point.
       - What it does: ships a curated `lib/integrations/registry.ts`
         (each entry: `id`, `name`, `category`, `description`, icon,
         `authType`, `fetch` descriptor — `openapi-url` | `mcp` |
@@ -57,8 +63,15 @@ direction — export, not import).
       - Ship-it-fully: TopBar button + palette entry both reach the
         modal; every label via `t()` (i18n keys in `tr.ts`/`en.ts`).
 
-- [ ] **Auto-fetch + OpenAPI import pipeline** — turn an enabled
+- [x] **Auto-fetch + OpenAPI import pipeline** — turn an enabled
       integration into a live collection.
+      → shipped: `lib/integrations/fetch.ts` — `fetchIntegrationSpec`
+        (bridge fetch) + pure `parseIntegrationSpec`; reuses the
+        OpenAPI importer + `importItems`. Every failure mode is an
+        explicit discriminated result (bridge-unavailable / fetch-failed
+        / too-large / parse-failed), surfaced via the #30 toast system.
+        **Deferred**: remove-on-disable (needs an integration→folder-id
+        map — coupled to the provider-sourcing redesign follow-up).
       - What it does: on enable, fetch the provider's OpenAPI spec via
         the `http.request` bridge (CORS-free curl) and run it through
         the existing `lib/importers/openapi`, landing requests under a
@@ -75,8 +88,12 @@ direction — export, not import).
         modal; success + failure surfaced via the toast severity
         system (`lib/toast.ts`, shipped in #30).
 
-- [ ] **Per-integration auth scaffolding** — imported requests arrive
+- [x] **Per-integration auth scaffolding** — imported requests arrive
       auth-ready.
+      → shipped: `lib/integrations/auth.ts` — `scaffoldAuth(authType)`
+        builds the placeholder `Auth` shape (bearer / apikey / basic /
+        aws-sigv4); `applyAuthToItems` stamps it onto every request
+        node of an imported tree. The pipeline applies it before import.
       - What it does: each integration's imported requests carry the
         right auth shape pre-wired with placeholder values — Cloudflare
         (Bearer API token), Stripe (Bearer secret key), AWS (SigV4),
@@ -171,3 +188,29 @@ cards / integration rows / MCP sub-panels. Build with `./build.sh`;
 tests `cd frontend && dnpm run test`; typecheck
 `dnpm isolated npx tsc --noEmit`. Backlog file:
 `docs/backlog/P2-2026-05-18-081623-integrations-gallery-provider-collections.md`.
+
+## Follow-ups
+
+Items 1-3 (the framework) shipped 2026-05-18. Items 4-8 are **deferred**
+— this file stays live. Rationale per deferred item:
+
+- **#4 Cloudflare / #5 Stripe** — registry entries for both exist in
+  `INTEGRATIONS` (so the gallery shows the roadmap), but enabling them
+  fails: their published OpenAPI specs are 8-10 MB, far over the Zig
+  bridge's ~1 MB `http.request` result buffer. The gallery surfaces a
+  precise "spec too large" error. A full spec would also import 1000+
+  endpoints in one dump. Both axes are addressed by the
+  provider-sourcing redesign follow-up (see below) — these items flip
+  to done once providers can actually load.
+- **#6 AWS** — blocked on `P2-2026-05-09-171000-cookies-proxy-sigv4-mtls`
+  (SigV4 request signing); AWS requests can't authenticate without it.
+- **#7 findutils** — needs the real findutils.com OpenAPI spec URL /
+  endpoint shape, not yet supplied.
+- **#8 MCP protocol panel** — its own large slice (a new protocol
+  surface). MCP stdio transport is already filed as issue #37; the
+  panel itself remains queued here.
+
+A new follow-up backlog file — **provider-sourcing redesign** — was
+created this session to resolve the spec-size + endpoint-volume
+problem properly (curated subsets vs. raised bridge buffer vs.
+fetch-to-file). It is the gate for #4/#5.

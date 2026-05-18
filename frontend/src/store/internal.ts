@@ -58,6 +58,9 @@ export type CoreState = {
   // store/samples.ts + lib/samples.ts. Persisted via partialize.
   hiddenSampleIds: string[];
   samplesSectionHidden: boolean;
+  // Registry ids of integrations the user has enabled from the
+  // integrations gallery. Persisted via partialize.
+  enabledIntegrations: string[];
   // Optional git-based collection sync. `syncConfig` is persisted;
   // `syncStatus` is runtime-only (omitted from the store's partialize).
   syncConfig: SyncConfig;
@@ -113,6 +116,7 @@ export function buildInitialState(): CoreState {
     recentlyClosed: [],
     hiddenSampleIds: [],
     samplesSectionHidden: false,
+    enabledIntegrations: [],
     syncConfig: defaultSyncConfig(),
     syncStatus: defaultSyncStatus(),
   };
@@ -198,6 +202,7 @@ export function migrateV1toV2(persisted: unknown): V2State {
     syncConfig: old.syncConfig ?? defaultSyncConfig(),
     syncStatus: old.syncStatus ?? defaultSyncStatus(),
     toasts: [],
+    enabledIntegrations: [],
   };
 }
 
@@ -233,6 +238,7 @@ export function migrateV2toV3(persisted: unknown): CoreState {
     collectionsExpanded: {},
     hiddenSampleIds: [],
     samplesSectionHidden: false,
+    enabledIntegrations: [],
   } as CoreState;
 }
 

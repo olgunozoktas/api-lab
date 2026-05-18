@@ -7,6 +7,7 @@ import { ChangelogModal } from "./ChangelogModal";
 import { GuideHub } from "./GuideHub";
 import { MockControlPanel } from "./MockControlPanel";
 import { ResponseDiffModal } from "./ResponseDiffModal";
+import { IntegrationsModal } from "./IntegrationsModal";
 import { useChangelogAutoOpen } from "../lib/changelog_gate";
 import { APP_VERSION, formatBuildDate } from "../lib/changelog";
 import { useUpdateCheck } from "../lib/updateCheck";
@@ -22,6 +23,7 @@ import {
   GitCompare,
   HelpCircle,
   History,
+  Plug,
   Server,
   Settings,
   Settings2,
@@ -37,6 +39,7 @@ export function TopBar() {
   const [guideOpen, setGuideOpen] = useState(false);
   const [mockOpen, setMockOpen] = useState(false);
   const [diffOpen, setDiffOpen] = useState(false);
+  const [integrationsOpen, setIntegrationsOpen] = useState(false);
   // Launch-time GitHub-release check. Non-null only when a newer
   // release exists; renders a small "Update" pill next to the version.
   const update = useUpdateCheck();
@@ -181,6 +184,15 @@ export function TopBar() {
         <Button
           variant="ghost"
           size="sm"
+          onClick={() => setIntegrationsOpen(true)}
+          aria-label={t("topbar.integrations")}
+          title={t("topbar.integrations")}
+        >
+          <Plug className="w-3.5 h-3.5" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
           onClick={() => setGuideOpen(true)}
           aria-label={t("topbar.guides")}
           title={t("topbar.guides")}
@@ -214,6 +226,7 @@ export function TopBar() {
       <GuideHub open={guideOpen} onOpenChange={setGuideOpen} />
       <MockControlPanel open={mockOpen} onOpenChange={setMockOpen} />
       <ResponseDiffModal open={diffOpen} onOpenChange={setDiffOpen} />
+      <IntegrationsModal open={integrationsOpen} onOpenChange={setIntegrationsOpen} />
     </>
   );
 }
