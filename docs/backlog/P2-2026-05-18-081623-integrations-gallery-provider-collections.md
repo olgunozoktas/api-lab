@@ -106,10 +106,10 @@ direction — export, not import).
       - Ship-it-fully: a credential field on each gallery card; secrets
         never logged or committed (project secrets policy).
 
-- [ ] **Cloudflare integration definition** — registry entry pointing
+- [x] **Cloudflare integration definition** — registry entry pointing
       at Cloudflare's published OpenAPI spec; auth = Bearer API token.
 
-- [ ] **Stripe integration definition** — registry entry pointing at
+- [x] **Stripe integration definition** — registry entry pointing at
       Stripe's published OpenAPI spec; auth = Bearer secret key.
 
 - [ ] **AWS integration definition** — registry entries for ~3-5

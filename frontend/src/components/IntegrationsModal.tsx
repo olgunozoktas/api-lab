@@ -24,6 +24,7 @@ export function IntegrationsModal({ open, onOpenChange }: IntegrationsModalProps
   const enableIntegration = useStore((s) => s.enableIntegration);
   const disableIntegration = useStore((s) => s.disableIntegration);
   const importItems = useStore((s) => s.importItems);
+  const removeIntegrationCollection = useStore((s) => s.removeIntegrationCollection);
   const showToast = useStore((s) => s.showToast);
   const [states, setStates] = useState<Record<string, CardState>>({});
 
@@ -46,6 +47,9 @@ export function IntegrationsModal({ open, onOpenChange }: IntegrationsModalProps
     if (!def) return;
 
     if (enabled.includes(id)) {
+      // Disable also removes the imported collection so the sidebar
+      // doesn't keep a dangling integration folder.
+      removeIntegrationCollection(id);
       disableIntegration(id);
       showToast(t("integrations.toast.disabled", { name: def.name }), { severity: "info" });
       return;
@@ -55,7 +59,7 @@ export function IntegrationsModal({ open, onOpenChange }: IntegrationsModalProps
     const res = await fetchIntegrationSpec(def);
     if (res.ok) {
       const items = applyAuthToItems(res.result.items, def.authType);
-      importItems(items, res.result.envVars, def.name);
+      importItems(items, res.result.envVars, def.name, def.id);
       enableIntegration(id);
       setStates((prev) => ({ ...prev, [id]: { status: "idle" } }));
       showToast(

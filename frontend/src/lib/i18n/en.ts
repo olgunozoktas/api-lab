@@ -727,7 +727,8 @@ export const en: Dict = {
   "topbar.integrations": "Integrations",
   "integrations.title": "Integrations",
   "integrations.subtitle":
-    "Pick a provider — API Lab auto-fetches its API surface and adds it as a ready-to-use collection.",
+    "Pick a provider — API Lab adds a curated, ready-to-use request collection.",
+  "integrations.badge": "Integration collection",
   "integrations.enable": "Enable",
   "integrations.disable": "Disable",
   "integrations.enabled": "Enabled",

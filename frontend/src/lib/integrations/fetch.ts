@@ -1,6 +1,7 @@
 /** Olgun Özoktaş geliştirdi · API Lab */
 import { bridge, type HttpResponse } from "../bridge";
 import { parseOpenApi, type OpenApiImportResult } from "../importers/openapi";
+import { buildCuratedItems } from "./curated/build";
 import type { IntegrationDef } from "./registry";
 
 // The native bridge's http.request result buffer caps near 1 MB. A
@@ -42,10 +43,37 @@ export function parseIntegrationSpec(body: string, _def: IntegrationDef): Integr
   }
 }
 
-// Fetch + parse an integration's OpenAPI spec through the native
-// bridge (CORS-free). Returns a discriminated result the gallery
-// renders directly — every failure mode is explicit, never a throw.
+// Pure — build the importable result for a curated provider. No bridge
+// call, no size limit: a curated provider is compact data shipped with
+// the app.
+export function buildCuratedResult(def: IntegrationDef): IntegrationFetchResult {
+  if (def.fetch.kind !== "curated") {
+    return { ok: false, reason: "parse-failed", detail: "not a curated provider" };
+  }
+  const built = buildCuratedItems(def.fetch.provider);
+  return {
+    ok: true,
+    result: {
+      items: built.items,
+      envVars: {},
+      warnings: [],
+      collectionName: def.name,
+      requestCount: built.requestCount,
+      folderCount: built.folderCount,
+    },
+  };
+}
+
+// Source an integration's API surface. Curated providers build
+// synchronously from bundled data; `openapi-url` providers fetch the
+// spec through the native bridge (CORS-free). Returns a discriminated
+// result the gallery renders directly — every failure mode is
+// explicit, never a throw.
 export async function fetchIntegrationSpec(def: IntegrationDef): Promise<IntegrationFetchResult> {
+  if (def.fetch.kind === "curated") {
+    return buildCuratedResult(def);
+  }
+
   if (!bridge.available) {
     return { ok: false, reason: "bridge-unavailable", detail: "native bridge required" };
   }

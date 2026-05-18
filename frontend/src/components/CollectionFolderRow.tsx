@@ -20,6 +20,7 @@ import {
   Network,
   Pencil,
   Play,
+  Plug,
   Radio,
   Sparkles,
   Trash2,
@@ -166,6 +167,14 @@ export function FolderRow({
             />
           ) : (
             <span className="flex-1 truncate font-medium">{item.name}</span>
+          )}
+          {item.integrationId && !renaming && (
+            <Plug
+              className="w-3 h-3 shrink-0 text-[var(--color-accent)]"
+              aria-label={t("integrations.badge")}
+            >
+              <title>{t("integrations.badge")}</title>
+            </Plug>
           )}
           <span className="text-3xs text-[var(--color-fg-muted)]">{childCount}</span>
           <button
