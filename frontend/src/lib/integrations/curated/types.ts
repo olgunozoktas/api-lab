@@ -14,6 +14,10 @@ export type CuratedEndpoint = {
   path: string;
   // Optional sub-folder name — endpoints sharing a group land together.
   group?: string;
+  // When true, the imported request opens in GraphQL mode (the
+  // composer's GraphQL tab). For GraphQL-only providers, whose single
+  // endpoint takes a query in the body rather than a REST path.
+  graphql?: boolean;
 };
 
 export type CuratedProvider = {

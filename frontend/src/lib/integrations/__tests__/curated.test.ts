@@ -1,9 +1,16 @@
 /** Olgun Özoktaş geliştirdi · API Lab */
 import { describe, it, expect } from "vitest";
 import { buildCuratedItems } from "../curated/build";
+import { INTEGRATIONS } from "../registry";
 import { cloudflareCurated } from "../curated/cloudflare";
 import { stripeCurated } from "../curated/stripe";
+import { linearCurated } from "../curated/linear";
 import type { CuratedProvider } from "../curated/types";
+
+// Every curated provider shipped in the registry.
+const CURATED_PROVIDERS = INTEGRATIONS.flatMap((def) =>
+  def.fetch.kind === "curated" ? [{ name: def.name, provider: def.fetch.provider }] : []
+);
 
 const SAMPLE: CuratedProvider = {
   baseUrl: "https://api.example.com/v1",
@@ -66,27 +73,53 @@ describe("buildCuratedItems", () => {
   });
 });
 
-describe("shipped curated providers", () => {
-  it("Cloudflare builds a sane, non-empty collection", () => {
-    const { requestCount, folderCount } = buildCuratedItems(cloudflareCurated);
-    expect(requestCount).toBeGreaterThan(8);
-    expect(requestCount).toBeLessThan(40);
-    expect(folderCount).toBeGreaterThan(0);
+describe("graphql endpoints", () => {
+  it("marks a graphql endpoint isGraphql and forces POST", () => {
+    const { items } = buildCuratedItems({
+      baseUrl: "https://api.example.com/graphql",
+      endpoints: [{ name: "GraphQL", method: "GET", path: "", graphql: true }],
+    });
+    const req = items.find((i) => i.kind === "request")!;
+    expect(req.request?.isGraphql).toBe(true);
+    expect(req.request?.method).toBe("POST");
   });
 
-  it("Stripe builds a sane, non-empty collection", () => {
-    const { requestCount, folderCount } = buildCuratedItems(stripeCurated);
-    expect(requestCount).toBeGreaterThan(8);
+  it("leaves REST endpoints as plain HTTP requests", () => {
+    const { items } = buildCuratedItems({
+      baseUrl: "https://api.example.com",
+      endpoints: [{ name: "Ping", method: "GET", path: "/ping" }],
+    });
+    const req = items.find((i) => i.kind === "request")!;
+    expect(req.request?.isGraphql).toBeUndefined();
+  });
+});
+
+describe("shipped curated providers", () => {
+  it.each(CURATED_PROVIDERS)("$name builds a sane, non-empty collection", ({ provider }) => {
+    const { requestCount } = buildCuratedItems(provider);
+    expect(requestCount).toBeGreaterThan(0);
     expect(requestCount).toBeLessThan(40);
-    expect(folderCount).toBeGreaterThan(0);
+  });
+
+  it("Cloudflare and Stripe are grouped into sub-folders", () => {
+    for (const provider of [cloudflareCurated, stripeCurated]) {
+      expect(buildCuratedItems(provider).folderCount).toBeGreaterThan(0);
+    }
   });
 
   it("every curated endpoint has an absolute https URL", () => {
-    for (const provider of [cloudflareCurated, stripeCurated]) {
+    for (const { provider } of CURATED_PROVIDERS) {
       const { items } = buildCuratedItems(provider);
       for (const it of items.filter((i) => i.kind === "request")) {
         expect(it.request?.url).toMatch(/^https:\/\//);
       }
     }
+  });
+
+  it("Linear ships as a single GraphQL endpoint", () => {
+    const { items } = buildCuratedItems(linearCurated);
+    const requests = items.filter((i) => i.kind === "request");
+    expect(requests).toHaveLength(1);
+    expect(requests[0].request?.isGraphql).toBe(true);
   });
 });
