@@ -94,6 +94,83 @@ describe("graphql endpoints", () => {
   });
 });
 
+describe("body skeletons + descriptions", () => {
+  it("seeds the request body from a curated `body` skeleton", () => {
+    const { items } = buildCuratedItems({
+      baseUrl: "https://api.example.com",
+      endpoints: [
+        {
+          name: "Create",
+          method: "POST",
+          path: "/things",
+          body: { mode: "json", text: '{"a":1}' },
+        },
+      ],
+    });
+    const req = items.find((i) => i.kind === "request")!;
+    expect(req.request?.body).toEqual({ mode: "json", text: '{"a":1}' });
+  });
+
+  it("supports form-mode bodies (e.g. Stripe)", () => {
+    const { items } = buildCuratedItems({
+      baseUrl: "https://api.example.com",
+      endpoints: [
+        { name: "Create", method: "POST", path: "/c", body: { mode: "form", text: "a=1&b=2" } },
+      ],
+    });
+    expect(items.find((i) => i.kind === "request")!.request?.body).toEqual({
+      mode: "form",
+      text: "a=1&b=2",
+    });
+  });
+
+  it("leaves the body empty (mode none) when no skeleton is given", () => {
+    const { items } = buildCuratedItems({
+      baseUrl: "https://api.example.com",
+      endpoints: [{ name: "Get", method: "GET", path: "/g" }],
+    });
+    expect(items.find((i) => i.kind === "request")!.request?.body).toEqual({
+      mode: "none",
+      text: "",
+    });
+  });
+
+  it("ignores a body skeleton on a graphql endpoint", () => {
+    const { items } = buildCuratedItems({
+      baseUrl: "https://api.example.com/graphql",
+      endpoints: [
+        {
+          name: "GraphQL",
+          method: "POST",
+          path: "",
+          graphql: true,
+          body: { mode: "json", text: '{"a":1}' },
+        },
+      ],
+    });
+    expect(items.find((i) => i.kind === "request")!.request?.body).toEqual({
+      mode: "none",
+      text: "",
+    });
+  });
+
+  it("stamps a curated `description` onto the request item", () => {
+    const { items } = buildCuratedItems({
+      baseUrl: "https://api.example.com",
+      endpoints: [{ name: "Get", method: "GET", path: "/g", description: "Fetch a thing." }],
+    });
+    expect(items.find((i) => i.kind === "request")!.description).toBe("Fetch a thing.");
+  });
+
+  it("leaves description undefined when the endpoint has none", () => {
+    const { items } = buildCuratedItems({
+      baseUrl: "https://api.example.com",
+      endpoints: [{ name: "Get", method: "GET", path: "/g" }],
+    });
+    expect(items.find((i) => i.kind === "request")!.description).toBeUndefined();
+  });
+});
+
 describe("shipped curated providers", () => {
   it.each(CURATED_PROVIDERS)("$name builds a sane, non-empty collection", ({ provider }) => {
     const { requestCount } = buildCuratedItems(provider);
@@ -114,6 +191,24 @@ describe("shipped curated providers", () => {
         expect(it.request?.url).toMatch(/^https:\/\//);
       }
     }
+  });
+
+  it("Cloudflare ships JSON body skeletons + descriptions", () => {
+    const { items } = buildCuratedItems(cloudflareCurated);
+    const createDns = items.find((i) => i.name === "Create DNS record")!;
+    expect(createDns.request?.body.mode).toBe("json");
+    expect(createDns.request?.body.text).toContain('"type"');
+    // Every Cloudflare endpoint carries a hover description.
+    for (const it of items.filter((i) => i.kind === "request")) {
+      expect(it.description).toBeTruthy();
+    }
+  });
+
+  it("Stripe ships form-mode body skeletons (not JSON)", () => {
+    const { items } = buildCuratedItems(stripeCurated);
+    const createCustomer = items.find((i) => i.name === "Create customer")!;
+    expect(createCustomer.request?.body.mode).toBe("form");
+    expect(createCustomer.request?.body.text).toContain("email=");
   });
 
   it("Linear ships as a single GraphQL endpoint", () => {

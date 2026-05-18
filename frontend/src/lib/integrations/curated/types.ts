@@ -18,6 +18,14 @@ export type CuratedEndpoint = {
   // composer's GraphQL tab). For GraphQL-only providers, whose single
   // endpoint takes a query in the body rather than a REST path.
   graphql?: boolean;
+  // Optional ready-to-edit request body skeleton (POST / PUT / PATCH).
+  // `mode` must match the provider's content type — `json` for JSON
+  // APIs, `form` for `application/x-www-form-urlencoded` (e.g. Stripe).
+  // Ignored on `graphql` endpoints. Keep it to the 3-5 common fields.
+  body?: { mode: "json" | "form" | "raw"; text: string };
+  // Optional one-line description, surfaced as the request row's
+  // hover tooltip in the collection tree.
+  description?: string;
 };
 
 export type CuratedProvider = {
