@@ -67,6 +67,7 @@ export const tr = {
   "sync.status.ok": "Senkronize edildi.",
   "sync.status.conflict": "Senkronizasyon çakışması — banner'dan çöz.",
   "sync.status.error": "Senkronizasyon başarısız: {message}",
+  "sync.syncing.banner": "Senkronize ediliyor…",
   "sync.conflict.banner":
     "Senkronizasyon çakışması — yerel koleksiyonların ve uzak depo ikisi de değişti. Hangisi kazansın:",
   "sync.conflict.keepLocal": "Yereli tut",
