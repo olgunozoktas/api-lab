@@ -1,9 +1,10 @@
 /** Olgun Özoktaş geliştirdi · API Lab */
 import type { StateCreator } from "zustand";
-import type { CollectionItem, ComposerTab, HistoryItem, OpenTab, ResponseTab } from "../lib/types";
+import type { CollectionItem, HistoryItem, OpenTab } from "../lib/types";
 import { emptyTab } from "../lib/types";
 import { uid } from "../lib/utils";
 import { clone, snapshotActiveIntoTab } from "./internal";
+import { buildLoadedRequestState, composerTabFor, currentFromSnapshot } from "./loadRequest";
 import {
   closeTabState,
   closeOtherTabsState,
@@ -167,32 +168,26 @@ export const createTabsSlice: StateCreator<Store, StoreMutators, [], TabsActions
       if (c.kind !== "request" || !c.request) return {};
       const r = c.request;
       const tabs = snapshotActiveIntoTab(s);
-      const composerTab: ComposerTab = r.isGraphql ? "graphql" : "params";
-      const responseTab: ResponseTab = "body";
+      // Shared loader state — same request→state mapping the in-place
+      // loadCollection uses, so the two can't drift.
+      const ld = buildLoadedRequestState(
+        currentFromSnapshot(r, c.id, c.name),
+        composerTabFor(r.isGraphql)
+      );
       const fresh: OpenTab = {
         id: uid(),
         name: c.name,
-        request: {
-          id: c.id,
-          name: c.name,
-          method: r.method ?? "GET",
-          url: r.url ?? "",
-          params: clone(r.params ?? [{ enabled: true, k: "", v: "" }]),
-          headers: clone(r.headers ?? [{ enabled: true, k: "", v: "" }]),
-          auth: clone(r.auth ?? { type: "none" }),
-          body: clone(r.body ?? { mode: "none", text: "" }),
-          gql: clone(r.gql ?? { query: "", vars: "" }),
-        },
-        lastResponse: null,
-        composerTab,
-        responseTab,
+        request: ld.current,
+        lastResponse: ld.lastResponse,
+        composerTab: ld.composerTab,
+        responseTab: ld.responseTab,
       };
       return {
         tabs: [...tabs, fresh],
         activeTabId: fresh.id,
         current: clone(fresh.request),
-        lastResponse: null,
-        ui: { ...s.ui, composerTab, responseTab },
+        lastResponse: ld.lastResponse,
+        ui: { ...s.ui, composerTab: ld.composerTab, responseTab: ld.responseTab },
       };
     }),
 
@@ -200,36 +195,28 @@ export const createTabsSlice: StateCreator<Store, StoreMutators, [], TabsActions
     set((s) => {
       const r = h.request;
       const tabs = snapshotActiveIntoTab(s);
-      const composerTab: ComposerTab = r.isGraphql ? "graphql" : "params";
-      const responseTab: ResponseTab = "body";
       // Tab name: short method + URL slug. Keeps the strip readable
       // when several history replays are open at once.
       const urlShort = r.url ? r.url.replace(/^https?:\/\//, "").slice(0, 32) : "—";
       const name = `${r.method} ${urlShort}`;
+      const ld = buildLoadedRequestState(
+        currentFromSnapshot(r, null, name),
+        composerTabFor(r.isGraphql)
+      );
       const fresh: OpenTab = {
         id: uid(),
         name,
-        request: {
-          id: null,
-          name,
-          method: r.method,
-          url: r.url,
-          params: clone(r.params),
-          headers: clone(r.headers),
-          auth: clone(r.auth),
-          body: clone(r.body),
-          gql: clone(r.gql),
-        },
-        lastResponse: null,
-        composerTab,
-        responseTab,
+        request: ld.current,
+        lastResponse: ld.lastResponse,
+        composerTab: ld.composerTab,
+        responseTab: ld.responseTab,
       };
       return {
         tabs: [...tabs, fresh],
         activeTabId: fresh.id,
         current: clone(fresh.request),
-        lastResponse: null,
-        ui: { ...s.ui, composerTab, responseTab },
+        lastResponse: ld.lastResponse,
+        ui: { ...s.ui, composerTab: ld.composerTab, responseTab: ld.responseTab },
       };
     }),
 
