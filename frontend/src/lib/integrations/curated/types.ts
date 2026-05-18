@@ -18,6 +18,9 @@ export type CuratedEndpoint = {
   // composer's GraphQL tab). For GraphQL-only providers, whose single
   // endpoint takes a query in the body rather than a REST path.
   graphql?: boolean;
+  // Optional starter GraphQL query — seeds `gql.query` on a `graphql`
+  // endpoint so the GraphQL composer opens with a runnable example.
+  graphqlQuery?: string;
   // Optional ready-to-edit request body skeleton (POST / PUT / PATCH).
   // `mode` must match the provider's content type — `json` for JSON
   // APIs, `form` for `application/x-www-form-urlencoded` (e.g. Stripe).

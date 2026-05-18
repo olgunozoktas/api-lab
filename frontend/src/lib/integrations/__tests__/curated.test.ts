@@ -92,6 +92,24 @@ describe("graphql endpoints", () => {
     const req = items.find((i) => i.kind === "request")!;
     expect(req.request?.isGraphql).toBeUndefined();
   });
+
+  it("seeds gql.query from a curated graphqlQuery on a graphql endpoint", () => {
+    const { items } = buildCuratedItems({
+      baseUrl: "https://api.example.com/graphql",
+      endpoints: [
+        { name: "GQL", method: "POST", path: "", graphql: true, graphqlQuery: "query { me }" },
+      ],
+    });
+    expect(items.find((i) => i.kind === "request")!.request?.gql.query).toBe("query { me }");
+  });
+
+  it("leaves gql.query empty for a REST endpoint even if graphqlQuery is set", () => {
+    const { items } = buildCuratedItems({
+      baseUrl: "https://api.example.com",
+      endpoints: [{ name: "Get", method: "GET", path: "/g", graphqlQuery: "query { me }" }],
+    });
+    expect(items.find((i) => i.kind === "request")!.request?.gql.query).toBe("");
+  });
 });
 
 describe("body skeletons + descriptions", () => {
@@ -211,10 +229,35 @@ describe("shipped curated providers", () => {
     expect(createCustomer.request?.body.text).toContain("email=");
   });
 
-  it("Linear ships as a single GraphQL endpoint", () => {
+  it("Linear ships as a single GraphQL endpoint with a starter query", () => {
     const { items } = buildCuratedItems(linearCurated);
     const requests = items.filter((i) => i.kind === "request");
     expect(requests).toHaveLength(1);
     expect(requests[0].request?.isGraphql).toBe(true);
+    expect(requests[0].request?.gql.query).toContain("viewer");
   });
+
+  it("every curated endpoint carries a hover description", () => {
+    for (const { provider } of CURATED_PROVIDERS) {
+      for (const it of buildCuratedItems(provider).items.filter((i) => i.kind === "request")) {
+        expect(it.description).toBeTruthy();
+      }
+    }
+  });
+
+  it.each(["GitHub", "OpenAI", "Slack", "Notion"])(
+    "%s ships JSON body skeletons on its write endpoints",
+    (name) => {
+      const provider = CURATED_PROVIDERS.find((p) => p.name === name)!.provider;
+      const withBody = buildCuratedItems(provider).items.filter(
+        (i) => i.kind === "request" && i.request?.body.mode === "json"
+      );
+      // Each of these providers has at least one JSON write endpoint.
+      expect(withBody.length).toBeGreaterThan(0);
+      for (const it of withBody) {
+        // A JSON skeleton must be parseable.
+        expect(() => JSON.parse(it.request!.body.text)).not.toThrow();
+      }
+    }
+  );
 });
