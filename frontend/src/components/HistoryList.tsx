@@ -177,7 +177,7 @@ export function HistoryList({ query = "" }: { query?: string }) {
                 >
                   <span
                     className={
-                      "font-mono font-bold w-9 flex-shrink-0 text-3xs " +
+                      "font-mono font-bold w-12 flex-shrink-0 text-3xs " +
                       methodClass(h.request.method)
                     }
                   >
