@@ -15,16 +15,18 @@ export type CuratedBuildResult = {
 
 // A neutral request snapshot for a curated endpoint. Auth stays
 // `none` here — IntegrationsModal applies the provider's scaffolded
-// auth to every imported request afterwards.
-function curatedSnapshot(method: string, url: string): RequestSnapshot {
+// auth to every imported request afterwards. A `graphql` endpoint
+// arrives in GraphQL mode (POST is the only verb GraphQL uses).
+function curatedSnapshot(method: string, url: string, graphql: boolean): RequestSnapshot {
   return {
-    method,
+    method: graphql ? "POST" : method,
     url,
     params: [{ enabled: true, k: "", v: "" }],
     headers: [{ enabled: true, k: "", v: "" }],
     auth: { type: "none" },
     body: { mode: "none", text: "" },
     gql: { query: "", vars: "" },
+    isGraphql: graphql || undefined,
   };
 }
 
@@ -61,7 +63,7 @@ export function buildCuratedItems(provider: CuratedProvider): CuratedBuildResult
       kind: "request",
       name: ep.name,
       order: order++,
-      request: curatedSnapshot(ep.method, provider.baseUrl + ep.path),
+      request: curatedSnapshot(ep.method, provider.baseUrl + ep.path, ep.graphql ?? false),
     });
   }
 
