@@ -41,6 +41,8 @@ aktif sekme otomatik olarak görüş alanına gelir.
 | --------- | -------------------------------------------------------------------------------------------------------------------------- |
 | ⌘ K / ⌘ P | Quick switcher — kaydedilmiş istekleri fuzzy ara. ⌘ K modern command-palette geleneği; ⌘ P Postman alışkanlığını yansıtır. |
 | ⌘ B       | Kenar çubuğunu aç/kapat (kayıtlı istekler + geçmiş)                                                                        |
+| ⌘ ,       | Ayarlar'ı aç (macOS Tercihler standardı)                                                                                   |
+| ⌘ ⇧ E     | Ortam düzenleyicisini aç (metin alanlarındaki WebKit ⌘ E'sinden kaçınmak için Shift'li)                                    |
 | ?         | Bu Guide hub'ı aç                                                                                                          |
 
 ## Composer

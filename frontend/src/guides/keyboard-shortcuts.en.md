@@ -42,6 +42,8 @@ the quick switcher.
 | --------- | ---------------------------------------------------------------------------------------------------------------------- |
 | ⌘ K / ⌘ P | Quick switcher — fuzzy-find any saved request. ⌘ K matches the modern command-palette convention; ⌘ P mirrors Postman. |
 | ⌘ B       | Toggle the sidebar (saved requests + history)                                                                          |
+| ⌘ ,       | Open Settings (the macOS Preferences standard)                                                                         |
+| ⌘ ⇧ E     | Open the Environments editor (Shift-prefixed to dodge WebKit's native ⌘ E in text fields)                              |
 | ?         | Open this Guide hub                                                                                                    |
 
 ## Composer

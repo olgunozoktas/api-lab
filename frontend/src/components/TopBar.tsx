@@ -16,6 +16,7 @@ import { useSettingsShortcut } from "../lib/settings_shortcut";
 import { useEnvEditorShortcut } from "../lib/env_editor_shortcut";
 import { useT } from "../lib/i18n/useT";
 import { Button } from "./ui/button";
+import { IconButton } from "./ui/icon-button";
 import { KbdHint } from "./ui/kbd-hint";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import {
@@ -163,51 +164,43 @@ export function TopBar() {
           {t("topbar.envEdit")}
           <KbdHint>⌘ ⇧ E</KbdHint>
         </Button>
-        <Button
-          variant="ghost"
-          size="sm"
+        {/* Icon-only actions — each wrapped in a styled Tooltip so the
+            feature is discoverable on hover, not a mystery glyph. */}
+        <IconButton
           onClick={() => setMockOpen(true)}
           aria-label={t("topbar.mock")}
-          title={t("topbar.mock")}
-        >
-          <Server className="w-3.5 h-3.5" />
-        </Button>
-        <Button
-          variant="ghost"
-          size="sm"
+          tooltip={t("topbar.mock")}
+          icon={<Server className="w-3.5 h-3.5" />}
+        />
+        <IconButton
           onClick={() => setDiffOpen(true)}
           aria-label={t("topbar.diff")}
-          title={t("topbar.diff")}
-        >
-          <GitCompare className="w-3.5 h-3.5" />
-        </Button>
-        <Button
-          variant="ghost"
-          size="sm"
+          tooltip={t("topbar.diff")}
+          icon={<GitCompare className="w-3.5 h-3.5" />}
+        />
+        <IconButton
           onClick={() => setIntegrationsOpen(true)}
           aria-label={t("topbar.integrations")}
-          title={t("topbar.integrations")}
-        >
-          <Plug className="w-3.5 h-3.5" />
-        </Button>
-        <Button
-          variant="ghost"
-          size="sm"
+          tooltip={t("topbar.integrations")}
+          icon={<Plug className="w-3.5 h-3.5" />}
+        />
+        <IconButton
           onClick={() => setGuideOpen(true)}
           aria-label={t("topbar.guides")}
-          title={t("topbar.guides")}
-        >
-          <HelpCircle className="w-3.5 h-3.5" />
-        </Button>
-        <Button
-          variant="ghost"
-          size="sm"
+          tooltip={
+            <span className="inline-flex items-center">
+              {t("topbar.guides")}
+              <KbdHint>?</KbdHint>
+            </span>
+          }
+          icon={<HelpCircle className="w-3.5 h-3.5" />}
+        />
+        <IconButton
           onClick={() => setChangelogOpen(true)}
           aria-label={t("topbar.changelog")}
-          title={t("topbar.changelog")}
-        >
-          <History className="w-3.5 h-3.5" />
-        </Button>
+          tooltip={t("topbar.changelog")}
+          icon={<History className="w-3.5 h-3.5" />}
+        />
         <Button
           variant="ghost"
           size="sm"
