@@ -24,18 +24,29 @@ consumes it is a separate item (`token-scale-migration`) so the
 
 ## Items
 
-- [ ] Add a named typography scale to the `@theme` block in
+- [x] Add a named typography scale to the `@theme` block in
       `frontend/src/main.css` — formalize the de-facto `9/10/11/12/13px`
       sizes into tokens (e.g. `--text-micro` … `--text-base`) each with
       a matching line-height.
-- [ ] Add a named spacing-scale token set documenting the existing
+      → shipped as `--text-2xs` (11px) / `--text-3xs` (10px) /
+        `--text-4xs` (9px), each with a 1.45 line-height. Collision-free
+        with Tailwind v4's default `text-xs/sm/base` (which would have
+        silently resized 152 existing usages). No `text-[13px]` exists
+        in the codebase; `text-[12px]` == the default `text-xs`.
+- [x] Add a named spacing-scale token set documenting the existing
       2/4/6/8/12/16/24 rhythm as the canonical scale.
-- [ ] Add a short comment block in `main.css` documenting the scale
+      → documented as a comment block — Tailwind v4 already derives the
+        full numeric scale (`p-0.5/1/1.5/2/3/4/6`) from its `--spacing`
+        base, so adding `--spacing-*` tokens would be redundant/shadowing.
+- [x] Add a short comment block in `main.css` documenting the scale
       and a one-line usage convention (single source of truth).
-- [ ] Verify the additions render identically under all 6 themes
+- [x] Verify the additions render identically under all 6 themes
       (auto / light / dark / tokyo-night / github-light / high-contrast)
       — token additions are color-agnostic, so this is a visual check.
-- [ ] Definition only — do NOT migrate any component here.
+      → the emitted CSS hash is identical to the pre-change build
+        (`index-LeXT4JKW.css`); the new tokens are unused so Tailwind
+        tree-shakes them — every theme renders byte-identically.
+- [x] Definition only — do NOT migrate any component here.
 
 ## Acceptance
 

@@ -18,7 +18,37 @@
 
   --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
   --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, sans-serif;
+
+  /* Typography scale — named tokens for the de-facto sub-`xs` sizes
+     used across the UI. text-xs (12px) / text-sm (14px) / text-base
+     (16px) stay as Tailwind's defaults and anchor the top of the
+     ladder. Migration of raw `text-[Npx]` values onto these utilities
+     is tracked under token-scale-migration (issue #29). */
+  --text-2xs: 11px;
+  --text-2xs--line-height: 1.45;
+  --text-3xs: 10px;
+  --text-3xs--line-height: 1.45;
+  --text-4xs: 9px;
+  --text-4xs--line-height: 1.45;
 }
+
+/* ──────────────────────────────────────────────────────────────────
+   Design scale — single source of truth.
+
+   Typography ladder (use the named utility, never `text-[Npx]`):
+     text-4xs   9px      text-xs    12px   (Tailwind default)
+     text-3xs   10px     text-sm    14px   (Tailwind default)
+     text-2xs   11px     text-base  16px   (Tailwind default)
+
+   Spacing rhythm — use Tailwind's numeric scale, never arbitrary px:
+     2px  p-0.5      8px   p-2       16px  p-4
+     4px  p-1        12px  p-3       24px  p-6
+     6px  p-1.5
+   All spacing derives from Tailwind v4's `--spacing` base (0.25rem).
+
+   Convention: pick the nearest named step — do not introduce new
+   arbitrary `text-[Npx]` or `p-[Npx]` values.
+   ────────────────────────────────────────────────────────────────── */
 
 /* Tailwind v4 dark variant — toggled by data-theme="dark" anywhere in the
    ancestor chain. Lets us write dark:bg-... utility classes if needed. */
