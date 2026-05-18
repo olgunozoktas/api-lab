@@ -15,13 +15,13 @@ hints are surfaced unevenly. Hidden features don't get used.
 
 ## Items
 
-- [ ] Label — or wrap in the Item-2 Tooltip — the icon-only TopBar
+- [x] Label — or wrap in the Item-2 Tooltip — the icon-only TopBar
       buttons (Mock, Diff) in `components/TopBar.tsx`.
-- [ ] Audit the keyboard shortcut map; standardize non-standard
+- [x] Audit the keyboard shortcut map; standardize non-standard
       bindings — prefer *adding* a standard alias over *replacing* an
       existing binding (don't break muscle memory).
-- [ ] Surface shortcut hints consistently via `ui/kbd-hint.tsx`.
-- [ ] Update the in-app shortcut reference (Settings → Keyboard /
+- [x] Surface shortcut hints consistently via `ui/kbd-hint.tsx`.
+- [x] Update the in-app shortcut reference (Settings → Keyboard /
       guides) to match the audited map.
 
 ## Acceptance
