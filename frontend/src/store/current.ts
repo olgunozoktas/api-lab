@@ -10,6 +10,7 @@ import type {
 import { emptyRequest } from "../lib/types";
 import { displayTabName, uid } from "../lib/utils";
 import { clone, nextOrder } from "./internal";
+import { buildLoadedRequestState, composerTabFor, currentFromSnapshot } from "./loadRequest";
 import type { Store, StoreMutators } from "./types";
 import type { NewRequestKind } from "./collections";
 import type { Sample } from "../lib/samples";
@@ -91,35 +92,25 @@ export const createCurrentSlice: StateCreator<Store, StoreMutators, [], CurrentA
     set((s) => {
       if (c.kind !== "request" || !c.request) return {};
       const r = c.request;
-      const nextCurrent: CurrentRequest = {
-        id: c.id,
-        name: c.name,
-        method: r.method ?? "GET",
-        url: r.url ?? "",
-        params: clone(r.params ?? [{ enabled: true, k: "", v: "" }]),
-        headers: clone(r.headers ?? [{ enabled: true, k: "", v: "" }]),
-        auth: clone(r.auth ?? { type: "none" }),
-        body: clone(r.body ?? { mode: "none", text: "" }),
-        gql: clone(r.gql ?? { query: "", vars: "" }),
-      };
-      const composerTab: ComposerTab = r.isGraphql ? "graphql" : "params";
+      // Shared loader state — `buildLoadedRequestState` resets the
+      // response panel (Body tab, no stale response) for every loader.
+      const ld = buildLoadedRequestState(
+        currentFromSnapshot(r, c.id, c.name),
+        composerTabFor(r.isGraphql)
+      );
       return {
-        current: nextCurrent,
-        // Selecting a saved request resets the response panel — a saved
-        // request carries no response of its own, so the previous
-        // request's response must not linger, and the panel returns to
-        // the Body tab.
-        lastResponse: null,
-        ui: { ...s.ui, composerTab, responseTab: "body" },
+        current: ld.current,
+        lastResponse: ld.lastResponse,
+        ui: { ...s.ui, composerTab: ld.composerTab, responseTab: ld.responseTab },
         tabs: s.tabs.map((t) =>
           t.id === s.activeTabId
             ? {
                 ...t,
                 name: c.name,
-                request: clone(nextCurrent),
-                composerTab,
-                responseTab: "body",
-                lastResponse: null,
+                request: clone(ld.current),
+                composerTab: ld.composerTab,
+                responseTab: ld.responseTab,
+                lastResponse: ld.lastResponse,
               }
             : t
         ),
@@ -128,32 +119,24 @@ export const createCurrentSlice: StateCreator<Store, StoreMutators, [], CurrentA
 
   loadHistoryItem: (h) =>
     set((s) => {
-      const nextCurrent: CurrentRequest = {
-        id: null,
-        name: s.current.name,
-        method: h.request.method,
-        url: h.request.url,
-        params: clone(h.request.params),
-        headers: clone(h.request.headers),
-        auth: clone(h.request.auth),
-        body: clone(h.request.body),
-        gql: clone(h.request.gql),
-      };
-      const composerTab: ComposerTab = h.request.isGraphql ? "graphql" : "params";
+      // History entries restore the request only, never the response —
+      // the shared loader state clears it and returns to the Body tab.
+      const ld = buildLoadedRequestState(
+        currentFromSnapshot(h.request, null, s.current.name),
+        composerTabFor(h.request.isGraphql)
+      );
       return {
-        current: nextCurrent,
-        // Loading a History entry restores the request only, never its
-        // response — clear the stale response and return to Body.
-        lastResponse: null,
-        ui: { ...s.ui, composerTab, responseTab: "body" },
+        current: ld.current,
+        lastResponse: ld.lastResponse,
+        ui: { ...s.ui, composerTab: ld.composerTab, responseTab: ld.responseTab },
         tabs: s.tabs.map((t) =>
           t.id === s.activeTabId
             ? {
                 ...t,
-                request: clone(nextCurrent),
-                composerTab,
-                responseTab: "body",
-                lastResponse: null,
+                request: clone(ld.current),
+                composerTab: ld.composerTab,
+                responseTab: ld.responseTab,
+                lastResponse: ld.lastResponse,
               }
             : t
         ),
@@ -177,23 +160,26 @@ export const createCurrentSlice: StateCreator<Store, StoreMutators, [], CurrentA
       if (nextCurrent.headers.length === 0) {
         nextCurrent.headers = [{ enabled: true, k: "", v: "" }];
       }
+      // Samples derive composerTab differently (a body-bearing sample
+      // opens on the Body tab); the panel reset is the shared part.
       const composerTab: ComposerTab =
         sample.kind === "graphql" ? "graphql" : sample.body ? "body" : "params";
+      const ld = buildLoadedRequestState(nextCurrent, composerTab);
       return {
-        current: nextCurrent,
-        ui: { ...s.ui, composerTab, responseTab: "body" },
+        current: ld.current,
+        lastResponse: ld.lastResponse,
+        ui: { ...s.ui, composerTab: ld.composerTab, responseTab: ld.responseTab },
         tabs: s.tabs.map((t) =>
           t.id === s.activeTabId
             ? {
                 ...t,
-                request: clone(nextCurrent),
-                composerTab,
-                responseTab: "body",
-                lastResponse: null,
+                request: clone(ld.current),
+                composerTab: ld.composerTab,
+                responseTab: ld.responseTab,
+                lastResponse: ld.lastResponse,
               }
             : t
         ),
-        lastResponse: null,
       };
     }),
 

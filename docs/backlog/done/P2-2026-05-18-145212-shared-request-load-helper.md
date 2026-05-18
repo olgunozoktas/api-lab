@@ -25,7 +25,7 @@ not — which is exactly the P1 bug. Fixing the P1 makes the five agree
 
 ## Items
 
-- [ ] **Extract `buildLoadedRequestState(request)`** — a pure helper
+- [x] **Extract `buildLoadedRequestState(request)`** — a pure helper
       (in `frontend/src/store/` or `frontend/src/lib/`) that takes a
       request-shaped input and returns the canonical loaded state
       slice: `current` mirror, `composerTab`, `responseTab: "body"`,
@@ -36,7 +36,7 @@ not — which is exactly the P1 bug. Fixing the P1 makes the five agree
   - Tests: `frontend/src/store/__tests__/` — the helper's output for
     HTTP vs GraphQL requests; each of the 5 loaders produces a
     consistent response-panel state.
-- [ ] **Regression guard** — a test that asserts the in-place and
+- [x] **Regression guard** — a test that asserts the in-place and
       new-tab loader pairs produce the same response-panel state for
       the same input, so a future drift fails CI.
 
