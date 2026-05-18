@@ -53,7 +53,7 @@ export function ResponseEmpty() {
   const onCopyUrl = (h: HistoryItem) => {
     navigator.clipboard
       .writeText(h.request.url || "")
-      .then(() => showToast(t("history.context.urlCopied")));
+      .then(() => showToast(t("history.context.urlCopied"), { severity: "success" }));
   };
 
   if (groups.length === 0) {

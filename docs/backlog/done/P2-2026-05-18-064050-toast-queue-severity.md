@@ -15,16 +15,30 @@ queued stack with success / error / warning / info weight.
 
 ## Items
 
-- [ ] Replace the single-toast model in `components/Toast.tsx` and the
+- [x] Replace the single-toast model in `components/Toast.tsx` and the
       `toast` slice in `store/ui.ts` with a bounded queue (stack).
-- [ ] Add severity variants — success / error / warning / info —
+      → the `toast` state actually lived in `store/internal.ts` +
+        `store/response.ts` (not `store/ui.ts`); replaced `toast: {…}|null`
+        with `toasts: ToastEntry[]`, cap 4, oldest evicted on overflow.
+        Pure queue ops in `lib/toast.ts` (`enqueueToast` / `removeToast`).
+- [x] Add severity variants — success / error / warning / info —
       coloured from `--color-success` / `--color-danger` /
       `--color-warning` / `--color-accent`.
-- [ ] Add enter/exit micro-animation via `tw-animate-css` (the
+      → plus a full retrofit: ~40 of the ~45 `showToast` call sites now
+        pass a real severity (errors→error, copies/saves→success,
+        validation→warning); only `requestCancelled` stays `info`.
+- [x] Add enter/exit micro-animation via `tw-animate-css` (the
       `data-[state]` pattern already used in `ui/dialog.tsx`).
-- [ ] Optional per-toast action affordance (e.g. an "Undo" button).
-- [ ] Keep `Toast.tsx` under the 400-LOC cap — extract a `ToastItem`
+      → `animate-in/out` slide+fade on `ToastItem`; exit is deferred
+        ~180 ms so the out-animation plays before the node unmounts.
+- [x] Optional per-toast action affordance (e.g. an "Undo" button).
+      → `ToastEntry.action = { label, onAction }`; `ToastItem` renders
+        the button when present. Wiring real Undo flows into destructive
+        ops is a follow-up (no caller passes an action yet).
+- [x] Keep `Toast.tsx` under the 400-LOC cap — extract a `ToastItem`
       sub-component if needed; preserve `role="status"` / `aria-live`.
+      → `Toast.tsx` 23 LOC (container), `ToastItem.tsx` ~85 LOC
+        (presenter); `role="status"` + `aria-live="polite"` preserved.
 
 ## Acceptance
 

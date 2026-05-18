@@ -148,7 +148,9 @@ function SaveAsVariableDialog({
     );
     setEnvs(next);
     const envName = envs.find((e) => e.id === targetEnvId)?.name ?? "?";
-    showToast(t("chain.savedToast", { name: trimmedName, env: envName }));
+    showToast(t("chain.savedToast", { name: trimmedName, env: envName }), {
+      severity: "success",
+    });
     onOpenChange(false);
     reset();
   };

@@ -1,30 +1,25 @@
 /** Olgun Özoktaş geliştirdi · API Lab */
-import { useEffect, useState } from "react";
 import { useStore } from "../store";
+import { ToastItem } from "./ToastItem";
 
+// Bottom-centre toast stack. Page-level container — reads the bounded
+// queue from the store and maps each entry to a presentational
+// <ToastItem>. `role="status"` + `aria-live="polite"` announce new
+// toasts to assistive tech.
 export function Toast() {
-  const toast = useStore((s) => s.toast);
-  const [visible, setVisible] = useState(false);
+  const toasts = useStore((s) => s.toasts);
+  const dismissToast = useStore((s) => s.dismissToast);
 
-  useEffect(() => {
-    if (!toast) return;
-    setVisible(true);
-    const t = setTimeout(() => setVisible(false), 1500);
-    return () => clearTimeout(t);
-  }, [toast]);
-
-  if (!toast) return null;
+  if (toasts.length === 0) return null;
   return (
     <div
       role="status"
       aria-live="polite"
-      className={
-        "fixed bottom-4 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-lg text-xs " +
-        "bg-[var(--color-fg)] text-[var(--color-bg)] pointer-events-none transition-opacity " +
-        (visible ? "opacity-100" : "opacity-0")
-      }
+      className="pointer-events-none fixed bottom-4 left-1/2 z-[1200] flex -translate-x-1/2 flex-col items-center gap-2"
     >
-      {toast.msg}
+      {toasts.map((toast) => (
+        <ToastItem key={toast.id} toast={toast} onDismiss={dismissToast} />
+      ))}
     </div>
   );
 }

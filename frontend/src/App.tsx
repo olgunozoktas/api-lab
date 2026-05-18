@@ -110,7 +110,7 @@ export function App() {
   const onSend = useCallback(async () => {
     if (busy) return;
     if (!current.url.trim()) {
-      showToast(t("toast.urlEmpty"));
+      showToast(t("toast.urlEmpty"), { severity: "warning" });
       return;
     }
     const controller = new AbortController();
@@ -165,7 +165,7 @@ export function App() {
           url: current.url,
           transport: "fetch",
         });
-        showToast(t("toast.networkError", { msg: msg.slice(0, 80) }));
+        showToast(t("toast.networkError", { msg: msg.slice(0, 80) }), { severity: "error" });
       }
     } finally {
       setBusy(false);

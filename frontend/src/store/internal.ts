@@ -25,6 +25,7 @@ import {
   defaultSyncStatus,
   DEFAULT_LAYOUT,
 } from "../lib/types";
+import type { ToastEntry } from "../lib/toast";
 import { uid } from "../lib/utils";
 import { detectLocale, type Locale } from "../lib/i18n";
 
@@ -47,7 +48,7 @@ export type CoreState = {
   ui: UiState;
   locale: Locale;
   defaults: RequestDefaults;
-  toast: { msg: string; ts: number } | null;
+  toasts: ToastEntry[];
   // LIFO stack of recently-closed tabs (most recent at end). Powers
   // `reopenLastClosedTab` (⌘+Shift+T). Intentionally NOT persisted —
   // not listed in the store's `partialize` key set — so it lives only
@@ -108,7 +109,7 @@ export function buildInitialState(): CoreState {
     },
     locale: detectLocale("tr"),
     defaults: defaultRequestDefaults(),
-    toast: null,
+    toasts: [],
     recentlyClosed: [],
     hiddenSampleIds: [],
     samplesSectionHidden: false,
@@ -196,7 +197,7 @@ export function migrateV1toV2(persisted: unknown): V2State {
     samplesSectionHidden: old.samplesSectionHidden ?? false,
     syncConfig: old.syncConfig ?? defaultSyncConfig(),
     syncStatus: old.syncStatus ?? defaultSyncStatus(),
-    toast: null,
+    toasts: [],
   };
 }
 

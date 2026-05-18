@@ -215,7 +215,7 @@ function ImportPostmanButton() {
       if (isBrunoFile(text)) {
         const r = parseBruno(text);
         if (r.items.length === 0) {
-          showToast(t("import.empty"));
+          showToast(t("import.empty"), { severity: "warning" });
           return;
         }
         importItems(r.items, r.envVars, r.collectionName);
@@ -224,10 +224,13 @@ function ImportPostmanButton() {
             name: r.collectionName,
             folders: String(r.folderCount),
             requests: String(r.requestCount),
-          })
+          }),
+          { severity: "success" }
         );
         if (r.warnings.length > 0) {
-          showToast(t("import.warnings", { count: String(r.warnings.length) }));
+          showToast(t("import.warnings", { count: String(r.warnings.length) }), {
+            severity: "warning",
+          });
           // eslint-disable-next-line no-console
           console.warn("Bruno import warnings:", r.warnings);
         }
@@ -247,7 +250,7 @@ function ImportPostmanButton() {
       if (oas.isOpenApiSpec(specDoc)) {
         const r = oas.parseOpenApi(text);
         if (r.items.length === 0) {
-          showToast(t("import.empty"));
+          showToast(t("import.empty"), { severity: "warning" });
           return;
         }
         importItems(r.items, r.envVars, r.collectionName);
@@ -256,10 +259,13 @@ function ImportPostmanButton() {
             name: r.collectionName,
             folders: String(r.folderCount),
             requests: String(r.requestCount),
-          })
+          }),
+          { severity: "success" }
         );
         if (r.warnings.length > 0) {
-          showToast(t("import.warnings", { count: String(r.warnings.length) }));
+          showToast(t("import.warnings", { count: String(r.warnings.length) }), {
+            severity: "warning",
+          });
           // eslint-disable-next-line no-console
           console.warn("OpenAPI import warnings:", r.warnings);
         }
@@ -278,7 +284,7 @@ function ImportPostmanButton() {
       if (isHarFile(parsed)) {
         const r = parseHar(text);
         if (r.items.length === 0) {
-          showToast(t("import.empty"));
+          showToast(t("import.empty"), { severity: "warning" });
           return;
         }
         importHistory(r.items);
@@ -289,9 +295,11 @@ function ImportPostmanButton() {
           creator: r.collectionName,
           count: String(r.requestCount),
         });
-        showToast(summary);
+        showToast(summary, { severity: "success" });
         if (r.warnings.length > 0) {
-          showToast(t("import.warnings", { count: String(r.warnings.length) }));
+          showToast(t("import.warnings", { count: String(r.warnings.length) }), {
+            severity: "warning",
+          });
           // eslint-disable-next-line no-console
           console.warn("HAR import warnings:", r.warnings);
         }
@@ -301,7 +309,7 @@ function ImportPostmanButton() {
       const result = useInsomnia ? parseInsomniaV4(text) : parsePostmanV2(text);
       const sourceLabel = useInsomnia ? "Insomnia" : "Postman";
       if (result.items.length === 0) {
-        showToast(t("import.empty"));
+        showToast(t("import.empty"), { severity: "warning" });
         return;
       }
       importItems(result.items, result.envVars, result.collectionName);
@@ -310,15 +318,17 @@ function ImportPostmanButton() {
         folders: String(result.folderCount),
         requests: String(result.requestCount),
       });
-      showToast(summary);
+      showToast(summary, { severity: "success" });
       if (result.warnings.length > 0) {
-        showToast(t("import.warnings", { count: String(result.warnings.length) }));
+        showToast(t("import.warnings", { count: String(result.warnings.length) }), {
+          severity: "warning",
+        });
         // eslint-disable-next-line no-console
         console.warn(`${sourceLabel} import warnings:`, result.warnings);
       }
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
-      showToast(t("import.failed", { error: msg }));
+      showToast(t("import.failed", { error: msg }), { severity: "error" });
     }
   };
 

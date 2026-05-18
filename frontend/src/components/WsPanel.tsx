@@ -195,7 +195,7 @@ export function WsPanelContainer() {
   const onConnect = () => {
     if (wsRef.current) return;
     if (!substituted) {
-      showToast(t("toast.urlEmpty"));
+      showToast(t("toast.urlEmpty"), { severity: "warning" });
       return;
     }
     setStatus("connecting");

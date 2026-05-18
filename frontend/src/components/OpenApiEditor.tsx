@@ -262,7 +262,7 @@ export function OpenApiEditorContainer() {
       const oas = await import("../lib/importers/openapi");
       const r = oas.parseOpenApi(spec.text);
       if (r.items.length === 0) {
-        showToast(t("import.empty"));
+        showToast(t("import.empty"), { severity: "warning" });
         return;
       }
       importItems(r.items, r.envVars, r.collectionName);
@@ -271,15 +271,20 @@ export function OpenApiEditorContainer() {
           name: r.collectionName,
           folders: String(r.folderCount),
           requests: String(r.requestCount),
-        })
+        }),
+        { severity: "success" }
       );
       if (r.warnings.length > 0) {
-        showToast(t("import.warnings", { count: String(r.warnings.length) }));
+        showToast(t("import.warnings", { count: String(r.warnings.length) }), {
+          severity: "warning",
+        });
         // eslint-disable-next-line no-console
         console.warn("OpenAPI convert warnings:", r.warnings);
       }
     } catch (e) {
-      showToast(t("import.failed", { error: e instanceof Error ? e.message : String(e) }));
+      showToast(t("import.failed", { error: e instanceof Error ? e.message : String(e) }), {
+        severity: "error",
+      });
     }
   };
 

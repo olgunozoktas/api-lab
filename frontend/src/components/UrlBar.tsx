@@ -249,7 +249,7 @@ export function UrlBarContainer({
     if (p.body) {
       setUi({ composerTab: "body" });
     }
-    showToast(t("curl.imported"));
+    showToast(t("curl.imported"), { severity: "success" });
     setPending(null);
   };
 
