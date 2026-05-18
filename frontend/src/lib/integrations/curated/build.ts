@@ -23,7 +23,8 @@ function curatedSnapshot(
   method: string,
   url: string,
   graphql: boolean,
-  body: CuratedEndpoint["body"]
+  body: CuratedEndpoint["body"],
+  graphqlQuery: string | undefined
 ): RequestSnapshot {
   return {
     method: graphql ? "POST" : method,
@@ -32,7 +33,7 @@ function curatedSnapshot(
     headers: [{ enabled: true, k: "", v: "" }],
     auth: { type: "none" },
     body: body && !graphql ? { mode: body.mode, text: body.text } : { mode: "none", text: "" },
-    gql: { query: "", vars: "" },
+    gql: { query: graphql ? (graphqlQuery ?? "") : "", vars: "" },
     isGraphql: graphql || undefined,
   };
 }
@@ -70,7 +71,13 @@ export function buildCuratedItems(provider: CuratedProvider): CuratedBuildResult
       kind: "request",
       name: ep.name,
       order: order++,
-      request: curatedSnapshot(ep.method, provider.baseUrl + ep.path, ep.graphql ?? false, ep.body),
+      request: curatedSnapshot(
+        ep.method,
+        provider.baseUrl + ep.path,
+        ep.graphql ?? false,
+        ep.body,
+        ep.graphqlQuery
+      ),
       ...(ep.description ? { description: ep.description } : {}),
     });
   }
