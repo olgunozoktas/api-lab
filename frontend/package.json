@@ -1,7 +1,7 @@
 {
   "name": "api-lab-frontend",
   "private": true,
-  "version": "0.11.0",
+  "version": "0.11.1",
   "description": "API Lab — native macOS Postman-style API tester (frontend)",
   "author": {
     "name": "Olgun Özoktaş",
@@ -35,9 +35,11 @@
     "@codemirror/view": "^6.42.1",
     "@radix-ui/react-context-menu": "^2.2.16",
     "@radix-ui/react-dialog": "^1.1.15",
+    "@radix-ui/react-popover": "^1.1.15",
     "@radix-ui/react-select": "^2.2.6",
     "@radix-ui/react-slot": "^1.2.4",
     "@radix-ui/react-tabs": "^1.1.13",
+    "@radix-ui/react-tooltip": "^1.2.8",
     "@stoplight/spectral-core": "^1.23.0",
     "@stoplight/spectral-parsers": "^1.0.5",
     "@stoplight/spectral-rulesets": "^1.22.2",

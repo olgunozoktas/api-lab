@@ -13,6 +13,7 @@
 import { useState } from "react";
 import { ChevronRight, ChevronDown, RefreshCw, Globe, Layers, AlertTriangle } from "lucide-react";
 import { Button } from "./ui/button";
+import { Spinner } from "./ui/spinner";
 import { useT } from "../lib/i18n/useT";
 import { formatCachedAge } from "../lib/reflectionCache";
 import type { GrpcReflectMethod, GrpcReflectService } from "../lib/bridge";
@@ -61,7 +62,7 @@ export function GrpcServicesSidebar({
   if (state.kind === "loading") {
     return (
       <div className="flex items-center gap-2 text-xs text-[var(--color-fg-muted)] py-2">
-        <RefreshCw className="w-3.5 h-3.5 animate-spin" aria-hidden />
+        <Spinner />
         {t("grpc.reflect.loading")}
       </div>
     );
