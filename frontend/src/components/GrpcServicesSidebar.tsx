@@ -14,6 +14,7 @@ import { useState } from "react";
 import { ChevronRight, ChevronDown, RefreshCw, Globe, Layers, AlertTriangle } from "lucide-react";
 import { Button } from "./ui/button";
 import { Spinner } from "./ui/spinner";
+import { EmptyState } from "./ui/empty-state";
 import { useT } from "../lib/i18n/useT";
 import { formatCachedAge } from "../lib/reflectionCache";
 import type { GrpcReflectMethod, GrpcReflectService } from "../lib/bridge";
@@ -49,13 +50,18 @@ export function GrpcServicesSidebar({
 
   if (state.kind === "idle") {
     return (
-      <div className="space-y-2">
-        <Button variant="ghost" size="sm" onClick={onLoad}>
-          <Globe className="w-3.5 h-3.5" />
-          {t("grpc.reflect.browse")}
-        </Button>
-        <p className="text-3xs text-[var(--color-fg-muted)]">{t("grpc.reflect.idleHint")}</p>
-      </div>
+      <EmptyState
+        icon={<Layers className="w-5 h-5" />}
+        title={t("grpc.reflect.idleTitle")}
+        description={t("grpc.reflect.idleHint")}
+        action={
+          <Button variant="primary" size="sm" onClick={onLoad}>
+            <Globe className="w-3.5 h-3.5" />
+            {t("grpc.reflect.browse")}
+          </Button>
+        }
+        className="py-6"
+      />
     );
   }
 

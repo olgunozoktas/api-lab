@@ -378,6 +378,12 @@ export const tr = {
   "response.statusAriaLabel": "Yanıt durumu {status} {text}",
   "response.empty.title": "İstek atmaya hazır.",
   "response.empty.shortcuts": "Gönder · Kaydet · Yeni",
+  "response.empty.lead": "Yukarıdan bir istek oluşturun ve Gönder'e basın — yanıt burada görünür.",
+  "firstRun.title": "API Lab'e hoş geldiniz",
+  "firstRun.body":
+    "Üstteki adres çubuğuna bir URL yazın ve ⌘+Enter ile gönderin. Yanıtları görselleştirebilir, koleksiyon olarak kaydedebilir ve içe/dışa aktarabilirsiniz. Rehber için ? tuşuna basın.",
+  "firstRun.cta": "Anladım",
+  "firstRun.dismiss": "Karşılama kartını kapat",
   "response.empty.recentHistory": "Yakın geçmiş",
   "response.empty.recentHistoryHint": "Tıkla → yükle · sağ tık → daha fazlası",
   "response.empty.pickHint": "Bu isteği aktif sekmeye yükle",
@@ -569,6 +575,7 @@ export const tr = {
   "grpc.tls.hint":
     "Boş bırakılırsa grpcurl sistem trust root'larını kullanır. Self-signed dev sunucuları + internal PKI + mTLS gerektiren prod servisler için doldur.",
   "grpc.reflect.browse": "Servisleri tara",
+  "grpc.reflect.idleTitle": "Henüz servis yüklenmedi",
   "grpc.reflect.idleHint":
     "Server reflection açık ise grpcurl üzerinden servisleri listeler ve metod seçince mesaj iskeleti oluşturur.",
   "grpc.reflect.loading": "Reflection alınıyor...",

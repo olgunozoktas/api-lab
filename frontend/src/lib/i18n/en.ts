@@ -378,6 +378,12 @@ export const en: Dict = {
   "response.statusAriaLabel": "Response status {status} {text}",
   "response.empty.title": "Ready to send.",
   "response.empty.shortcuts": "Send · Save · New",
+  "response.empty.lead": "Compose a request above and hit Send — the response shows up here.",
+  "firstRun.title": "Welcome to API Lab",
+  "firstRun.body":
+    "Type a URL into the address bar above and send it with ⌘+Enter. You can visualize responses, save them as collections, and import or export them. Press ? for the guide.",
+  "firstRun.cta": "Got it",
+  "firstRun.dismiss": "Dismiss the welcome card",
   "response.empty.recentHistory": "Recent history",
   "response.empty.recentHistoryHint": "Click → load · right-click → more",
   "response.empty.pickHint": "Load this request into the active tab",
@@ -570,6 +576,7 @@ export const en: Dict = {
   "grpc.tls.hint":
     "Leave blank to let grpcurl use the system trust roots. Fill these in for self-signed dev servers, internal PKIs, or services that authenticate via mTLS.",
   "grpc.reflect.browse": "Browse services",
+  "grpc.reflect.idleTitle": "No services loaded yet",
   "grpc.reflect.idleHint":
     "If server reflection is enabled, lists services via grpcurl and generates a message skeleton when you pick a method.",
   "grpc.reflect.loading": "Fetching reflection...",

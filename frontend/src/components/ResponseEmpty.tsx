@@ -10,7 +10,9 @@ import {
   ContextMenuSeparator,
   ContextMenuTrigger,
 } from "./ui/context-menu";
-import { Copy, ExternalLink, Play, Trash2 } from "lucide-react";
+import { Copy, ExternalLink, Play, Send, Trash2 } from "lucide-react";
+import { EmptyState } from "./ui/empty-state";
+import { FirstRunCardContainer } from "./FirstRunCard";
 import type { HistoryItem } from "../lib/types";
 
 const MAX_GROUPS = 8;
@@ -58,14 +60,20 @@ export function ResponseEmpty() {
 
   if (groups.length === 0) {
     return (
-      <div className="flex-1 flex items-center justify-center text-center text-[var(--color-fg-muted)] gap-2 flex-col">
-        <div>{t("response.empty.title")}</div>
-        <div className="text-2xs flex items-center gap-1.5">
-          <Kbd>⌘</Kbd>+<Kbd>Enter</Kbd>
-          <Kbd>⌘</Kbd>+<Kbd>S</Kbd>
-          <Kbd>⌘</Kbd>+<Kbd>N</Kbd>
-          <span>{t("response.empty.shortcuts")}</span>
-        </div>
+      <div className="flex-1 flex flex-col items-center justify-center gap-4">
+        <FirstRunCardContainer />
+        <EmptyState
+          icon={<Send className="w-5 h-5" />}
+          title={t("response.empty.title")}
+          description={t("response.empty.lead")}
+        >
+          <div className="text-2xs flex items-center justify-center gap-1.5 text-[var(--color-fg-muted)]">
+            <Kbd>⌘</Kbd>+<Kbd>Enter</Kbd>
+            <Kbd>⌘</Kbd>+<Kbd>S</Kbd>
+            <Kbd>⌘</Kbd>+<Kbd>N</Kbd>
+            <span>{t("response.empty.shortcuts")}</span>
+          </div>
+        </EmptyState>
       </div>
     );
   }

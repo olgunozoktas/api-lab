@@ -4,7 +4,8 @@ import { useStore } from "../store";
 import { useT } from "../lib/i18n/useT";
 import { useConfirm } from "../lib/dialogs";
 import { Button } from "./ui/button";
-import { Trash2, Eye, Pencil } from "lucide-react";
+import { EmptyState } from "./ui/empty-state";
+import { Trash2, Eye, Pencil, Bookmark } from "lucide-react";
 import { exampleToResponse } from "../lib/examples";
 import { humanSize, sizeClass, statusPillClass, statusText, timeAgo } from "../lib/utils";
 import type { Example } from "../lib/types";
@@ -22,10 +23,11 @@ export function ExamplesPanel({ examples, onView, onDelete, onRename }: Examples
 
   if (examples.length === 0) {
     return (
-      <div className="px-4 py-8 text-center">
-        <p className="text-sm text-[var(--color-fg-muted)]">{t("examples.empty.title")}</p>
-        <p className="text-xs text-[var(--color-fg-muted)] mt-2">{t("examples.empty.hint")}</p>
-      </div>
+      <EmptyState
+        icon={<Bookmark className="w-5 h-5" />}
+        title={t("examples.empty.title")}
+        description={t("examples.empty.hint")}
+      />
     );
   }
 
