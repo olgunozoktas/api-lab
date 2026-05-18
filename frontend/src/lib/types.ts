@@ -330,6 +330,10 @@ export type UiState = {
   // Launch-time GitHub-release update check. Optional + default-on:
   // `undefined` / `true` → check; only an explicit `false` opts out.
   updateCheck?: boolean;
+  // First-run onboarding card. Optional so existing persisted
+  // snapshots hydrate cleanly (`undefined` → card still shows); set to
+  // `true` once the user dismisses it, persisted via idbStorage.
+  firstRunDismissed?: boolean;
 };
 
 // Default request behaviors — surfaced in the Settings modal so power

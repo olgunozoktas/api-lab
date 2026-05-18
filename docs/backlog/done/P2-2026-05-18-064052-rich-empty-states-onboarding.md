@@ -14,17 +14,17 @@ now it doesn't guide a new user toward a first request.
 
 ## Items
 
-- [ ] Create `ui/empty-state.tsx` — a reusable template: icon slot,
+- [x] Create `ui/empty-state.tsx` — a reusable template: icon slot,
       title, description, primary CTA.
-- [ ] Upgrade `ResponseEmpty.tsx` to use it (keep its recent-history
+- [x] Upgrade `ResponseEmpty.tsx` to use it (keep its recent-history
       list — that part is good).
-- [ ] Add rich empty states to Collections (`CollectionList.tsx`),
+- [x] Add rich empty states to Collections (`CollectionList.tsx`),
       History (`HistoryList.tsx`), the gRPC services sidebar, and the
       Examples panel — each with a `lucide-react` icon + an actionable
       CTA (e.g. "Import a collection", "Send your first request").
-- [ ] Add a lightweight first-run hint card (a single dismissable
+- [x] Add a lightweight first-run hint card (a single dismissable
       card, NOT a full tour), gated on a persisted flag.
-- [ ] Route all copy through `useT` (en / tr).
+- [x] Route all copy through `useT` (en / tr).
 
 ## Acceptance
 

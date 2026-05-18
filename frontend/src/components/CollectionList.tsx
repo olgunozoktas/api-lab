@@ -7,6 +7,8 @@ import type { CollectionItem } from "../lib/types";
 import { FolderRow } from "./CollectionFolderRow";
 import { RequestRow } from "./CollectionRequestRow";
 import { SamplesRestoreCta } from "./SamplesList";
+import { EmptyState } from "./ui/empty-state";
+import { FolderPlus } from "lucide-react";
 
 // CollectionList — tree-shaped sidebar list with folders + requests.
 // Folders expand/collapse via the chevron; clicking a request loads it
@@ -83,18 +85,20 @@ export function CollectionList({ query = "" }: { query?: string }) {
 
   if (items.length === 0) {
     return (
-      <div className="px-3 py-4 text-2xs text-[var(--color-fg-muted)] leading-relaxed space-y-3">
-        <p className="text-[var(--color-fg)] font-medium text-xs">
-          {t("sidebar.empty.collections")}
-        </p>
-        <p>{t("sidebar.empty.collections.intro")}</p>
-        <ul className="space-y-1.5 list-disc pl-4">
+      <EmptyState
+        icon={<FolderPlus className="w-5 h-5" />}
+        title={t("sidebar.empty.collections")}
+        description={t("sidebar.empty.collections.intro")}
+      >
+        <ul className="space-y-1.5 list-disc pl-4 text-left text-2xs text-[var(--color-fg-muted)] leading-relaxed mx-auto max-w-xs">
           <li>{t("sidebar.empty.collections.tip1")}</li>
           <li>{t("sidebar.empty.collections.tip2")}</li>
           <li>{t("sidebar.empty.collections.tip3")}</li>
         </ul>
-        <SamplesRestoreCta />
-      </div>
+        <div className="mt-3">
+          <SamplesRestoreCta />
+        </div>
+      </EmptyState>
     );
   }
 
