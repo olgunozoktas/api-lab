@@ -347,7 +347,7 @@ function OAuthSubPanel({
           )}
         </div>
       </Row>
-      <p className="text-[10px] text-[var(--color-fg-muted)] mt-2 leading-relaxed">
+      <p className="text-3xs text-[var(--color-fg-muted)] mt-2 leading-relaxed">
         {t("auth.oauth2.helper_note")}
       </p>
     </>
@@ -373,7 +373,7 @@ function AuthTypeHint({ type }: { type: AuthType }) {
   const hintKey: TKey = `auth.hint.${type}` as TKey;
   return (
     <div
-      className="mb-3 rounded-md border border-[var(--color-border)] bg-[var(--color-bg-elev)] px-3 py-2 text-[11px] leading-relaxed text-[var(--color-fg-muted)]"
+      className="mb-3 rounded-md border border-[var(--color-border)] bg-[var(--color-bg-elev)] px-3 py-2 text-2xs leading-relaxed text-[var(--color-fg-muted)]"
       role="note"
     >
       {t(hintKey)}

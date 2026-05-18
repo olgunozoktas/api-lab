@@ -155,7 +155,7 @@ export function RequestComposer({
 
 function Badge({ children }: { children: React.ReactNode }) {
   return (
-    <span className="bg-[var(--color-accent)] text-white text-[9px] uppercase tracking-wide px-1.5 py-0.5 rounded-full ml-1">
+    <span className="bg-[var(--color-accent)] text-white text-4xs uppercase tracking-wide px-1.5 py-0.5 rounded-full ml-1">
       {children}
     </span>
   );
@@ -170,7 +170,7 @@ function Hint({ i18nKey }: { i18nKey: import("../lib/i18n").TKey }) {
   return (
     <div
       role="note"
-      className="mb-3 rounded-md border border-[var(--color-border)] bg-[var(--color-bg-elev)] px-3 py-2 text-[11px] leading-relaxed text-[var(--color-fg-muted)]"
+      className="mb-3 rounded-md border border-[var(--color-border)] bg-[var(--color-bg-elev)] px-3 py-2 text-2xs leading-relaxed text-[var(--color-fg-muted)]"
     >
       {t(i18nKey)}
     </div>

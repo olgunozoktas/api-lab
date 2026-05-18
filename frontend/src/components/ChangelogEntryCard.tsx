@@ -28,11 +28,11 @@ export function ChangelogEntryCard({ entry, unreleasedLabel, className }: Change
     >
       <header className="flex items-baseline gap-2 flex-wrap mb-2">
         {entry.status === "unreleased" ? (
-          <span className="text-[10px] uppercase tracking-wide font-semibold px-1.5 py-0.5 rounded bg-[var(--color-accent)]/15 text-[var(--color-accent)]">
+          <span className="text-3xs uppercase tracking-wide font-semibold px-1.5 py-0.5 rounded bg-[var(--color-accent)]/15 text-[var(--color-accent)]">
             {unreleasedLabel}
           </span>
         ) : entry.version ? (
-          <span className="text-[10px] uppercase tracking-wide font-semibold px-1.5 py-0.5 rounded bg-[var(--color-bg)] text-[var(--color-fg-muted)] border border-[var(--color-border)]">
+          <span className="text-3xs uppercase tracking-wide font-semibold px-1.5 py-0.5 rounded bg-[var(--color-bg)] text-[var(--color-fg-muted)] border border-[var(--color-border)]">
             {entry.version}
           </span>
         ) : null}

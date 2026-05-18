@@ -77,7 +77,7 @@ export const ContextMenuLabel = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <ContextMenuPrimitive.Label
     ref={ref}
-    className={cn("px-3 py-1 text-[10px] uppercase tracking-wider text-[var(--color-fg-muted)]", className)}
+    className={cn("px-3 py-1 text-3xs uppercase tracking-wider text-[var(--color-fg-muted)]", className)}
     {...props}
   />
 ));

@@ -55,7 +55,7 @@ export function SamplesList({
   return (
     <section className={className} aria-label={t("samples.section.title")}>
       <h3
-        className="px-3 pt-2 pb-1 text-[10px] uppercase tracking-wider font-semibold text-[var(--color-fg-muted)]"
+        className="px-3 pt-2 pb-1 text-3xs uppercase tracking-wider font-semibold text-[var(--color-fg-muted)]"
         title={t("samples.section.publicHint")}
       >
         {t("samples.section.title")}
@@ -77,7 +77,7 @@ export function SamplesList({
             >
               <Icon className="w-3.5 h-3.5 shrink-0" aria-hidden />
               <span
-                className="text-[10px] font-mono font-semibold not-italic px-1 py-0.5 rounded bg-[var(--color-bg-elev-2)] text-[var(--color-fg-muted)] shrink-0"
+                className="text-3xs font-mono font-semibold not-italic px-1 py-0.5 rounded bg-[var(--color-bg-elev-2)] text-[var(--color-fg-muted)] shrink-0"
                 aria-hidden
               >
                 {KIND_LABEL[s.kind]}
@@ -120,7 +120,7 @@ export function SamplesRestoreCta() {
     <button
       type="button"
       onClick={showAllSamples}
-      className="text-[11px] text-[var(--color-fg-muted)] hover:text-[var(--color-fg)] underline underline-offset-2"
+      className="text-2xs text-[var(--color-fg-muted)] hover:text-[var(--color-fg)] underline underline-offset-2"
     >
       ← {t("sidebar.samples.restoreCta")}
     </button>

@@ -103,7 +103,7 @@ export function HistoryList({ query = "" }: { query?: string }) {
             onClick={() => setStatusFilter(opt.value)}
             aria-pressed={active}
             className={
-              "px-1.5 py-0.5 rounded-md text-[10px] font-mono cursor-pointer transition-colors " +
+              "px-1.5 py-0.5 rounded-md text-3xs font-mono cursor-pointer transition-colors " +
               (active
                 ? "bg-[var(--color-bg-elev-2)] text-[var(--color-fg)] border border-[var(--color-border)]"
                 : "text-[var(--color-fg-muted)] hover:bg-[var(--color-bg-elev-2)] hover:text-[var(--color-fg)] border border-transparent")
@@ -118,7 +118,7 @@ export function HistoryList({ query = "" }: { query?: string }) {
 
   if (history.length === 0) {
     return (
-      <div className="flex-1 overflow-y-auto px-3 py-4 text-[11px] text-[var(--color-fg-muted)] leading-relaxed space-y-3">
+      <div className="flex-1 overflow-y-auto px-3 py-4 text-2xs text-[var(--color-fg-muted)] leading-relaxed space-y-3">
         <p className="text-[var(--color-fg)] font-medium text-xs">{t("sidebar.empty.history")}</p>
         <p>{t("sidebar.empty.history.intro")}</p>
         <ul className="space-y-1.5 list-disc pl-4">
@@ -135,7 +135,7 @@ export function HistoryList({ query = "" }: { query?: string }) {
       <div className="flex flex-col h-full min-h-0">
         {pills}
         <div className="flex-1 overflow-y-auto px-1.5 pb-3">
-          <div className="text-center text-[11px] text-[var(--color-fg-muted)] py-3">
+          <div className="text-center text-2xs text-[var(--color-fg-muted)] py-3">
             {t("collections.search.empty")}
           </div>
         </div>
@@ -167,7 +167,7 @@ export function HistoryList({ query = "" }: { query?: string }) {
                 >
                   <span
                     className={
-                      "font-mono font-bold w-9 flex-shrink-0 text-[10px] " +
+                      "font-mono font-bold w-9 flex-shrink-0 text-3xs " +
                       methodClass(h.request.method)
                     }
                   >
@@ -176,7 +176,7 @@ export function HistoryList({ query = "" }: { query?: string }) {
                   <span className="flex-1 truncate">{h.request.url || "—"}</span>
                   {hasTs && (
                     <span
-                      className="font-mono text-[10px] text-[var(--color-fg-muted)] flex-shrink-0 cursor-help"
+                      className="font-mono text-3xs text-[var(--color-fg-muted)] flex-shrink-0 cursor-help"
                       title={tsTitle}
                     >
                       {timeAgo(h.ts)}
@@ -185,7 +185,7 @@ export function HistoryList({ query = "" }: { query?: string }) {
                   {hasTiming && (
                     <span
                       className={
-                        "font-mono text-[10px] flex-shrink-0 cursor-help " + timingClass(elapsed)
+                        "font-mono text-3xs flex-shrink-0 cursor-help " + timingClass(elapsed)
                       }
                       title={timingTitle}
                     >
@@ -194,7 +194,7 @@ export function HistoryList({ query = "" }: { query?: string }) {
                   )}
                   <span
                     className={
-                      "font-mono text-[10px] font-bold px-1.5 py-0.5 rounded flex-shrink-0 " +
+                      "font-mono text-3xs font-bold px-1.5 py-0.5 rounded flex-shrink-0 " +
                       statusPillClass(status)
                     }
                     title={statusFullText || undefined}

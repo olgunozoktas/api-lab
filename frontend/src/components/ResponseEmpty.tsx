@@ -60,7 +60,7 @@ export function ResponseEmpty() {
     return (
       <div className="flex-1 flex items-center justify-center text-center text-[var(--color-fg-muted)] gap-2 flex-col">
         <div>{t("response.empty.title")}</div>
-        <div className="text-[11px] flex items-center gap-1.5">
+        <div className="text-2xs flex items-center gap-1.5">
           <Kbd>⌘</Kbd>+<Kbd>Enter</Kbd>
           <Kbd>⌘</Kbd>+<Kbd>S</Kbd>
           <Kbd>⌘</Kbd>+<Kbd>N</Kbd>
@@ -75,7 +75,7 @@ export function ResponseEmpty() {
       <div className="max-w-2xl mx-auto space-y-5">
         <header className="text-center text-[var(--color-fg-muted)]">
           <div className="text-sm">{t("response.empty.title")}</div>
-          <div className="text-[11px] flex items-center justify-center gap-1.5 mt-1">
+          <div className="text-2xs flex items-center justify-center gap-1.5 mt-1">
             <Kbd>⌘</Kbd>+<Kbd>Enter</Kbd>
             <Kbd>⌘</Kbd>+<Kbd>S</Kbd>
             <Kbd>⌘</Kbd>+<Kbd>N</Kbd>
@@ -88,7 +88,7 @@ export function ResponseEmpty() {
             <h3 className="text-xs font-semibold text-[var(--color-fg)]">
               {t("response.empty.recentHistory")}
             </h3>
-            <span className="text-[10px] text-[var(--color-fg-muted)]">
+            <span className="text-3xs text-[var(--color-fg-muted)]">
               {t("response.empty.recentHistoryHint")}
             </span>
           </div>
@@ -154,30 +154,30 @@ function RecentRow({
       className="w-full text-left flex items-center gap-2.5 px-3 py-2 rounded-md border border-[var(--color-border)] bg-[var(--color-bg-elev)] hover:bg-[var(--color-bg-elev-2)] hover:border-[var(--color-accent)]/40 transition-colors"
     >
       <span
-        className={`text-[10px] font-mono font-semibold uppercase tracking-wide w-10 shrink-0 ${methodClass(h.request.method)}`}
+        className={`text-3xs font-mono font-semibold uppercase tracking-wide w-10 shrink-0 ${methodClass(h.request.method)}`}
       >
         {h.request.method}
       </span>
       <span
-        className={`text-[10px] font-mono font-semibold px-1.5 py-0.5 rounded shrink-0 ${statusPillClass(status)}`}
+        className={`text-3xs font-mono font-semibold px-1.5 py-0.5 rounded shrink-0 ${statusPillClass(status)}`}
       >
         {status || "—"}
       </span>
       <span className="flex-1 truncate font-mono text-xs text-[var(--color-fg)]">
         {h.request.url || "—"}
       </span>
-      <span className="hidden sm:inline text-[10px] text-[var(--color-fg-muted)] tabular-nums shrink-0">
+      <span className="hidden sm:inline text-3xs text-[var(--color-fg-muted)] tabular-nums shrink-0">
         {humanSize(h.response.sizeBytes)}
       </span>
-      <span className="text-[10px] text-[var(--color-fg-muted)] tabular-nums shrink-0 w-12 text-right">
+      <span className="text-3xs text-[var(--color-fg-muted)] tabular-nums shrink-0 w-12 text-right">
         {Math.round(h.response.elapsedMs)}ms
       </span>
-      <span className="text-[10px] text-[var(--color-fg-muted)] tabular-nums shrink-0 w-9 text-right">
+      <span className="text-3xs text-[var(--color-fg-muted)] tabular-nums shrink-0 w-9 text-right">
         {timeAgo(h.ts)}
       </span>
       {group.count > 1 && (
         <span
-          className="text-[10px] font-mono font-semibold px-1.5 py-0.5 rounded shrink-0 bg-[var(--color-bg-elev-2)] text-[var(--color-fg-muted)]"
+          className="text-3xs font-mono font-semibold px-1.5 py-0.5 rounded shrink-0 bg-[var(--color-bg-elev-2)] text-[var(--color-fg-muted)]"
           aria-label={countLabel}
           title={countLabel}
         >
@@ -190,7 +190,7 @@ function RecentRow({
 
 function Kbd({ children }: { children: React.ReactNode }) {
   return (
-    <kbd className="bg-[var(--color-bg-elev-2)] border border-[var(--color-border)] rounded px-1.5 py-0.5 font-mono text-[11px]">
+    <kbd className="bg-[var(--color-bg-elev-2)] border border-[var(--color-border)] rounded px-1.5 py-0.5 font-mono text-2xs">
       {children}
     </kbd>
   );

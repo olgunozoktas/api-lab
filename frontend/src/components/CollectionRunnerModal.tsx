@@ -156,7 +156,7 @@ export function CollectionRunnerModal({
                       disabled={phase === "running"}
                       onClick={() => setMode(m)}
                       className={
-                        "px-2.5 py-1 text-[11px] " +
+                        "px-2.5 py-1 text-2xs " +
                         (mode === m
                           ? "bg-[var(--color-accent)] text-white"
                           : "bg-[var(--color-bg-elev-2)] text-[var(--color-fg-muted)]")
@@ -170,10 +170,10 @@ export function CollectionRunnerModal({
 
               <div className="flex flex-col gap-1.5">
                 <div className="flex items-center gap-2">
-                  <span className="text-[11px] font-medium text-[var(--color-fg-muted)]">
+                  <span className="text-2xs font-medium text-[var(--color-fg-muted)]">
                     {t("runner.data.label")}
                   </span>
-                  <label className="text-[11px] px-2 py-0.5 rounded bg-[var(--color-bg-elev-2)] cursor-pointer hover:bg-[var(--color-bg-elev)]">
+                  <label className="text-2xs px-2 py-0.5 rounded bg-[var(--color-bg-elev-2)] cursor-pointer hover:bg-[var(--color-bg-elev)]">
                     {t("runner.data.pick")}
                     <input
                       type="file"
@@ -183,7 +183,7 @@ export function CollectionRunnerModal({
                     />
                   </label>
                   {parsed.length > 0 && (
-                    <span className="text-[10px] font-mono text-[var(--color-success)]">
+                    <span className="text-3xs font-mono text-[var(--color-success)]">
                       {t("runner.data.rows", { n: String(parsed.length) })}
                     </span>
                   )}
@@ -194,10 +194,10 @@ export function CollectionRunnerModal({
                   disabled={phase === "running"}
                   placeholder={t("runner.data.placeholder")}
                   rows={3}
-                  className="w-full bg-[var(--color-bg-elev-2)] border border-[var(--color-border)] rounded-md px-2 py-1.5 text-[11px] font-mono outline-none focus:border-[var(--color-accent)] resize-none"
+                  className="w-full bg-[var(--color-bg-elev-2)] border border-[var(--color-border)] rounded-md px-2 py-1.5 text-2xs font-mono outline-none focus:border-[var(--color-accent)] resize-none"
                 />
                 {dataError && (
-                  <span className="text-[10px] text-[var(--color-danger)]">
+                  <span className="text-3xs text-[var(--color-danger)]">
                     {t("runner.data.parseError", { msg: dataError })}
                   </span>
                 )}

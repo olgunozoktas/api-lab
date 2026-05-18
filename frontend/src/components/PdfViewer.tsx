@@ -82,14 +82,14 @@ export default function PdfViewer({ bytes }: PdfViewerProps) {
 
   if (status === "loading") {
     return (
-      <div className="flex-1 flex items-center justify-center text-[11px] text-[var(--color-fg-muted)]">
+      <div className="flex-1 flex items-center justify-center text-2xs text-[var(--color-fg-muted)]">
         {t("response.binary.pdf.loading")}
       </div>
     );
   }
   if (status === "error" || !doc) {
     return (
-      <div className="flex-1 flex items-center justify-center text-[11px] text-[var(--color-fg-muted)]">
+      <div className="flex-1 flex items-center justify-center text-2xs text-[var(--color-fg-muted)]">
         {t("response.binary.pdf.error")}
       </div>
     );
@@ -98,7 +98,7 @@ export default function PdfViewer({ bytes }: PdfViewerProps) {
   const total = doc.numPages;
   return (
     <div className="flex-1 overflow-auto p-3 flex flex-col items-center gap-2">
-      <div className="flex items-center gap-3 text-[11px] text-[var(--color-fg)]">
+      <div className="flex items-center gap-3 text-2xs text-[var(--color-fg)]">
         <button
           type="button"
           disabled={page <= 1}

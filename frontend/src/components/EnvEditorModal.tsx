@@ -45,10 +45,10 @@ export function EnvEditorModal({ open, onOpenChange }: Props) {
           <DialogTitle>{t("env.modal.title")}</DialogTitle>
         </DialogHeader>
         <div className="rounded-md border border-[var(--color-border)] bg-[var(--color-bg-elev)] px-3 py-2.5 mb-3 space-y-1">
-          <p className="text-[11px] leading-relaxed text-[var(--color-fg-muted)]">
+          <p className="text-2xs leading-relaxed text-[var(--color-fg-muted)]">
             {t("env.modal.hint")}
           </p>
-          <p className="text-[10px] font-mono text-[var(--color-fg-muted)]">
+          <p className="text-3xs font-mono text-[var(--color-fg-muted)]">
             <span className="text-[var(--color-accent)]">{`{{base_url}}`}</span>
             /users/{`{{user_id}}`}
           </p>
@@ -116,14 +116,14 @@ function EnvRow({ env, isActive, onUpdate, onRemove }: RowProps) {
           }
         />
         <span
-          className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-[var(--color-bg-elev)] text-[var(--color-fg-muted)] shrink-0"
+          className="text-3xs font-mono px-1.5 py-0.5 rounded bg-[var(--color-bg-elev)] text-[var(--color-fg-muted)] shrink-0"
           aria-label={t("env.varCount", { n: String(varCount) })}
           title={t("env.varCount", { n: String(varCount) })}
         >
           {t("env.varCountShort", { n: String(varCount) })}
         </span>
         {isActive && (
-          <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-[var(--color-accent)]/15 text-[var(--color-accent)] shrink-0">
+          <span className="text-3xs font-semibold px-1.5 py-0.5 rounded bg-[var(--color-accent)]/15 text-[var(--color-accent)] shrink-0">
             {t("env.activeBadge")}
           </span>
         )}

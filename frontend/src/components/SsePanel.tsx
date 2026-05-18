@@ -116,14 +116,14 @@ function MessageRow({ m }: { m: SseMessage }) {
   return (
     <div className="flex gap-2 text-xs">
       <Icon className={cn("w-3 h-3 mt-0.5 shrink-0", tone)} aria-hidden />
-      <span className="font-mono text-[10px] text-[var(--color-fg-muted)] mt-0.5 shrink-0 tabular-nums">
+      <span className="font-mono text-3xs text-[var(--color-fg-muted)] mt-0.5 shrink-0 tabular-nums">
         {time}
       </span>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-1.5 mb-0.5">
           {m.direction === "received" && (
             <span
-              className="text-[9px] uppercase tracking-wider px-1.5 py-px rounded bg-[var(--color-bg-elev-2)] text-[var(--color-fg-muted)]"
+              className="text-4xs uppercase tracking-wider px-1.5 py-px rounded bg-[var(--color-bg-elev-2)] text-[var(--color-fg-muted)]"
               title={t("sse.event.title")}
             >
               {m.eventName}
@@ -131,7 +131,7 @@ function MessageRow({ m }: { m: SseMessage }) {
           )}
           {m.isJson && (
             <span
-              className="text-[9px] uppercase tracking-wider text-[var(--color-fg-muted)]"
+              className="text-4xs uppercase tracking-wider text-[var(--color-fg-muted)]"
               title={t("sse.msg.json")}
             >
               JSON
@@ -139,7 +139,7 @@ function MessageRow({ m }: { m: SseMessage }) {
           )}
           {m.lastEventId && (
             <span
-              className="text-[9px] font-mono text-[var(--color-fg-muted)]"
+              className="text-4xs font-mono text-[var(--color-fg-muted)]"
               title={t("sse.lastEventId.title")}
             >
               id={m.lastEventId}

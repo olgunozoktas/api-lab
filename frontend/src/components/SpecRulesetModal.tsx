@@ -52,7 +52,7 @@ export function SpecRulesetModal({ open, onOpenChange, ruleset, onSave }: SpecRu
           <DialogTitle className="text-base">{t("spec.lint.ruleset.title")}</DialogTitle>
         </DialogHeader>
 
-        <div className="px-5 py-3 shrink-0 text-[11px] text-[var(--color-fg-muted)] leading-relaxed border-b border-[var(--color-border)]">
+        <div className="px-5 py-3 shrink-0 text-2xs text-[var(--color-fg-muted)] leading-relaxed border-b border-[var(--color-border)]">
           {t("spec.lint.ruleset.hint")}
         </div>
 
@@ -73,9 +73,7 @@ export function SpecRulesetModal({ open, onOpenChange, ruleset, onSave }: SpecRu
           <Button size="sm" variant="ghost" onClick={() => onOpenChange(false)}>
             {t("dialog.cancel")}
           </Button>
-          {error && (
-            <span className="text-[11px] text-[var(--color-danger)] truncate">{error}</span>
-          )}
+          {error && <span className="text-2xs text-[var(--color-danger)] truncate">{error}</span>}
         </div>
       </DialogContent>
     </Dialog>

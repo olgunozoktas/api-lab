@@ -156,7 +156,7 @@ export function UrlBar({
       </div>
       {showResolved && (
         <div
-          className="px-3 pb-2 -mt-0.5 font-mono text-[10px] text-[var(--color-fg-muted)] truncate"
+          className="px-3 pb-2 -mt-0.5 font-mono text-3xs text-[var(--color-fg-muted)] truncate"
           title={
             someUnresolved ? `${resolvedUrl}\n\n${t("composer.url.unresolvedHint")}` : resolvedUrl
           }

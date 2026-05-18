@@ -76,7 +76,7 @@ export function ResponseViewer({
 
 function Badge({ n }: { n: number }) {
   return (
-    <span className="bg-[var(--color-accent)] text-white text-[9px] px-1.5 py-0.5 rounded-full ml-1">
+    <span className="bg-[var(--color-accent)] text-white text-4xs px-1.5 py-0.5 rounded-full ml-1">
       {n}
     </span>
   );

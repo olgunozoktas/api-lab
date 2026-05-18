@@ -38,7 +38,7 @@ function ElemRow({ elem, depth }: { elem: XmlElem; depth: number }) {
   return (
     <div>
       <div
-        className="flex items-start gap-1 font-mono text-[11px] py-0.5 hover:bg-[var(--color-bg-elev-2)]"
+        className="flex items-start gap-1 font-mono text-2xs py-0.5 hover:bg-[var(--color-bg-elev-2)]"
         style={{ paddingLeft: depth * 14 + 8 }}
       >
         {hasKids ? (
@@ -86,7 +86,7 @@ export function XmlTreeView({ body }: XmlTreeViewProps) {
 
   if (!root) {
     return (
-      <div className="flex-1 overflow-auto p-3 text-[12px] text-[var(--color-danger)]">
+      <div className="flex-1 overflow-auto p-3 text-xs text-[var(--color-danger)]">
         {t("response.xml.invalid")}
       </div>
     );

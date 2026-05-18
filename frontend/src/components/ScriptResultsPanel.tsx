@@ -11,10 +11,10 @@ import type { ScriptAssert, ScriptOutcome } from "../lib/types";
 
 function AssertRow({ assert }: { assert: ScriptAssert }) {
   return (
-    <div className="px-3 py-1.5 flex items-start gap-2 text-[12px] border-b border-[var(--color-border)]">
+    <div className="px-3 py-1.5 flex items-start gap-2 text-xs border-b border-[var(--color-border)]">
       <span
         className={cn(
-          "font-mono font-semibold text-[10px] pt-0.5 shrink-0 w-9",
+          "font-mono font-semibold text-3xs pt-0.5 shrink-0 w-9",
           assert.passed ? "text-[var(--color-success)]" : "text-[var(--color-danger)]"
         )}
       >
@@ -23,7 +23,7 @@ function AssertRow({ assert }: { assert: ScriptAssert }) {
       <span className="min-w-0">
         <span className="text-[var(--color-fg)]">{assert.name}</span>
         {!assert.passed && assert.error ? (
-          <span className="block text-[11px] text-[var(--color-danger)] font-mono mt-0.5">
+          <span className="block text-2xs text-[var(--color-danger)] font-mono mt-0.5">
             {assert.error}
           </span>
         ) : null}
@@ -46,13 +46,13 @@ export function ScriptTestsPanel({ pre, post }: ScriptTestsPanelProps) {
   const scriptError = pre?.error || post?.error;
   if (asserts.length === 0 && !scriptError) {
     return (
-      <div className="p-3 text-[12px] text-[var(--color-fg-muted)]">{t("scripts.tests.empty")}</div>
+      <div className="p-3 text-xs text-[var(--color-fg-muted)]">{t("scripts.tests.empty")}</div>
     );
   }
   return (
     <div className="flex-1 min-h-0 overflow-y-auto">
       {scriptError ? (
-        <div className="px-3 py-2 text-[11px] font-mono text-[var(--color-danger)] border-b border-[var(--color-border)]">
+        <div className="px-3 py-2 text-2xs font-mono text-[var(--color-danger)] border-b border-[var(--color-border)]">
           {scriptError}
         </div>
       ) : null}
@@ -80,13 +80,11 @@ export function ScriptConsolePanel({ pre, post }: ScriptConsolePanelProps) {
   const lines = [...(pre?.console_log ?? []), ...(post?.console_log ?? [])];
   if (lines.length === 0) {
     return (
-      <div className="p-3 text-[12px] text-[var(--color-fg-muted)]">
-        {t("scripts.console.empty")}
-      </div>
+      <div className="p-3 text-xs text-[var(--color-fg-muted)]">{t("scripts.console.empty")}</div>
     );
   }
   return (
-    <div className="flex-1 min-h-0 overflow-y-auto p-2 font-mono text-[11px] leading-relaxed">
+    <div className="flex-1 min-h-0 overflow-y-auto p-2 font-mono text-2xs leading-relaxed">
       {lines.map((line, i) => (
         <div
           key={i}

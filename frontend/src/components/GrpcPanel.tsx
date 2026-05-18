@@ -148,7 +148,7 @@ export function GrpcPanel(p: GrpcPanelProps) {
                 className="w-full bg-[var(--color-bg-elev)] border border-[var(--color-border)] rounded px-2 py-1 font-mono text-xs outline-none focus:border-[var(--color-accent)] disabled:opacity-50"
               />
             </label>
-            <p className="text-[10px] text-[var(--color-fg-muted)] flex gap-1.5 items-start">
+            <p className="text-3xs text-[var(--color-fg-muted)] flex gap-1.5 items-start">
               <Info className="w-3 h-3 mt-0.5 shrink-0" aria-hidden />
               {t("grpc.proto.hint")}
             </p>
@@ -162,7 +162,7 @@ export function GrpcPanel(p: GrpcPanelProps) {
             </div>
           </TabsContent>
           <TabsContent value="tls" className="p-3 space-y-3 overflow-auto">
-            <p className="text-[10px] text-[var(--color-fg-muted)] flex gap-1.5 items-start">
+            <p className="text-3xs text-[var(--color-fg-muted)] flex gap-1.5 items-start">
               <Info className="w-3 h-3 mt-0.5 shrink-0" aria-hidden />
               {t("grpc.tls.hint")}
             </p>
@@ -216,7 +216,7 @@ export function GrpcPanel(p: GrpcPanelProps) {
                 minHeight={96}
               />
             </label>
-            <p className="text-[10px] text-[var(--color-warning)] flex gap-1.5 items-start">
+            <p className="text-3xs text-[var(--color-warning)] flex gap-1.5 items-start">
               <ShieldAlert className="w-3 h-3 mt-0.5 shrink-0" aria-hidden />
               {t("grpc.tls.security.warning")}
             </p>

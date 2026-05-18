@@ -171,7 +171,7 @@ function TransportChip({ transport }: { transport: "native" | "fetch" }) {
   return (
     <span
       className={
-        "inline-flex items-center gap-1 text-[10px] font-mono px-1.5 py-0.5 rounded cursor-help " +
+        "inline-flex items-center gap-1 text-3xs font-mono px-1.5 py-0.5 rounded cursor-help " +
         (isNative
           ? "bg-green-500/15 text-[var(--color-success)]"
           : "bg-[var(--color-bg-elev-2)] text-[var(--color-fg-muted)]")

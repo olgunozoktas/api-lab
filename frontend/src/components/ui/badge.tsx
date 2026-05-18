@@ -17,7 +17,7 @@ const badgeVariants = cva(
         info: "bg-sky-500/15 text-sky-500",
       },
       size: {
-        sm: "px-1.5 py-0.5 text-[10px]",
+        sm: "px-1.5 py-0.5 text-3xs",
         md: "px-2 py-0.5 text-xs",
       },
     },

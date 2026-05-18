@@ -48,7 +48,7 @@ export function CollectionRunProgress({ results, iterationCount }: CollectionRun
             >
               <span
                 className={
-                  "font-mono text-[10px] font-semibold px-1.5 py-0.5 rounded shrink-0 w-16 text-center " +
+                  "font-mono text-3xs font-semibold px-1.5 py-0.5 rounded shrink-0 w-16 text-center " +
                   pillClass(r.status)
                 }
               >
@@ -56,14 +56,14 @@ export function CollectionRunProgress({ results, iterationCount }: CollectionRun
               </span>
               <span className="flex-1 truncate">{r.name}</span>
               {iterationCount > 1 && (
-                <span className="font-mono text-[10px] text-[var(--color-fg-muted)] shrink-0">
+                <span className="font-mono text-3xs text-[var(--color-fg-muted)] shrink-0">
                   {t("runner.iteration", { n: String(r.iteration + 1) })}
                 </span>
               )}
               {total > 0 && (
                 <span
                   className={
-                    "font-mono text-[10px] shrink-0 " +
+                    "font-mono text-3xs shrink-0 " +
                     (failed > 0 ? "text-[var(--color-danger)]" : "text-[var(--color-fg-muted)]")
                   }
                 >
@@ -74,7 +74,7 @@ export function CollectionRunProgress({ results, iterationCount }: CollectionRun
                 </span>
               )}
               {(r.status === "pass" || r.status === "fail" || r.status === "error") && (
-                <span className="font-mono text-[10px] text-[var(--color-fg-muted)] shrink-0 tabular-nums">
+                <span className="font-mono text-3xs text-[var(--color-fg-muted)] shrink-0 tabular-nums">
                   {r.durationMs}ms
                 </span>
               )}

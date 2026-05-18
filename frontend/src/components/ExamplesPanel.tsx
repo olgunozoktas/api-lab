@@ -70,13 +70,13 @@ function ExampleRow({
     <div className="px-3 py-2 flex items-center gap-2 hover:bg-[var(--color-bg-elev)]">
       <span
         className={
-          "font-mono font-bold text-[10px] px-1.5 py-0.5 rounded-full " + statusPillClass(ex.status)
+          "font-mono font-bold text-3xs px-1.5 py-0.5 rounded-full " + statusPillClass(ex.status)
         }
         title={ex.status > 0 ? `${ex.status} ${statusText(ex.status)}`.trim() : undefined}
       >
         {ex.status}
       </span>
-      <span className="font-mono text-[10px] text-[var(--color-fg-muted)] uppercase w-12">
+      <span className="font-mono text-3xs text-[var(--color-fg-muted)] uppercase w-12">
         {ex.method}
       </span>
       {editing ? (
@@ -107,13 +107,13 @@ function ExampleRow({
       )}
       {ex.savedAt > 0 && (
         <span
-          className="font-mono text-[10px] text-[var(--color-fg-muted)] cursor-help"
+          className="font-mono text-3xs text-[var(--color-fg-muted)] cursor-help"
           title={new Date(ex.savedAt).toLocaleString()}
         >
           {timeAgo(ex.savedAt)}
         </span>
       )}
-      <span className={"font-mono text-[10px] " + sizeClass(ex.body.length)}>
+      <span className={"font-mono text-3xs " + sizeClass(ex.body.length)}>
         {humanSize(ex.body.length)}
       </span>
       <Button

@@ -14,7 +14,7 @@ function Stat({ label, value, tone }: { label: string; value: string; tone: stri
   return (
     <div className="flex flex-col gap-0.5 px-3 py-2 rounded-md bg-[var(--color-bg-elev)]">
       <span className={"text-lg font-semibold tabular-nums " + tone}>{value}</span>
-      <span className="text-[10px] text-[var(--color-fg-muted)]">{label}</span>
+      <span className="text-3xs text-[var(--color-fg-muted)]">{label}</span>
     </div>
   );
 }
@@ -61,7 +61,7 @@ export function CollectionRunSummary({ summary, wallMs }: CollectionRunSummaryPr
       </div>
 
       <div className="flex flex-col gap-1.5">
-        <span className="text-[11px] font-medium text-[var(--color-fg-muted)]">
+        <span className="text-2xs font-medium text-[var(--color-fg-muted)]">
           {t("runner.summary.histogram")}
         </span>
         {summary.perRequest.map((p) => (
@@ -73,7 +73,7 @@ export function CollectionRunSummary({ summary, wallMs }: CollectionRunSummaryPr
                 style={{ width: `${Math.max(2, (p.avgMs / maxAvg) * 100)}%` }}
               />
             </div>
-            <span className="font-mono text-[10px] text-[var(--color-fg-muted)] w-14 text-right tabular-nums shrink-0">
+            <span className="font-mono text-3xs text-[var(--color-fg-muted)] w-14 text-right tabular-nums shrink-0">
               {p.avgMs}ms
             </span>
           </div>

@@ -88,7 +88,7 @@ export function TopBar() {
           <button
             type="button"
             onClick={() => setChangelogOpen(true)}
-            className="text-[10px] font-mono font-normal px-1.5 py-0.5 rounded bg-[var(--color-bg-elev-2)] text-[var(--color-fg-muted)] hover:bg-[var(--color-bg-elev)] hover:text-[var(--color-fg)] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-accent)] transition-colors cursor-pointer"
+            className="text-3xs font-mono font-normal px-1.5 py-0.5 rounded bg-[var(--color-bg-elev-2)] text-[var(--color-fg-muted)] hover:bg-[var(--color-bg-elev)] hover:text-[var(--color-fg)] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-accent)] transition-colors cursor-pointer"
             title={(() => {
               const built = formatBuildDate();
               const hint = t("topbar.version.clickHint");
@@ -106,7 +106,7 @@ export function TopBar() {
               href={update.url}
               target="_blank"
               rel="noreferrer"
-              className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-[var(--color-accent)] text-white hover:opacity-90 transition-opacity inline-flex items-center gap-1 no-underline"
+              className="text-3xs font-medium px-1.5 py-0.5 rounded bg-[var(--color-accent)] text-white hover:opacity-90 transition-opacity inline-flex items-center gap-1 no-underline"
               title={t("topbar.updateAvailable", { version: update.latestVersion })}
             >
               <Download className="w-3 h-3" />
@@ -135,7 +135,7 @@ export function TopBar() {
                     <span className="inline-flex items-center gap-2">
                       <span>{e.name}</span>
                       <span
-                        className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-[var(--color-bg-elev-2)] text-[var(--color-fg-muted)]"
+                        className="text-3xs font-mono px-1.5 py-0.5 rounded bg-[var(--color-bg-elev-2)] text-[var(--color-fg-muted)]"
                         aria-label={t("env.varCount", { n: String(count) })}
                       >
                         {t("env.varCountShort", { n: String(count) })}
@@ -231,13 +231,13 @@ function SingleEnvBadge() {
   const count = Object.keys(active.vars).length;
   return (
     <span
-      className="inline-flex items-center gap-1.5 text-[11px] text-[var(--color-fg-muted)] px-2 py-1 rounded bg-[var(--color-bg-elev-2)]"
+      className="inline-flex items-center gap-1.5 text-2xs text-[var(--color-fg-muted)] px-2 py-1 rounded bg-[var(--color-bg-elev-2)]"
       aria-label={t("topbar.activeEnv", { name: active.name })}
       title={t("topbar.activeEnv", { name: active.name })}
     >
       <span>{active.name}</span>
       <span
-        className="text-[10px] font-mono px-1 py-0 rounded bg-[var(--color-bg)] text-[var(--color-fg-muted)]"
+        className="text-3xs font-mono px-1 py-0 rounded bg-[var(--color-bg)] text-[var(--color-fg-muted)]"
         aria-label={t("env.varCount", { n: String(count) })}
       >
         {t("env.varCountShort", { n: String(count) })}

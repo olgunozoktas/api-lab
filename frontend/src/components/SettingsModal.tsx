@@ -251,7 +251,7 @@ function AboutCard({ onClose }: { onClose: () => void }) {
         <span className="w-3 h-3 rounded-[3px] bg-gradient-to-br from-[var(--color-accent)] to-[var(--color-purple)]" />
         <span className="font-semibold text-sm">{t("settings.about.name")}</span>
         <span
-          className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-[var(--color-bg-elev-2)] text-[var(--color-fg-muted)]"
+          className="text-3xs font-mono px-1.5 py-0.5 rounded bg-[var(--color-bg-elev-2)] text-[var(--color-fg-muted)]"
           aria-label={t("settings.about.versionAria", { version: APP_VERSION })}
         >
           v{APP_VERSION}
@@ -260,7 +260,7 @@ function AboutCard({ onClose }: { onClose: () => void }) {
       <p className="text-xs leading-relaxed text-[var(--color-fg-muted)]">
         {t("settings.about.tagline")}
       </p>
-      <dl className="text-[11px] grid grid-cols-[max-content_1fr] gap-x-3 gap-y-1">
+      <dl className="text-2xs grid grid-cols-[max-content_1fr] gap-x-3 gap-y-1">
         <dt className="text-[var(--color-fg-muted)]">{t("settings.about.platform")}</dt>
         <dd className="font-mono">macOS</dd>
         <dt className="text-[var(--color-fg-muted)]">{t("settings.about.shell")}</dt>
@@ -277,7 +277,7 @@ function AboutCard({ onClose }: { onClose: () => void }) {
         )}
       </dl>
       <div>
-        <p className="text-[10px] uppercase tracking-wide font-semibold text-[var(--color-fg-muted)] mb-1.5">
+        <p className="text-3xs uppercase tracking-wide font-semibold text-[var(--color-fg-muted)] mb-1.5">
           {t("settings.about.yourData")}
         </p>
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
@@ -305,7 +305,7 @@ function AboutCard({ onClose }: { onClose: () => void }) {
           href="https://github.com/olgunozoktas/api-lab"
           target="_blank"
           rel="noreferrer"
-          className="inline-flex items-center gap-1.5 px-2 py-1 rounded border border-[var(--color-border)] text-[11px] hover:bg-[var(--color-bg-elev-2)] hover:text-[var(--color-fg)] text-[var(--color-fg-muted)]"
+          className="inline-flex items-center gap-1.5 px-2 py-1 rounded border border-[var(--color-border)] text-2xs hover:bg-[var(--color-bg-elev-2)] hover:text-[var(--color-fg)] text-[var(--color-fg-muted)]"
         >
           {t("settings.about.repo")}
           <ExternalLink className="w-2.5 h-2.5 opacity-60" aria-hidden />
@@ -328,7 +328,7 @@ function AboutLink({
     <button
       type="button"
       onClick={onClick}
-      className="inline-flex items-center gap-1.5 px-2 py-1 rounded border border-[var(--color-border)] text-[11px] hover:bg-[var(--color-bg-elev-2)] hover:text-[var(--color-fg)] text-[var(--color-fg-muted)]"
+      className="inline-flex items-center gap-1.5 px-2 py-1 rounded border border-[var(--color-border)] text-2xs hover:bg-[var(--color-bg-elev-2)] hover:text-[var(--color-fg)] text-[var(--color-fg-muted)]"
     >
       {icon}
       {children}
@@ -357,11 +357,11 @@ function ResetDefaultsRow({
   if (!dirty) return null;
   return (
     <div className="pt-2 mt-1 border-t border-[var(--color-border)] flex items-center justify-between gap-3">
-      <p className="text-[11px] text-[var(--color-fg-muted)]">{t("settings.defaults.dirtyHint")}</p>
+      <p className="text-2xs text-[var(--color-fg-muted)]">{t("settings.defaults.dirtyHint")}</p>
       <button
         type="button"
         onClick={onReset}
-        className="text-[11px] px-2 py-1 rounded border border-[var(--color-border)] text-[var(--color-fg)] hover:bg-[var(--color-bg-elev-2)]"
+        className="text-2xs px-2 py-1 rounded border border-[var(--color-border)] text-[var(--color-fg)] hover:bg-[var(--color-bg-elev-2)]"
       >
         {t("settings.defaults.reset")}
       </button>
@@ -376,7 +376,7 @@ function StatTile({ label, value }: { label: string; value: number }) {
   return (
     <div className="rounded border border-[var(--color-border)] bg-[var(--color-bg)] px-2 py-1.5 text-center">
       <div className="text-sm font-mono tabular-nums text-[var(--color-fg)]">{value}</div>
-      <div className="text-[10px] text-[var(--color-fg-muted)] mt-0.5">{label}</div>
+      <div className="text-3xs text-[var(--color-fg-muted)] mt-0.5">{label}</div>
     </div>
   );
 }
@@ -405,7 +405,7 @@ function Field({
           <span>{children}</span>
         </label>
         {hint && (
-          <p className="text-[11px] text-[var(--color-fg-muted)] leading-relaxed mt-1">{hint}</p>
+          <p className="text-2xs text-[var(--color-fg-muted)] leading-relaxed mt-1">{hint}</p>
         )}
       </div>
     );
@@ -415,9 +415,7 @@ function Field({
       <span className="text-xs text-[var(--color-fg-muted)]">{label}</span>
       <span className="block">{children}</span>
       {hint && (
-        <span className="block text-[11px] text-[var(--color-fg-muted)] leading-relaxed">
-          {hint}
-        </span>
+        <span className="block text-2xs text-[var(--color-fg-muted)] leading-relaxed">{hint}</span>
       )}
     </label>
   );
@@ -507,7 +505,7 @@ function ThemeSwatch({
       )}
     >
       <span
-        className="h-7 grid place-items-center text-[10px]"
+        className="h-7 grid place-items-center text-3xs"
         style={{ background: bg, color: fg }}
         aria-hidden
       >
@@ -517,7 +515,7 @@ function ThemeSwatch({
         <span style={{ background: elev, flex: 1 }} />
         <span style={{ background: accent, flex: 1 }} />
       </span>
-      <span className="text-[10px] py-1 text-center text-[var(--color-fg-muted)] bg-[var(--color-bg-elev)]">
+      <span className="text-3xs py-1 text-center text-[var(--color-fg-muted)] bg-[var(--color-bg-elev)]">
         {label}
       </span>
     </button>

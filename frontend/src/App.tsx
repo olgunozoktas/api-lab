@@ -321,6 +321,8 @@ export function App() {
     singleColumn || specMode ? `${leading}1fr` : `${leading}${layout.composerPx}px 8px 1fr`;
 
   return (
+    // text-[13px]: intentional app-wide base size — deliberately off the
+    // 9/10/11/12 token scale (token-scale-migration #29 documented exception).
     <div className="h-full flex flex-col bg-[var(--color-bg)] text-[var(--color-fg)] text-[13px]">
       <TopBar />
       <SyncBanner />
