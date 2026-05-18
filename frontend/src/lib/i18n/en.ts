@@ -604,6 +604,7 @@ export const en: Dict = {
   "env.namePlaceholder": "Environment name",
 
   "toast.saved": "Saved",
+  "toast.dismiss": "Dismiss notification",
   "toast.urlEmpty": "URL is empty",
   "toast.networkError": "Error: {msg}",
   "toast.requestCancelled": "Request cancelled",

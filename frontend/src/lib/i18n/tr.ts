@@ -603,6 +603,7 @@ export const tr = {
   "env.namePlaceholder": "Environment adı",
 
   "toast.saved": "Kaydedildi",
+  "toast.dismiss": "Bildirimi kapat",
   "toast.urlEmpty": "URL boş",
   "toast.networkError": "Hata: {msg}",
   "toast.requestCancelled": "İstek iptal edildi",

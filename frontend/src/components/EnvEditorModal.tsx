@@ -26,7 +26,7 @@ export function EnvEditorModal({ open, onOpenChange }: Props) {
   };
   const remove = (id: string) => {
     if (envs.length <= 1) {
-      showToast(t("env.minRequired"));
+      showToast(t("env.minRequired"), { severity: "warning" });
       return;
     }
     setLocal((ls) => ls.filter((e) => e.id !== id));
@@ -34,7 +34,7 @@ export function EnvEditorModal({ open, onOpenChange }: Props) {
   const add = () => setLocal((ls) => [...ls, { id: uid(), name: "new", vars: {} }]);
   const save = () => {
     setEnvs(envs);
-    showToast(t("env.saved"));
+    showToast(t("env.saved"), { severity: "success" });
     onOpenChange(false);
   };
 

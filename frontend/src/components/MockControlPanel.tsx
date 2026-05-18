@@ -58,13 +58,19 @@ export function MockControlPanel({ open, onOpenChange }: MockControlPanelProps) 
     try {
       const res = await startMock(buildMockStartPayload(current.id, examples));
       if (res.error || res.port === undefined) {
-        showToast(t("mock.toast.startFailed", { error: res.error ?? "?" }));
+        showToast(t("mock.toast.startFailed", { error: res.error ?? "?" }), {
+          severity: "error",
+        });
       } else {
-        showToast(t("mock.toast.started", { port: String(res.port) }));
+        showToast(t("mock.toast.started", { port: String(res.port) }), {
+          severity: "success",
+        });
       }
       await refresh();
     } catch (e) {
-      showToast(t("mock.toast.startFailed", { error: (e as Error).message }));
+      showToast(t("mock.toast.startFailed", { error: (e as Error).message }), {
+        severity: "error",
+      });
     } finally {
       setBusy(false);
     }
@@ -76,10 +82,12 @@ export function MockControlPanel({ open, onOpenChange }: MockControlPanelProps) 
       setBusy(true);
       try {
         await stopMock(id);
-        showToast(t("mock.toast.stopped"));
+        showToast(t("mock.toast.stopped"), { severity: "success" });
         await refresh();
       } catch (e) {
-        showToast(t("mock.toast.stopFailed", { error: (e as Error).message }));
+        showToast(t("mock.toast.stopFailed", { error: (e as Error).message }), {
+          severity: "error",
+        });
       } finally {
         setBusy(false);
       }
@@ -92,10 +100,14 @@ export function MockControlPanel({ open, onOpenChange }: MockControlPanelProps) 
     setBusy(true);
     try {
       for (const m of mocks) await stopMock(m.id);
-      showToast(t("mock.toast.stoppedAll", { n: String(mocks.length) }));
+      showToast(t("mock.toast.stoppedAll", { n: String(mocks.length) }), {
+        severity: "success",
+      });
       await refresh();
     } catch (e) {
-      showToast(t("mock.toast.stopFailed", { error: (e as Error).message }));
+      showToast(t("mock.toast.stopFailed", { error: (e as Error).message }), {
+        severity: "error",
+      });
     } finally {
       setBusy(false);
     }
@@ -105,7 +117,7 @@ export function MockControlPanel({ open, onOpenChange }: MockControlPanelProps) 
     async (port: number) => {
       try {
         await navigator.clipboard.writeText(mockBaseUrl(port));
-        showToast(t("mock.urlCopied"));
+        showToast(t("mock.urlCopied"), { severity: "success" });
       } catch {
         /* clipboard denial is silent — the URL is visible in the row */
       }

@@ -52,7 +52,9 @@ export function HistoryList({ query = "" }: { query?: string }) {
 
   const onCopyUrl = (h: HistoryItem) => {
     const url = h.request.url || "";
-    navigator.clipboard.writeText(url).then(() => showToast(t("history.context.urlCopied")));
+    navigator.clipboard
+      .writeText(url)
+      .then(() => showToast(t("history.context.urlCopied"), { severity: "success" }));
   };
 
   // Re-build the wire-level cURL command for a historical request the
@@ -73,7 +75,9 @@ export function HistoryList({ query = "" }: { query?: string }) {
     const headersArr: { name: string; value: string }[] = [];
     headers.forEach((v, k) => headersArr.push({ name: k, value: v }));
     const code = toCurl({ method, url, headers: headersArr, body });
-    navigator.clipboard.writeText(code).then(() => showToast(t("history.context.curlCopied")));
+    navigator.clipboard
+      .writeText(code)
+      .then(() => showToast(t("history.context.curlCopied"), { severity: "success" }));
   };
 
   const trimmedQuery = query.trim();

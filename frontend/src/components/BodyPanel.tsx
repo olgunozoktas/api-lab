@@ -163,7 +163,7 @@ export function BodyPanelContainer() {
     <BodyPanel
       value={value}
       onChange={(body) => setCurrent({ body })}
-      onInvalidJson={(error) => showToast(t("body.invalidJson", { error }))}
+      onInvalidJson={(error) => showToast(t("body.invalidJson", { error }), { severity: "error" })}
     />
   );
 }

@@ -183,7 +183,7 @@ export function SsePanelContainer() {
   const onConnect = () => {
     if (esRef.current) return;
     if (!targetUrl) {
-      showToast(t("toast.urlEmpty"));
+      showToast(t("toast.urlEmpty"), { severity: "warning" });
       return;
     }
     setStatus("connecting");

@@ -215,6 +215,6 @@ export const createCurrentSlice: StateCreator<Store, StoreMutators, [], CurrentA
       }));
     }
     set({ collectionItems: items });
-    get().showToast("Kaydedildi");
+    get().showToast("Kaydedildi", { severity: "success" });
   },
 });

@@ -265,7 +265,7 @@ function OAuthSubPanel({
         refresh_token: tok.refresh_token || o.refresh_token,
         expires_at: tok.expires_in ? expiresInToEpoch(tok.expires_in) : undefined,
       });
-      showToast(t("auth.oauth2.refreshed"));
+      showToast(t("auth.oauth2.refreshed"), { severity: "success" });
     } catch (e) {
       setError((e as Error).message || String(e));
     } finally {

@@ -109,7 +109,7 @@ export function CopyAsMenuContainer() {
     const code = formatter.format(input);
     navigator.clipboard
       .writeText(code)
-      .then(() => showToast(t("response.codeCopied", { lang: label })));
+      .then(() => showToast(t("response.codeCopied", { lang: label }), { severity: "success" }));
   };
 
   return (

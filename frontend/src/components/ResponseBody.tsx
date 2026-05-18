@@ -215,7 +215,9 @@ function ResponseHeadersTable({ headers }: { headers: ResponseHeader[] }) {
   const copy = (h: ResponseHeader) => {
     navigator.clipboard
       .writeText(h.v)
-      .then(() => showToast(t("response.headers.valueCopied", { name: h.k })));
+      .then(() =>
+        showToast(t("response.headers.valueCopied", { name: h.k }), { severity: "success" })
+      );
   };
 
   // Filter substring-matches against both the header name AND its

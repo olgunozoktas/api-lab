@@ -196,17 +196,19 @@ export function ResponseHeadContainer() {
   if (!r) return null;
 
   const onCopyBody = () =>
-    navigator.clipboard.writeText(r.body).then(() => showToast(t("response.bodyCopied")));
+    navigator.clipboard
+      .writeText(r.body)
+      .then(() => showToast(t("response.bodyCopied"), { severity: "success" }));
 
   const onDownloadBody = () => {
     downloadResponseBody(r.body, r.contentType, r.status, r.bodyBase64);
-    showToast(t("response.bodyDownloaded"));
+    showToast(t("response.bodyDownloaded"), { severity: "success" });
   };
 
   const onSaveExample = () => {
     const name = suggestExampleName(current, r);
     addExample(exampleFromResponse(name, current, r));
-    showToast(t("examples.saved", { name }));
+    showToast(t("examples.saved", { name }), { severity: "success" });
   };
 
   return (
