@@ -273,6 +273,9 @@ export const tr = {
   "tabs.duplicate": "Sekmeyi çoğalt",
   "tabs.pin": "Sekmeyi sabitle",
   "tabs.unpin": "Sabitlemeyi kaldır",
+  "tabs.lastResponseAria": "Son yanıt",
+  "xml.collapse": "Daralt",
+  "xml.expand": "Genişlet",
   "tabs.openInNewTab": "Yeni sekmede aç",
 
   "switcher.placeholder": "İstek ara… (Esc kapatır, ↑↓ gez, ↵ aç)",

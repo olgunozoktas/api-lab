@@ -47,7 +47,10 @@ export function SamplesList({
   samples,
   onLoad,
   onHide,
-  hideLabel = "Hide",
+  // Default empty — never an English literal. The container
+  // (SamplesListContainer) always passes a t()-resolved label; the
+  // empty fallback only applies to a bare presenter mount.
+  hideLabel = "",
   className,
 }: SamplesListProps) {
   const t = useT();

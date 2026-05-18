@@ -79,6 +79,9 @@ export type TabStripPresenterProps = {
   duplicateLabel?: string;
   pinLabel?: string;
   unpinLabel?: string;
+  /** Localised "Last response" prefix for the per-tab status pill's
+      aria-label. */
+  lastResponseLabel?: string;
   className?: string;
 };
 
@@ -94,15 +97,19 @@ export function TabStripPresenter({
   onTogglePin,
   onNewTab,
   onReorder,
-  newTabLabel = "New tab",
-  closeTabLabel = "Close tab",
+  // Label defaults are empty, never English literals — the container
+  // (TabStripContainer) always passes t()-resolved strings. The empty
+  // fallback only applies to a bare presenter mount (tests / Storybook).
+  newTabLabel = "",
+  closeTabLabel = "",
   newTabShortcut = "",
   closeTabShortcut = "",
-  closeOthersLabel = "Close others",
-  closeToRightLabel = "Close tabs to the right",
-  duplicateLabel = "Duplicate tab",
-  pinLabel = "Pin tab",
-  unpinLabel = "Unpin tab",
+  closeOthersLabel = "",
+  closeToRightLabel = "",
+  duplicateLabel = "",
+  pinLabel = "",
+  unpinLabel = "",
+  lastResponseLabel = "",
   className,
 }: TabStripPresenterProps) {
   const newTabTitle = newTabShortcut ? `${newTabLabel}  ${newTabShortcut}` : newTabLabel;
@@ -238,7 +245,7 @@ export function TabStripPresenter({
                       statusPillClass(tab.lastResponse.status)
                     )}
                     title={`${tab.lastResponse.status} ${statusText(tab.lastResponse.status)}`}
-                    aria-label={`Last response: ${tab.lastResponse.status} ${statusText(tab.lastResponse.status)}`}
+                    aria-label={`${lastResponseLabel} ${tab.lastResponse.status} ${statusText(tab.lastResponse.status)}`.trim()}
                   >
                     {tab.lastResponse.status || "—"}
                   </span>
@@ -450,6 +457,7 @@ export function TabStripContainer() {
       duplicateLabel={t("tabs.duplicate")}
       pinLabel={t("tabs.pin")}
       unpinLabel={t("tabs.unpin")}
+      lastResponseLabel={t("tabs.lastResponseAria")}
     />
   );
 }

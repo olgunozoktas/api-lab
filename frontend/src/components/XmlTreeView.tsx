@@ -31,6 +31,7 @@ function domToElem(el: Element): XmlElem {
 }
 
 function ElemRow({ elem, depth }: { elem: XmlElem; depth: number }) {
+  const t = useT();
   // Deep trees start collapsed past 4 levels so a big document isn't
   // a wall of text on open.
   const [open, setOpen] = useState(depth < 4);
@@ -46,7 +47,7 @@ function ElemRow({ elem, depth }: { elem: XmlElem; depth: number }) {
             type="button"
             onClick={() => setOpen((o) => !o)}
             className="shrink-0 w-3 text-[var(--color-fg-muted)]"
-            aria-label={open ? "Collapse" : "Expand"}
+            aria-label={open ? t("xml.collapse") : t("xml.expand")}
           >
             {open ? "▾" : "▸"}
           </button>

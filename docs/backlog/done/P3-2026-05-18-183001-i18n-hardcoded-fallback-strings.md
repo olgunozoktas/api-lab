@@ -25,13 +25,13 @@ render in practice — but the hard rule is absolute, and an English
 
 ## Items
 
-- [ ] **Route the three sites through `t()`** — either the container
+- [x] **Route the three sites through `t()`** — either the container
       always passes a translated label (preferred — keeps leaves
       string-free per the component hard rules), or the leaf takes a
       `TKey` instead of a literal default.
-- [ ] **Add any missing keys** to `lib/i18n/tr.ts` (source of truth)
+- [x] **Add any missing keys** to `lib/i18n/tr.ts` (source of truth)
       and `lib/i18n/en.ts`.
-- [ ] **Sweep for siblings** — grep `frontend/src/components/` for
+- [x] **Sweep for siblings** — grep `frontend/src/components/` for
       other literal English in `aria-label` / default label props the
       audit may not have caught.
 
