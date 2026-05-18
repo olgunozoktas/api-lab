@@ -16,19 +16,19 @@ API Lab renders JSON as a tree and text only. This item adds a
 
 ## Items
 
-- [ ] Add a "Visualize" view / tab to `ResponseViewer.tsx` — detect
+- [x] Add a "Visualize" view / tab to `ResponseViewer.tsx` — detect
       chartable JSON (arrays of objects, numeric series) and render a
       table view plus a bar / line chart.
-- [ ] Pick a charting approach — evaluate a tiny dependency vs.
+- [x] Pick a charting approach — evaluate a tiny dependency vs.
       hand-rolled SVG; prefer no-heavy-dependency / hand-rolled to
       match the project's posture (markdown, hexdump, JSON highlight
       and the LCS diff are all hand-rolled).
-- [ ] **Lazy-load** the visualization code-split — mirror the
+- [x] **Lazy-load** the visualization code-split — mirror the
       `RedocPane` / `PdfViewer` / Spectral lazy-import pattern so it
       never enters the first-paint bundle.
-- [ ] Graceful fallback / clear empty state when the response isn't
+- [x] Graceful fallback / clear empty state when the response isn't
       chartable (non-array, non-numeric).
-- [ ] Reuse the Item-2 primitives for the surface chrome.
+- [x] Reuse the Item-2 primitives for the surface chrome.
 
 ## Acceptance
 

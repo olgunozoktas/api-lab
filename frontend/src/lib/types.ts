@@ -275,7 +275,14 @@ export type HistoryItem = {
 };
 
 export type ComposerTab = "params" | "headers" | "auth" | "body" | "graphql" | "scripts";
-export type ResponseTab = "body" | "headers" | "raw" | "examples" | "tests" | "console";
+export type ResponseTab =
+  | "body"
+  | "headers"
+  | "raw"
+  | "visualize"
+  | "examples"
+  | "tests"
+  | "console";
 export type SidebarTab = "collections" | "history";
 
 export type Theme = "auto" | "light" | "dark" | "tokyo-night" | "github-light" | "high-contrast";

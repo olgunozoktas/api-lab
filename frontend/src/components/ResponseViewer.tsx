@@ -1,4 +1,5 @@
 /** Olgun Özoktaş geliştirdi · API Lab */
+import { lazy, Suspense } from "react";
 import { useStore } from "../store";
 import { ResponseHeadContainer } from "./ResponseHead";
 import { ResponseBodyContainer } from "./ResponseBody";
@@ -11,10 +12,18 @@ import type { TKey } from "../lib/i18n";
 import { useDelayedFlag } from "../lib/useDelayedFlag";
 import { ResponseBodySkeleton } from "./ResponseBodySkeleton";
 
+// The Visualize view pulls in the hand-rolled SVG chart + sortable
+// table. It's an opt-in tab, so lazy-load it — keeps the chart code
+// out of the first-paint bundle (mirrors OpenApiEditor / ResponseBinaryBody).
+const ResponseVisualizeContainer = lazy(() =>
+  import("./ResponseVisualize").then((m) => ({ default: m.ResponseVisualizeContainer }))
+);
+
 const TABS: { id: ResponseTab; key: TKey }[] = [
   { id: "body", key: "response.tab.body" },
   { id: "headers", key: "response.tab.headers" },
   { id: "raw", key: "response.tab.raw" },
+  { id: "visualize", key: "response.tab.visualize" },
   { id: "tests", key: "response.tab.tests" },
   { id: "console", key: "response.tab.console" },
   { id: "examples", key: "response.tab.examples" },
@@ -75,6 +84,10 @@ export function ResponseViewer({
         <ScriptTestsPanelContainer />
       ) : tab === "console" ? (
         <ScriptConsolePanelContainer />
+      ) : tab === "visualize" ? (
+        <Suspense fallback={<div className="flex-1" />}>
+          <ResponseVisualizeContainer />
+        </Suspense>
       ) : showSkeleton ? (
         <ResponseBodySkeleton />
       ) : (
