@@ -194,4 +194,39 @@ describe("store actions over collectionItems", () => {
     const moved = useStore.getState().collectionItems.find((i) => i.id === f2);
     expect(moved?.parentId).toBe(null);
   });
+
+  it("importItems stamps the integrationId onto the wrapper folder", () => {
+    const req = {
+      id: "imp-1",
+      parentId: null,
+      kind: "request" as const,
+      name: "Imported",
+      order: 0,
+    };
+    useStore.getState().importItems([req], {}, "Stripe", "stripe");
+    const items = useStore.getState().collectionItems;
+    const wrapper = items.find((i) => i.kind === "folder" && i.name === "Stripe");
+    expect(wrapper?.integrationId).toBe("stripe");
+  });
+
+  it("removeIntegrationCollection purges the wrapper folder and its imported items", () => {
+    const reqs = [
+      { id: "imp-a", parentId: null, kind: "request" as const, name: "A", order: 0 },
+      { id: "imp-b", parentId: null, kind: "request" as const, name: "B", order: 1 },
+    ];
+    const ownFolder = useStore.getState().addFolder(null, "My own");
+    useStore.getState().importItems(reqs, {}, "Cloudflare", "cloudflare");
+    expect(useStore.getState().collectionItems.length).toBe(4); // own + wrapper + 2
+
+    useStore.getState().removeIntegrationCollection("cloudflare");
+    const items = useStore.getState().collectionItems;
+    expect(items).toHaveLength(1);
+    expect(items[0].id).toBe(ownFolder); // the user's own folder survives
+  });
+
+  it("removeIntegrationCollection is a no-op when nothing matches", () => {
+    const f1 = useStore.getState().addFolder(null, "F1");
+    useStore.getState().removeIntegrationCollection("never-imported");
+    expect(useStore.getState().collectionItems.map((i) => i.id)).toEqual([f1]);
+  });
 });

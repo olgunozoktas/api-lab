@@ -26,7 +26,7 @@ This item picks a sourcing strategy and makes Cloudflare + Stripe
 
 ## Items
 
-- [ ] **Pick the sourcing approach.** Evaluate the three candidates
+- [x] **Pick the sourcing approach.** Evaluate the three candidates
       and commit to one (or a hybrid):
       - *Curated subsets* — small, hand-picked endpoint sets per
         provider (e.g. "Stripe — Payments essentials", ~15 endpoints),
@@ -38,12 +38,12 @@ This item picks a sourcing strategy and makes Cloudflare + Stripe
       - *Fetch-to-file* — a new bridge command that streams a large
         response to a temp file (uses the declared-but-unused
         `filesystem` permission); the frontend reads + parses it.
-- [ ] **Implement provider sourcing** for Cloudflare + Stripe via the
+- [x] **Implement provider sourcing** for Cloudflare + Stripe via the
       chosen approach; flip parent items #4/#5 to done.
-- [ ] **Remove-on-disable** — track an integration→wrapper-folder-id
+- [x] **Remove-on-disable** — track an integration→wrapper-folder-id
       map (deferred from the parent's item 2) so disabling an
       integration removes its imported collection.
-- [ ] **Visually-distinct integration group** — a badge or section so
+- [x] **Visually-distinct integration group** — a badge or section so
       imported integration collections read differently from the
       user's own collections.
 

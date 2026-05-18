@@ -18,8 +18,19 @@ describe("INTEGRATIONS registry", () => {
       expect(def.name).toBeTruthy();
       expect(def.category).toBeTruthy();
       expect(def.description).toBeTruthy();
-      expect(def.fetch.kind).toBe("openapi-url");
-      expect(def.fetch.specUrl).toMatch(/^https:\/\//);
+      expect(def.authType).toBeTruthy();
+    }
+  });
+
+  it("every entry sources its surface via a recognized fetch kind", () => {
+    for (const def of INTEGRATIONS) {
+      if (def.fetch.kind === "openapi-url") {
+        expect(def.fetch.specUrl).toMatch(/^https:\/\//);
+      } else {
+        expect(def.fetch.kind).toBe("curated");
+        expect(def.fetch.provider.baseUrl).toMatch(/^https:\/\//);
+        expect(def.fetch.provider.endpoints.length).toBeGreaterThan(0);
+      }
     }
   });
 });

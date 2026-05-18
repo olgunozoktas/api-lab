@@ -198,6 +198,11 @@ export type CollectionItem = {
   name: string;
   order: number;
   request?: RequestSnapshot; // populated only when kind === "request"
+  // Set on the wrapper folder of a collection imported from the
+  // integrations gallery (the registry id, e.g. "stripe"). Lets the
+  // sidebar badge it and lets `removeIntegrationCollection` find and
+  // purge it on disable. Absent on the user's own folders.
+  integrationId?: string;
 };
 
 export type Environment = {

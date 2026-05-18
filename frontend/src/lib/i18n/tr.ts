@@ -724,7 +724,8 @@ export const tr = {
   "topbar.integrations": "Entegrasyonlar",
   "integrations.title": "Entegrasyonlar",
   "integrations.subtitle":
-    "Bir sağlayıcı seç — API Lab onun API yüzeyini otomatik getirip kullanıma hazır bir koleksiyon olarak ekler.",
+    "Bir sağlayıcı seç — API Lab özenle seçilmiş, kullanıma hazır bir istek koleksiyonu ekler.",
+  "integrations.badge": "Entegrasyon koleksiyonu",
   "integrations.enable": "Etkinleştir",
   "integrations.disable": "Kaldır",
   "integrations.enabled": "Etkin",

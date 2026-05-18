@@ -25,8 +25,15 @@ export type CollectionsActions = {
   importItems: (
     items: CollectionItem[],
     envVars: Record<string, string>,
-    wrapperName: string
+    wrapperName: string,
+    // When set, stamps the wrapper folder so it reads as an
+    // integration collection (badged in the sidebar, removable by
+    // `removeIntegrationCollection`).
+    integrationId?: string
   ) => void;
+  // Purge the wrapper folder (and everything under it) imported for a
+  // given integration id. No-op when nothing matches.
+  removeIntegrationCollection: (integrationId: string) => void;
 };
 
 // Default empty request snapshot for newly-created collection items.
@@ -173,7 +180,7 @@ export const createCollectionsSlice: StateCreator<Store, StoreMutators, [], Coll
   // existing local IDs). Top-level imported nodes (parentId === null)
   // get re-rooted under a fresh wrapper folder named after the
   // collection so multiple imports don't pollute the root.
-  importItems: (items, envVars, wrapperName) =>
+  importItems: (items, envVars, wrapperName, integrationId) =>
     set((s) => {
       if (items.length === 0) return {};
       const wrapperId = uid();
@@ -183,6 +190,7 @@ export const createCollectionsSlice: StateCreator<Store, StoreMutators, [], Coll
         kind: "folder",
         order: nextOrder(s.collectionItems, null),
         name: wrapperName,
+        ...(integrationId ? { integrationId } : {}),
       };
       const reparented = items.map((it) =>
         it.parentId === null ? { ...it, parentId: wrapperId } : it
@@ -211,6 +219,30 @@ export const createCollectionsSlice: StateCreator<Store, StoreMutators, [], Coll
         collectionsExpanded: { ...s.collectionsExpanded, [wrapperId]: true },
         envs,
         activeEnv,
+      };
+    }),
+
+  removeIntegrationCollection: (integrationId) =>
+    set((s) => {
+      const wrapper = s.collectionItems.find((c) => c.integrationId === integrationId);
+      if (!wrapper) return {};
+      // Cascade — the wrapper folder takes every descendant with it,
+      // mirroring deleteCollectionItem's recursive purge.
+      const toRemove = new Set<string>([
+        wrapper.id,
+        ...descendantIds(s.collectionItems, wrapper.id),
+      ]);
+      const expanded = { ...s.collectionsExpanded };
+      for (const k of toRemove) delete expanded[k];
+      const tabs = s.tabs.map((t) =>
+        t.request.id && toRemove.has(t.request.id)
+          ? { ...t, request: { ...t.request, id: null } }
+          : t
+      );
+      return {
+        collectionItems: s.collectionItems.filter((c) => !toRemove.has(c.id)),
+        collectionsExpanded: expanded,
+        tabs,
       };
     }),
 });
