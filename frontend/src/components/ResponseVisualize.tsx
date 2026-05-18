@@ -145,7 +145,14 @@ function VisualizeView({
           </>
         )}
 
-        <Badge tone="neutral" size="sm" className="ml-auto">
+        {/* Envelope hint — the response was an object; this is the
+            array property that got unwrapped (e.g. `data[]`). */}
+        {analysis.unwrappedFrom && (
+          <Badge tone="accent" size="sm" className="ml-auto">
+            {t("response.viz.unwrapped", { key: analysis.unwrappedFrom })}
+          </Badge>
+        )}
+        <Badge tone="neutral" size="sm" className={analysis.unwrappedFrom ? "" : "ml-auto"}>
           {t("response.viz.rowCount", { n: String(rows.length) })}
         </Badge>
       </div>

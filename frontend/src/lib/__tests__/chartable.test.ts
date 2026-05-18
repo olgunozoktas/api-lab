@@ -136,6 +136,68 @@ describe("analyzeResponse — array of objects", () => {
   });
 });
 
+describe("analyzeResponse — envelope unwrap", () => {
+  it("unwraps a `data`-wrapped array of objects", () => {
+    const a = analyzeResponse('{"data":[{"id":1},{"id":2}]}');
+    expect(a.kind).toBe("chartable");
+    if (a.kind !== "chartable") return;
+    expect(a.unwrappedFrom).toBe("data");
+    expect(a.rows).toHaveLength(2);
+  });
+
+  it("unwraps the JSON:API shape (`data` array beside a `meta` object)", () => {
+    const a = analyzeResponse('{"data":[{"x":1}],"meta":{"total":1}}');
+    if (a.kind !== "chartable") throw new Error("expected chartable");
+    expect(a.unwrappedFrom).toBe("data");
+  });
+
+  it("recognizes every known envelope key", () => {
+    for (const key of ["results", "items", "rows", "records", "list"]) {
+      const a = analyzeResponse(`{"${key}":[{"v":1}]}`);
+      if (a.kind !== "chartable") throw new Error(`expected chartable for ${key}`);
+      expect(a.unwrappedFrom).toBe(key);
+    }
+  });
+
+  it("prefers a known envelope key over a longer non-known array", () => {
+    // `things` is longer, but `items` is a known key — known wins.
+    const a = analyzeResponse('{"things":[1,2,3,4,5],"items":[{"v":1}]}');
+    if (a.kind !== "chartable") throw new Error("expected chartable");
+    expect(a.unwrappedFrom).toBe("items");
+  });
+
+  it("falls back to the longest array when no key is known", () => {
+    const a = analyzeResponse('{"foo":[{"v":1}],"bar":[{"v":1},{"v":2}]}');
+    if (a.kind !== "chartable") throw new Error("expected chartable");
+    expect(a.unwrappedFrom).toBe("bar");
+  });
+
+  it("leaves unwrappedFrom undefined for a top-level array", () => {
+    const a = analyzeResponse('[{"id":1}]');
+    if (a.kind !== "chartable") throw new Error("expected chartable");
+    expect(a.unwrappedFrom).toBeUndefined();
+  });
+
+  it("rejects an object with no array-valued property", () => {
+    const a = analyzeResponse('{"meta":{"total":0},"ok":true}');
+    expect(a.kind).toBe("not-chartable");
+    if (a.kind === "not-chartable") expect(a.reason).toBe("not-array");
+  });
+
+  it("reports an unwrapped-but-empty array as empty", () => {
+    const a = analyzeResponse('{"data":[]}');
+    expect(a.kind).toBe("not-chartable");
+    if (a.kind === "not-chartable") expect(a.reason).toBe("empty");
+  });
+
+  it("unwraps a numeric array under an envelope key", () => {
+    const a = analyzeResponse('{"data":[10,20,30]}');
+    if (a.kind !== "chartable") throw new Error("expected chartable");
+    expect(a.unwrappedFrom).toBe("data");
+    expect(a.numericColumns).toEqual(["value"]);
+  });
+});
+
 describe("buildSeries", () => {
   const rows = [
     { name: "a", v: 5 },
