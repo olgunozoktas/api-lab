@@ -274,16 +274,16 @@ Shipped phases:
 - ✅ Phase C — WebSocket workspace + 6-language code generation
 - ✅ Phase D — Themes + Settings hub (Tokyo Night, GitHub Light, request defaults)
 - ✅ Phase F — Vitest + Zig unit tests + GH Actions CI/CD + bundle-size guardrail
+- ✅ Phase H — Pre/post-request scripts (QuickJS sandbox) + collection runner + assertions
+- ✅ Phase K — Spec-driven dev: OpenAPI editor + Spectral linting + Redoc doc preview
 
 In flight / queued:
 
 - Phase D-extras — Solarized themes + aria-live + proxy config
-- Phase E — Imports/exports (Postman v2, OpenAPI, Bruno, HAR, Insomnia)
-- Phase G — Auth breadth (OAuth 2.0 flow, AWS SigV4, NTLM/digest, mTLS)
-- Phase H — Pre/post-request scripts + collection runner + assertions
-- Phase I — Protocols beyond REST (gRPC, Socket.IO, SSE, MQTT)
-- Phase J — Built-in mock server
-- Phase K — Spec-driven dev (OpenAPI editor + Spectral linting + doc gen)
+- Phase E — Imports shipped (Postman v2, OpenAPI, Bruno, HAR, Insomnia); exporters queued
+- Phase G — Auth: OAuth 2.0, AWS SigV4, mTLS shipped; NTLM / digest queued
+- Phase I — gRPC + SSE shipped; Socket.IO + MQTT optional, queued
+- Phase J — Built-in mock server (control panel shipped; Zig serving sidecar queued)
 - Phase L — Cross-platform distribution + cloud sync + polish
 
 ## Author
