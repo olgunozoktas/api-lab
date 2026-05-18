@@ -107,7 +107,7 @@ export function RequestRow({ item, depth }: { item: CollectionItem; depth: numbe
           )}
           style={{ paddingLeft: 8 + depth * 12, paddingRight: 8 }}
         >
-          <span className={"font-mono font-bold w-9 flex-shrink-0 text-3xs " + methodClass(m)}>
+          <span className={"font-mono font-bold w-12 flex-shrink-0 text-3xs " + methodClass(m)}>
             {m}
           </span>
           {renaming ? (

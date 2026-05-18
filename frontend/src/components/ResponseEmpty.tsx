@@ -162,7 +162,7 @@ function RecentRow({
       className="w-full text-left flex items-center gap-2.5 px-3 py-2 rounded-md border border-[var(--color-border)] bg-[var(--color-bg-elev)] hover:bg-[var(--color-bg-elev-2)] hover:border-[var(--color-accent)]/40 transition-colors"
     >
       <span
-        className={`text-3xs font-mono font-semibold uppercase tracking-wide w-10 shrink-0 ${methodClass(h.request.method)}`}
+        className={`text-3xs font-mono font-semibold uppercase tracking-wide w-12 shrink-0 ${methodClass(h.request.method)}`}
       >
         {h.request.method}
       </span>
