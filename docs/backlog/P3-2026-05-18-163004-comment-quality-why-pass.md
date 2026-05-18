@@ -29,7 +29,7 @@ rest up to that bar.
 
 ## Items
 
-- [ ] **Audit `frontend/src/`** — sweep components, `lib/`, `store/`
+- [x] **Audit `frontend/src/`** — sweep components, `lib/`, `store/`
       for comments that restate the code. Replace each with a *why*
       (rationale / gotcha / constraint) or delete it if there's
       nothing non-obvious to say.
@@ -41,9 +41,23 @@ rest up to that bar.
       file should open with one or two lines stating what the file is
       *for* and any cross-file contract it participates in — not just
       the `/** Olgun Özoktaş geliştirdi · API Lab */` attribution.
-- [ ] **No behaviour change** — comments only. If a comment can't be
+      *(frontend/src done — Zig `src/` pending; see Follow-ups.)*
+- [x] **No behaviour change** — comments only. If a comment can't be
       written truthfully without first understanding murky code, note
       that file as a candidate for a separate clarity refactor.
+
+## Follow-ups
+
+This ship was user-scoped to **`frontend/src/` only**. The audit (3
+parallel agents over all 237 TS/TSX files) found comment quality
+already high — **zero echo comments** — so the work was: 22
+file-purpose headers + 3 missing-why comments (dialog z-stacking
+contract, code-editor `dark:false`, HistoryList row cap).
+
+The **Zig `src/` audit** (item 2) and its file headers (the Zig half
+of item 3) are deferred to
+`docs/backlog/P3-2026-05-18-163004-comment-quality-zig-pass.md`. This
+file stays live until that lands.
 
 ## Acceptance
 

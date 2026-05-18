@@ -1,4 +1,7 @@
 /** Olgun Özoktaş geliştirdi · API Lab */
+// History sidebar list — past sends, newest first, with status-class
+// filter pills and a search box. Click an entry to load it into the
+// active tab; right-click for replay / open-in-new-tab / delete.
 import { useMemo, useState } from "react";
 import { useActiveVars, useStore } from "../store";
 import {
@@ -157,6 +160,8 @@ export function HistoryList({ query = "" }: { query?: string }) {
     <div className="flex flex-col h-full min-h-0">
       {pills}
       <div className="flex-1 overflow-y-auto px-1.5 pb-3">
+        {/* Render at most 100 rows — bounds the DOM on a long history;
+            the full list stays reachable through the filter/search. */}
         {filtered.slice(0, 100).map((h) => {
           const status = h.response?.status ?? 0;
           const statusLabel = status > 0 ? String(status) : "—";

@@ -1,4 +1,8 @@
 /** Olgun Özoktaş geliştirdi · API Lab */
+// Environment slice — the list of variable environments and which one
+// is active. `envs` / `activeEnv` persist via the store's `partialize`;
+// {{var}} resolution against the active env lives in `useActiveVars`
+// (store/index.ts).
 import type { StateCreator } from "zustand";
 import type { Environment } from "../lib/types";
 import type { Store, StoreMutators } from "./types";

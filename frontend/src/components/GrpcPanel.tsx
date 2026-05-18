@@ -1,4 +1,7 @@
 /** Olgun Özoktaş geliştirdi · API Lab */
+// gRPC composer presenter — the message / metadata / proto / tls
+// request tabs over a response section. Pure props; the load
+// lifecycle and store wiring live in GrpcPanelContainer.tsx.
 import { useState } from "react";
 import { useT } from "../lib/i18n/useT";
 import type { GrpcState, GrpcTls, KvRow } from "../lib/types";

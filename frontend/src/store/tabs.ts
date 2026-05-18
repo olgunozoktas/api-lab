@@ -1,4 +1,7 @@
 /** Olgun Özoktaş geliştirdi · API Lab */
+// Tabs slice — open / close / reorder / duplicate / pin tabs, plus the
+// new-tab request loaders. Tab-list mechanics only; the shared
+// request→loaded-state mapping lives in loadRequest.ts.
 import type { StateCreator } from "zustand";
 import type { CollectionItem, HistoryItem, OpenTab } from "../lib/types";
 import { emptyTab } from "../lib/types";

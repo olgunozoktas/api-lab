@@ -1,4 +1,5 @@
 /** Olgun Özoktaş geliştirdi · API Lab */
+// Code generator — turns a CodegenInput into a browser fetch() snippet.
 import type { CodegenInput } from "./types";
 import { methodHasBody } from "./types";
 

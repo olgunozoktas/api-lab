@@ -1,4 +1,8 @@
 /** Olgun Özoktaş geliştirdi · API Lab */
+// Active-tab request slice — owns the editable `current` request mirror
+// and the in-place loaders that swap it (loadCollection /
+// loadHistoryItem / loadSample). Every mirror write also updates the
+// active tab record so the persisted snapshot stays consistent.
 import type { StateCreator } from "zustand";
 import type {
   CollectionItem,

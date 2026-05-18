@@ -1,4 +1,7 @@
 /** Olgun Özoktaş geliştirdi · API Lab */
+// Shared code editor — a CodeMirror 6 wrapper used by the request body,
+// GraphQL, and spec panels. Language and read-only state are swapped
+// live via CodeMirror compartments rather than rebuilding the editor.
 import { useEffect, useMemo, useRef } from "react";
 import { EditorState, Compartment, type Extension } from "@codemirror/state";
 import { EditorView, keymap, placeholder as placeholderExt, lineNumbers } from "@codemirror/view";
@@ -83,6 +86,9 @@ const editorTheme = EditorView.theme(
     "&.cm-editor": { height: "100%" },
     ".cm-scroller": { fontFamily: "var(--font-mono)", lineHeight: "1.6" },
   },
+  // dark:false — every colour above comes from CSS `var(--color-*)`
+  // tokens that already flip with the app theme, so CodeMirror's own
+  // dark-mode defaults must stay off or they'd fight the tokens.
   { dark: false },
 );
 

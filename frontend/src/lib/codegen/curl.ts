@@ -1,4 +1,7 @@
 /** Olgun Özoktaş geliştirdi · API Lab */
+// Code generator — turns a CodegenInput into a curl command string.
+// Values are wrapped in single quotes, so an embedded quote is escaped
+// to keep the emitted command valid as a single-quoted shell argument.
 import type { CodegenInput } from "./types";
 import { methodHasBody } from "./types";
 

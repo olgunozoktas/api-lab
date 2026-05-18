@@ -1,4 +1,6 @@
 /** Olgun Özoktaş geliştirdi · API Lab */
+// Codegen contract — the CodegenInput every generator consumes, plus
+// the Formatter / CodegenLang types the registry is keyed by.
 import type { HttpHeader } from "../bridge";
 
 export type CodegenInput = {

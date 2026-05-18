@@ -1,4 +1,6 @@
 /** Olgun Özoktaş geliştirdi · API Lab */
+// Codegen registry + dispatch — maps a CodegenLang to its formatter
+// and exposes generate() as the single entry point the UI calls.
 import type { CodegenInput, CodegenLang, Formatter } from "./types";
 import { toCurl } from "./curl";
 import { toFetch } from "./fetch";
