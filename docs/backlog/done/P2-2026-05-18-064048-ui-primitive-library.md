@@ -27,13 +27,13 @@ discoverability). Build the primitives once, properly.
 
 ## Items
 
-- [ ] `ui/tooltip.tsx` — Radix-based; `dnpm install @radix-ui/react-tooltip`.
-- [ ] `ui/badge.tsx` — `cva` variants for method / status / count
+- [x] `ui/tooltip.tsx` — Radix-based; `dnpm install @radix-ui/react-tooltip`.
+- [x] `ui/badge.tsx` — `cva` variants for method / status / count
       pills; absorb `methodClass` + `statusPillClass` from `lib/utils.ts`.
-- [ ] `ui/skeleton.tsx` — token-driven shimmer placeholder.
-- [ ] `ui/spinner.tsx` — generic indeterminate spinner.
-- [ ] `ui/popover.tsx` — Radix-based; `dnpm install @radix-ui/react-popover`.
-- [ ] Each file small (`cva` + `cn` + `forwardRef`, `--color-*` tokens
+- [x] `ui/skeleton.tsx` — token-driven shimmer placeholder.
+- [x] `ui/spinner.tsx` — generic indeterminate spinner.
+- [x] `ui/popover.tsx` — Radix-based; `dnpm install @radix-ui/react-popover`.
+- [x] Each file small (`cva` + `cn` + `forwardRef`, `--color-*` tokens
       only); run `dnpm check` after the two installs.
 
 ## Acceptance
