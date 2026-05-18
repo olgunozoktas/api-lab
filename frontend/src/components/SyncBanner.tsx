@@ -1,18 +1,29 @@
 /** Olgun Özoktaş geliştirdi · API Lab */
-// Top-of-window banner for sync conflicts + errors. Renders nothing
-// unless the sync engine has parked `syncStatus` at `conflict` or
-// `error`. A conflict offers the coarse Keep-local / Take-remote
-// resolution; an error is dismissible.
+// Top-of-window banner for sync state. A calm strip while a sync is
+// in progress; a danger banner when the sync engine parks `syncStatus`
+// at `conflict` or `error`. A conflict offers the coarse Keep-local /
+// Take-remote resolution; an error is dismissible.
 import { AlertTriangle, X } from "lucide-react";
 import { useStore } from "../store";
 import { useT } from "../lib/i18n/useT";
 import { Button } from "./ui/button";
+import { Spinner } from "./ui/spinner";
 import { runResolve } from "../lib/syncEngine";
 
 export function SyncBanner() {
   const t = useT();
   const status = useStore((s) => s.syncStatus);
   const setSyncStatus = useStore((s) => s.setSyncStatus);
+
+  // Sync in progress — a calm, non-alarming strip with a spinner.
+  if (status.state === "syncing") {
+    return (
+      <div className="flex flex-shrink-0 items-center gap-2 bg-[var(--color-bg-elev-2)] px-3 py-1.5 text-2xs text-[var(--color-fg-muted)]">
+        <Spinner />
+        <span>{t("sync.syncing.banner")}</span>
+      </div>
+    );
+  }
 
   if (status.state !== "conflict" && status.state !== "error") return null;
   const isConflict = status.state === "conflict";

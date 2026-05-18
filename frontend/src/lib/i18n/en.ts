@@ -68,6 +68,7 @@ export const en: Dict = {
   "sync.status.ok": "Synced.",
   "sync.status.conflict": "Sync conflict — resolve it from the banner.",
   "sync.status.error": "Sync failed: {message}",
+  "sync.syncing.banner": "Syncing…",
   "sync.conflict.banner":
     "Sync conflict — your local collections and the remote both changed. Pick which wins:",
   "sync.conflict.keepLocal": "Keep local",

@@ -8,6 +8,8 @@ import { useT } from "../lib/i18n/useT";
 import { Tabs, TabsList, TabsTrigger } from "./ui/tabs";
 import type { ResponseTab } from "../lib/types";
 import type { TKey } from "../lib/i18n";
+import { useDelayedFlag } from "../lib/useDelayedFlag";
+import { ResponseBodySkeleton } from "./ResponseBodySkeleton";
 
 const TABS: { id: ResponseTab; key: TKey }[] = [
   { id: "body", key: "response.tab.body" },
@@ -21,6 +23,8 @@ const TABS: { id: ResponseTab; key: TKey }[] = [
 // Presenter — minimal: just lays out the head + body containers and the tab strip.
 export type ResponseViewerProps = {
   hasResponse: boolean;
+  // Request in-flight — gates the response-body loading skeleton.
+  busy: boolean;
   tab: ResponseTab;
   examplesCount: number;
   headersCount: number;
@@ -31,6 +35,7 @@ export type ResponseViewerProps = {
 
 export function ResponseViewer({
   hasResponse,
+  busy,
   tab,
   examplesCount,
   headersCount,
@@ -39,6 +44,9 @@ export function ResponseViewer({
   onTabChange,
 }: ResponseViewerProps) {
   const t = useT();
+  // Show the body skeleton only once the request has been in-flight
+  // past the delay threshold — a fast response never flickers it.
+  const showSkeleton = useDelayedFlag(busy);
   // Show the tab strip whenever there's a response OR there are saved
   // examples — the Examples tab needs to be reachable even before the
   // user has run a fresh request in this session.
@@ -67,6 +75,8 @@ export function ResponseViewer({
         <ScriptTestsPanelContainer />
       ) : tab === "console" ? (
         <ScriptConsolePanelContainer />
+      ) : showSkeleton ? (
+        <ResponseBodySkeleton />
       ) : (
         <ResponseBodyContainer />
       )}
@@ -82,8 +92,9 @@ function Badge({ n }: { n: number }) {
   );
 }
 
-// Container — wires the store.
-export function ResponseViewerContainer() {
+// Container — wires the store. `busy` is request-lifecycle state
+// owned by App.tsx, threaded in as a prop.
+export function ResponseViewerContainer({ busy }: { busy: boolean }) {
   const lastResponse = useStore((s) => s.lastResponse);
   const examplesCount = useStore((s) => s.current.examples?.length ?? 0);
   const headersCount = useStore((s) => s.lastResponse?.headers.length ?? 0);
@@ -97,6 +108,7 @@ export function ResponseViewerContainer() {
   return (
     <ResponseViewer
       hasResponse={lastResponse !== null}
+      busy={busy}
       tab={tab}
       examplesCount={examplesCount}
       headersCount={headersCount}

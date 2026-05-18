@@ -15,15 +15,26 @@ skeletons make the app feel responsive even when the network isn't.
 
 ## Items
 
-- [ ] Skeleton / progress state for response fetch
+- [x] Skeleton / progress state for response fetch
       (`ResponseViewer.tsx` / `ResponseBody.tsx`).
+      → `ResponseViewer` shows `<ResponseBodySkeleton>` (six `Skeleton`
+        lines) in the body slot while a request is in-flight, gated by
+        the delay threshold. `busy` is threaded App → ResponseViewer.
 - [ ] Loading state for collection import and OpenAPI spec parsing.
+      → **deferred** — see Follow-ups.
 - [ ] Stream / connect indicators for the gRPC, SSE and WS panels
       (`GrpcResponseSection.tsx`, `SsePanel.tsx`, `WsPanel.tsx`).
-- [ ] Sync-in-progress indicator in `SyncBanner.tsx`.
-- [ ] Use the Item-2 `skeleton` / `spinner` primitives — no bespoke
+      → **deferred** — see Follow-ups (the 400-LOC-cap-risk surfaces).
+- [x] Sync-in-progress indicator in `SyncBanner.tsx`.
+      → `SyncBanner` renders a calm spinner strip when
+        `syncStatus.state === "syncing"` (the state already existed but
+        was never surfaced).
+- [x] Use the Item-2 `skeleton` / `spinner` primitives — no bespoke
       spinners; add a delay-show threshold so sub-100ms responses
       don't flicker a skeleton.
+      → `lib/useDelayedFlag.ts` — the reusable delay-show hook (default
+        140 ms). Skeleton/spinner are the #28 primitives; no bespoke
+        spinners added.
 
 ## Acceptance
 
@@ -46,3 +57,21 @@ proactively rather than inlining loading branches.
    `store/response.ts` / `store/current.ts` (a cancellable request
    state already exists).
 3. Wave-2.
+
+## Follow-ups
+
+Items 1, 4, 5 (response-fetch skeleton, sync indicator, the shared
+delay-show hook) shipped 2026-05-18. Items 2 and 3 are **deferred** —
+this file stays live:
+
+- **#2 Import / OpenAPI-parse loading** and **#3 gRPC/SSE/WS
+  stream-connect indicators** were deferred to keep this slice focused
+  at the tail of a long session. #3 in particular is the file-cap-risk
+  surface the Tradeoffs section warns about — `ResponseBody.tsx` (~335)
+  and the protocol panels (~311-320) need proactive sub-component
+  extraction before a loading branch can be added without breaching
+  the 400-LOC cap.
+
+A follow-up backlog file — **loading states: import + protocol
+panels** — was created this session for #2/#3. The shared
+`lib/useDelayedFlag.ts` hook is in place for it to consume directly.

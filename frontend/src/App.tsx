@@ -379,7 +379,7 @@ export function App() {
               max={COMPOSER_PX_MAX}
               ariaLabel={t2("layout.composer.aria")}
             />
-            <ResponseViewerContainer />
+            <ResponseViewerContainer busy={busy} />
           </>
         )}
       </main>
