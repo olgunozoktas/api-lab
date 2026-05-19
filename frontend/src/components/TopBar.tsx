@@ -6,6 +6,7 @@ import { SettingsModal } from "./SettingsModal";
 import { MockControlPanel } from "./MockControlPanel";
 import { ResponseDiffModal } from "./ResponseDiffModal";
 import { IntegrationsModal } from "./IntegrationsModal";
+import { McpPanel } from "./McpPanel";
 import { useChangelogAutoOpen } from "../lib/changelog_gate";
 import { APP_VERSION, formatBuildDate } from "../lib/changelog";
 import { useUpdateCheck } from "../lib/updateCheck";
@@ -18,6 +19,7 @@ import { IconButton } from "./ui/icon-button";
 import { KbdHint } from "./ui/kbd-hint";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import {
+  Boxes,
   Download,
   GitCompare,
   HelpCircle,
@@ -49,6 +51,7 @@ export function TopBar() {
   const [mockOpen, setMockOpen] = useState(false);
   const [diffOpen, setDiffOpen] = useState(false);
   const [integrationsOpen, setIntegrationsOpen] = useState(false);
+  const [mcpOpen, setMcpOpen] = useState(false);
   // Launch-time GitHub-release check. Non-null only when a newer
   // release exists; renders a small "Update" pill next to the version.
   const update = useUpdateCheck();
@@ -193,6 +196,12 @@ export function TopBar() {
           icon={<Plug className="w-3.5 h-3.5" />}
         />
         <IconButton
+          onClick={() => setMcpOpen(true)}
+          aria-label={t("topbar.mcp")}
+          tooltip={t("topbar.mcp")}
+          icon={<Boxes className="w-3.5 h-3.5" />}
+        />
+        <IconButton
           onClick={() => setGuideOpen(true)}
           aria-label={t("topbar.guides")}
           tooltip={
@@ -238,6 +247,7 @@ export function TopBar() {
       <MockControlPanel open={mockOpen} onOpenChange={setMockOpen} />
       <ResponseDiffModal open={diffOpen} onOpenChange={setDiffOpen} />
       <IntegrationsModal open={integrationsOpen} onOpenChange={setIntegrationsOpen} />
+      <McpPanel open={mcpOpen} onOpenChange={setMcpOpen} />
     </>
   );
 }

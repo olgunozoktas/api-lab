@@ -24,6 +24,9 @@ const mock_handler = @import("handlers/mock.zig");
 // `git.sync.*` — optional git-based collection sync. Shells out to
 // `git` against a local clone under `<HOME>/.api-lab/git-sync`.
 const git_sync_handler = @import("handlers/git_sync.zig");
+// `mcp.stdio` — spawns a stdio-transport MCP server and pipes one
+// batch of JSON-RPC frames through it. See handlers/mcp.zig.
+const mcp_handler = @import("handlers/mcp.zig");
 
 pub const panic = std.debug.FullPanic(zero_native.debug.capturePanic);
 
@@ -65,6 +68,10 @@ const command_policies = [_]zero_native.BridgeCommandPolicy{
     .{ .name = "git.sync.read", .permissions = &.{"filesystem"}, .origins = &allowed_origins },
     .{ .name = "git.sync.push", .permissions = &.{ "network", "filesystem" }, .origins = &allowed_origins },
     .{ .name = "git.sync.resolve", .permissions = &.{ "network", "filesystem" }, .origins = &allowed_origins },
+    // `mcp.stdio` spawns a local MCP server process. The capability is
+    // network-equivalent (an MCP server is a peer the app talks to),
+    // so it reuses `network` rather than introducing a new permission.
+    .{ .name = "mcp.stdio", .permissions = &.{"network"}, .origins = &allowed_origins },
 };
 
 // Builtin-bridge commands provided by zero-native itself (not our
@@ -105,6 +112,11 @@ pub fn main(init: std.process.Init) !void {
         .io = init.io,
         .env_map = init.environ_map,
     };
+    var mcp_ctx = mcp_handler.Context{
+        .gpa = gpa,
+        .io = init.io,
+        .env_map = init.environ_map,
+    };
 
     var handler_list = [_]zero_native.BridgeHandler{
         http_handler.handler(&http_ctx),
@@ -120,6 +132,7 @@ pub fn main(init: std.process.Init) !void {
         git_sync_handler.readHandler(&git_sync_ctx),
         git_sync_handler.pushHandler(&git_sync_ctx),
         git_sync_handler.resolveHandler(&git_sync_ctx),
+        mcp_handler.handler(&mcp_ctx),
     };
     const registry = zero_native.BridgeRegistry{ .handlers = &handler_list };
 
@@ -168,4 +181,5 @@ pub fn main(init: std.process.Init) !void {
 test {
     _ = @import("handlers/http.zig");
     _ = @import("handlers/mock.zig");
+    _ = @import("handlers/mcp.zig");
 }
