@@ -23,21 +23,41 @@ slice), the toast severity system (`lib/toast.ts`, shipped #30).
 
 ## Items
 
-- [ ] **Spec version capture** — when an integration is fetched,
+- [x] **Spec version capture** — when an integration is fetched,
       record a fingerprint (HTTP `ETag` / `Last-Modified`, or a hash
       of the spec body) per integration in `store/integrations.ts`.
       - Tests: fingerprint capture + persistence round-trip.
-- [ ] **Staleness check** — a lightweight conditional re-fetch (HEAD
+      *(`specFingerprint` ETag→Last-Modified→djb2 chain; captured in
+      `fetch.ts`; stored in `integrationFingerprints` — persisted via
+      partialize, persist version 4 → 5 + `migrateV4toV5`.)*
+- [x] **Staleness check** — a lightweight conditional re-fetch (HEAD
       or `If-None-Match`) that compares the live fingerprint to the
       stored one and marks the integration stale on mismatch. Run on
       gallery open and/or app launch.
       - Tests: `lib/integrations/__tests__/staleness.test.ts` —
         fresh vs stale vs unreachable.
-- [ ] **Stale badge + refresh affordance** — the gallery card for a
+      *(`checkSpecStaleness` + `verdictFrom`; conditional GET with
+      `If-None-Match`; run from an on-open effect in IntegrationsModal.
+      15 tests cover fresh / stale / unreachable / 304 / curated skip.)*
+- [x] **Stale badge + refresh affordance** — the gallery card for a
       stale integration shows a badge and a one-click "Update" that
       re-runs the import pipeline. Surface the result via a toast.
       - Ship-it-fully: badge visible on the card; "Update" reachable;
         all strings via `t()`.
+
+## Implementation note — scoped to `openapi-url`
+
+The integrations gallery was redesigned (this session) from live
+OpenAPI fetch to **curated bundled subsets**: all 7 registered
+providers are `kind: "curated"` and ship their endpoint set with the
+app, so they cannot drift. Staleness detection only applies to the
+`openapi-url` fetch kind — which the registry still supports but no
+provider currently uses. This slice builds the full machinery
+(fingerprint capture, conditional re-fetch, stale badge + Update) so
+it activates the moment an `openapi-url` provider is registered;
+until then the badge never renders. The pure logic is fully
+unit-tested regardless. Per the user decision (2026-05-19) to build
+the path anyway.
 
 ## Acceptance
 
