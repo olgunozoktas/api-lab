@@ -148,9 +148,7 @@ export function HistoryList({ query = "" }: { query?: string }) {
       <div className="flex flex-col h-full min-h-0">
         {pills}
         <div className="flex-1 overflow-y-auto px-1.5 pb-3">
-          <div className="text-center text-2xs text-[var(--color-fg-muted)] py-3">
-            {t("collections.search.empty")}
-          </div>
+          <EmptyState size="compact" title={t("collections.search.empty")} />
         </div>
       </div>
     );

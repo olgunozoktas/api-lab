@@ -21,6 +21,7 @@ import { VizTable, type VizSort } from "./VizTable";
 import { MiniChart } from "./MiniChart";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
+import { EmptyState } from "./ui/empty-state";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 
 // Cap the points fed to the SVG chart — a series of thousands of bars
@@ -60,10 +61,12 @@ function NotVisualizable({ reason }: { reason: VizReason }) {
     } as const
   )[reason];
   return (
-    <div className="flex-1 flex flex-col items-center justify-center text-center gap-2 px-6">
-      <BarChart3 className="w-8 h-8 text-[var(--color-fg-muted)]" aria-hidden />
-      <div className="text-sm text-[var(--color-fg)]">{t("response.viz.notVisualizable")}</div>
-      <div className="text-2xs text-[var(--color-fg-muted)] max-w-sm">{t(hintKey)}</div>
+    <div className="flex-1 flex flex-col items-center justify-center">
+      <EmptyState
+        icon={<BarChart3 className="w-5 h-5" />}
+        title={t("response.viz.notVisualizable")}
+        description={t(hintKey)}
+      />
     </div>
   );
 }

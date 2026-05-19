@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { ResponseDiff } from "./ResponseDiff";
+import { EmptyState } from "./ui/empty-state";
 import { useStore } from "../store";
 import { useT } from "../lib/i18n/useT";
 import { diffLines, diffStats, prepareDiffBody, MAX_DIFF_LINES } from "../lib/responseDiff";
@@ -96,11 +97,8 @@ export function ResponseDiffModal({ open, onOpenChange }: ResponseDiffModalProps
         </DialogHeader>
 
         {sources.length < 2 ? (
-          <div className="flex-1 flex flex-col items-center justify-center gap-2 px-8 text-center">
-            <p className="text-sm font-medium text-[var(--color-fg)]">{t("diff.empty.title")}</p>
-            <p className="text-xs text-[var(--color-fg-muted)] max-w-md leading-relaxed">
-              {t("diff.empty.body")}
-            </p>
+          <div className="flex-1 flex items-center justify-center">
+            <EmptyState title={t("diff.empty.title")} description={t("diff.empty.body")} />
           </div>
         ) : (
           <div className="flex-1 min-h-0 flex flex-col">

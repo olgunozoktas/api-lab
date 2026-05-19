@@ -8,6 +8,7 @@ import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { useT } from "../lib/i18n/useT";
 import { base64ToBytes, MAX_BINARY_RAW, pickBinaryViewer } from "../lib/binaryBody";
 import { HexViewer } from "./HexViewer";
+import { EmptyState } from "./ui/empty-state";
 import type { ResponseSnapshot } from "../lib/types";
 
 // pdfjs-dist (~400 KB) is pulled into a lazy chunk so it never weighs
@@ -97,13 +98,14 @@ export function ResponseBinaryBody({ response: r }: ResponseBinaryBodyProps) {
 
   if (r.bodyTooLarge) {
     return (
-      <div className="flex-1 flex items-center justify-center p-6 text-center">
-        <p className="text-xs text-[var(--color-fg-muted)] max-w-sm leading-6">
-          {t("response.binary.tooLarge", {
+      <div className="flex-1 flex items-center justify-center">
+        <EmptyState
+          title={t("response.binary.tooLargeTitle")}
+          description={t("response.binary.tooLarge", {
             size: humanSize(r.sizeBytes),
             limit: humanSize(MAX_BINARY_RAW),
           })}
-        </p>
+        />
       </div>
     );
   }

@@ -21,6 +21,7 @@ import { CodeEditor, type CodeLanguage } from "./ui/code-editor";
 import { Button } from "./ui/button";
 import { SpecSidePanel, type Outline } from "./SpecSidePanel";
 import { SpecRulesetModal } from "./SpecRulesetModal";
+import { EmptyState } from "./ui/empty-state";
 import { Download, FileText, FolderInput, PanelRight } from "lucide-react";
 
 // Redoc + its peers are ~1 MB — only ever reached via this lazy import.
@@ -214,8 +215,8 @@ export function OpenApiEditor({
               <RedocPane spec={parsedDoc} dark={dark} />
             </Suspense>
           ) : (
-            <div className="h-full flex items-center justify-center px-6 text-center text-2xs text-[var(--color-fg-muted)]">
-              {t("spec.docs.unavailable")}
+            <div className="h-full flex items-center justify-center">
+              <EmptyState size="compact" title={t("spec.docs.unavailable")} />
             </div>
           )}
         </div>
