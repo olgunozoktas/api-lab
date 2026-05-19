@@ -13,15 +13,25 @@ you can look, but you can't take it with you.
 
 ## Items
 
-- [ ] Add an "Export CSV" action to the Visualize table — serialize
+- [x] Add an "Export CSV" action to the Visualize table — serialize
       the analyzed rows/columns to CSV (respect the current sort
       order) and save via the existing download path used by the
       response Body download.
-- [ ] Add an "Export chart" action — the `MiniChart` is already an
+- [x] Add an "Export chart" action — the `MiniChart` is already an
       SVG, so serialize the live `<svg>` to a standalone `.svg` file;
-      optionally rasterize to PNG via a canvas.
-- [ ] Wire both into the Visualize control bar with the #28 `Button`
+      optionally rasterize to PNG via a canvas. *(SVG shipped; PNG
+      rasterization deliberately skipped — see Follow-ups.)*
+- [x] Wire both into the Visualize control bar with the #28 `Button`
       primitive; toast on success via the severity-aware toast queue.
+
+## Follow-ups
+
+PNG rasterization (canvas round-trip of the exported SVG) was scoped
+out: the Tradeoffs section called it optional and "SVG export alone
+may be enough". SVG is vector, theme-baked, and pastes into every
+target the parent CEO note named (docs, tickets, image viewers). If a
+user specifically needs a raster paste (older Slack composers), a
+follow-up can add a PNG option — but it's speculative until asked for.
 
 ## Acceptance
 

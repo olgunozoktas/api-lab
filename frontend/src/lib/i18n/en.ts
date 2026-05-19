@@ -420,6 +420,10 @@ export const en: Dict = {
   "response.viz.noNumeric": "No numeric columns to chart",
   "response.viz.chartCapped": "Showing the first {shown} of {total} rows.",
   "response.viz.sortBy": "Sort by {name}",
+  "response.viz.exportCsv": "Export CSV",
+  "response.viz.exportChart": "Export chart",
+  "response.viz.csvExported": "Table exported as CSV",
+  "response.viz.chartExported": "Chart exported as SVG",
   "response.viz.notVisualizable": "This response can't be visualized",
   "response.viz.reason.invalidJson":
     "The response isn't valid JSON. Visualize works on JSON arrays.",

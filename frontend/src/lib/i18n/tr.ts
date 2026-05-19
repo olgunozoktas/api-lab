@@ -420,6 +420,10 @@ export const tr = {
   "response.viz.noNumeric": "Grafiklenecek sayısal sütun yok",
   "response.viz.chartCapped": "{total} satırın ilk {shown} tanesi gösteriliyor.",
   "response.viz.sortBy": "{name} sütununa göre sırala",
+  "response.viz.exportCsv": "CSV dışa aktar",
+  "response.viz.exportChart": "Grafiği dışa aktar",
+  "response.viz.csvExported": "Tablo CSV olarak dışa aktarıldı",
+  "response.viz.chartExported": "Grafik SVG olarak dışa aktarıldı",
   "response.viz.notVisualizable": "Bu yanıt görselleştirilemiyor",
   "response.viz.reason.invalidJson":
     "Yanıt geçerli JSON değil. Görselleştirme JSON dizileri için çalışır.",

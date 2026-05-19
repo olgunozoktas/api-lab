@@ -1,35 +1,32 @@
 /** Olgun Özoktaş geliştirdi · API Lab */
 // Sortable table for the response Visualize view. Click a column
 // header to sort by it; click again to flip direction. Pure presenter
-// — columns + rows in, no store access.
-import { useMemo, useState } from "react";
+// — no store access.
+//
+// Controlled, not self-stateful: the parent owns `sort` and hands in
+// the already-sorted `rows`. That keeps one sort site for both the
+// table render and the "Export CSV" action, so a CSV download always
+// matches exactly what the user sees.
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { cn } from "../lib/cn";
-import { formatCell, sortRows, type SortDir, type VizColumn, type VizRow } from "../lib/chartable";
+import { formatCell, type SortDir, type VizColumn, type VizRow } from "../lib/chartable";
 import { useT } from "../lib/i18n/useT";
+
+export type VizSort = { column: string; dir: SortDir };
 
 export type VizTableProps = {
   columns: VizColumn[];
+  // Rows in display order — the caller sorts before passing them in.
   rows: VizRow[];
+  // Active sort, or null when the response's natural order is shown.
+  sort: VizSort | null;
+  // Header click — toggles direction or switches column.
+  onSortChange: (key: string) => void;
   className?: string;
 };
 
-export function VizTable({ columns, rows, className }: VizTableProps) {
+export function VizTable({ columns, rows, sort, onSortChange, className }: VizTableProps) {
   const t = useT();
-  const [sort, setSort] = useState<{ column: string; dir: SortDir } | null>(null);
-
-  const sorted = useMemo(() => {
-    if (!sort) return rows;
-    const col = columns.find((c) => c.key === sort.column);
-    return sortRows(rows, sort.column, sort.dir, col?.numeric ?? false);
-  }, [rows, columns, sort]);
-
-  const onSort = (key: string) => {
-    setSort((prev) => {
-      if (prev?.column !== key) return { column: key, dir: "asc" };
-      return { column: key, dir: prev.dir === "asc" ? "desc" : "asc" };
-    });
-  };
 
   return (
     <div className={cn("overflow-auto", className)}>
@@ -50,7 +47,7 @@ export function VizTable({ columns, rows, className }: VizTableProps) {
                 >
                   <button
                     type="button"
-                    onClick={() => onSort(c.key)}
+                    onClick={() => onSortChange(c.key)}
                     aria-label={t("response.viz.sortBy", { name: c.key })}
                     className={cn(
                       "inline-flex items-center gap-1 hover:text-[var(--color-fg)] transition-colors",
@@ -72,7 +69,7 @@ export function VizTable({ columns, rows, className }: VizTableProps) {
           </tr>
         </thead>
         <tbody>
-          {sorted.map((row, i) => (
+          {rows.map((row, i) => (
             <tr key={i} className="border-b border-[var(--color-border)]">
               {columns.map((c) => (
                 <td
