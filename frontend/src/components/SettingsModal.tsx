@@ -7,6 +7,7 @@ import { SUPPORTED_LOCALES, LOCALE_LABEL, type Locale } from "../lib/i18n";
 import { APP_VERSION, formatBuildDate } from "../lib/changelog";
 import { cn } from "../lib/cn";
 import { SAMPLES } from "../lib/samples";
+import { SHORTCUTS } from "../lib/shortcuts";
 import { BookOpen, ClockArrowUp, Eye, EyeOff, ExternalLink } from "lucide-react";
 import { SyncSettings } from "./SyncSettings";
 
@@ -182,22 +183,12 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
             >
               {t("settings.section.shortcuts")}
             </h3>
+            {/* Rendered from the canonical lib/shortcuts.ts map — see
+                that file for why this list is no longer hand-written. */}
             <ul className="text-xs text-[var(--color-fg)] space-y-1.5 grid grid-cols-2 gap-x-6">
-              <Shortcut keys={["⌘", "↵"]} label={t("settings.shortcuts.send")} />
-              <Shortcut keys={["⌘", "S"]} label={t("settings.shortcuts.save")} />
-              <Shortcut keys={["⌘", "N"]} label={t("settings.shortcuts.new")} />
-              <Shortcut keys={["⌘", "T"]} label={t("settings.shortcuts.tabNew")} />
-              <Shortcut keys={["⌘", "W"]} label={t("settings.shortcuts.tabClose")} />
-              <Shortcut keys={["⌘", "⇧", "T"]} label={t("settings.shortcuts.tabReopen")} />
-              <Shortcut keys={["⌘", "1‒9"]} label={t("settings.shortcuts.tabJump")} />
-              <Shortcut keys={["⌥", "⌘", "→/←"]} label={t("settings.shortcuts.tabCycle")} />
-              <Shortcut keys={["⌘", "K / P"]} label={t("settings.shortcuts.switcher")} />
-              <Shortcut keys={["⌘", "L"]} label={t("settings.shortcuts.focusUrl")} />
-              <Shortcut keys={["⌘", "B"]} label={t("settings.shortcuts.toggleSidebar")} />
-              <Shortcut keys={["⌘", "."]} label={t("settings.shortcuts.cancel")} />
-              <Shortcut keys={["⌘", ","]} label={t("settings.shortcuts.openSettings")} />
-              <Shortcut keys={["⌘", "⇧", "E"]} label={t("settings.shortcuts.openEnv")} />
-              <Shortcut keys={["?"]} label={t("settings.shortcuts.openGuides")} />
+              {SHORTCUTS.map((s) => (
+                <Shortcut key={s.labelKey} keys={s.keys} label={t(s.labelKey)} />
+              ))}
             </ul>
           </section>
 
