@@ -67,6 +67,11 @@ export type CoreState = {
   // Registry ids of integrations the user has enabled from the
   // integrations gallery. Persisted via partialize.
   enabledIntegrations: string[];
+  // Per-integration spec fingerprint (ETag / Last-Modified / body
+  // hash) captured at import time — keyed by registry id. The gallery
+  // re-fetches conditionally and compares against this to flag a
+  // stale `openapi-url` integration. Persisted via partialize.
+  integrationFingerprints: Record<string, string>;
   // Optional git-based collection sync. `syncConfig` is persisted;
   // `syncStatus` is runtime-only (omitted from the store's partialize).
   syncConfig: SyncConfig;
@@ -124,6 +129,7 @@ export function buildInitialState(): CoreState {
     hiddenSampleIds: [],
     samplesSectionHidden: false,
     enabledIntegrations: [],
+    integrationFingerprints: {},
     syncConfig: defaultSyncConfig(),
     syncStatus: defaultSyncStatus(),
   };
@@ -210,6 +216,7 @@ export function migrateV1toV2(persisted: unknown): V2State {
     syncStatus: old.syncStatus ?? defaultSyncStatus(),
     toasts: [],
     enabledIntegrations: [],
+    integrationFingerprints: {},
     responseCache: {},
   };
 }
@@ -257,6 +264,14 @@ export function migrateV2toV3(persisted: unknown): CoreState {
 export function migrateV3toV4(persisted: unknown): CoreState {
   const old = (persisted as Partial<CoreState>) ?? {};
   return { ...old, responseCache: old.responseCache ?? {} } as CoreState;
+}
+
+// v4 → v5 migration. v5 added `integrationFingerprints` (the spec
+// staleness map) to `partialize`. Pre-v5 snapshots never carried it —
+// nothing to migrate, just ensure the field exists.
+export function migrateV4toV5(persisted: unknown): CoreState {
+  const old = (persisted as Partial<CoreState>) ?? {};
+  return { ...old, integrationFingerprints: old.integrationFingerprints ?? {} } as CoreState;
 }
 
 // Recursive descendants helper — returns the IDs of every descendant of

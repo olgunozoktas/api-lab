@@ -7,6 +7,9 @@ import type { Store, StoreMutators } from "./types";
 export type IntegrationsActions = {
   enableIntegration: (id: string) => void;
   disableIntegration: (id: string) => void;
+  // Record the spec fingerprint captured for an integration at import
+  // time — the baseline the gallery's staleness check compares against.
+  setIntegrationFingerprint: (id: string, fingerprint: string) => void;
 };
 
 export const createIntegrationsSlice: StateCreator<
@@ -24,5 +27,9 @@ export const createIntegrationsSlice: StateCreator<
   disableIntegration: (id) =>
     set((s) => ({
       enabledIntegrations: s.enabledIntegrations.filter((entry) => entry !== id),
+    })),
+  setIntegrationFingerprint: (id, fingerprint) =>
+    set((s) => ({
+      integrationFingerprints: { ...s.integrationFingerprints, [id]: fingerprint },
     })),
 });

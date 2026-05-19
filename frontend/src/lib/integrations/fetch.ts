@@ -1,7 +1,8 @@
 /** Olgun Özoktaş geliştirdi · API Lab */
-import { bridge, type HttpResponse } from "../bridge";
+import { bridge, type HttpResponse, type HttpHeader } from "../bridge";
 import { parseOpenApi, type OpenApiImportResult } from "../importers/openapi";
 import { buildCuratedItems } from "./curated/build";
+import { specFingerprint } from "./staleness";
 import type { IntegrationDef } from "./registry";
 
 // The native bridge's http.request result buffer caps near 1 MB. A
@@ -10,12 +11,29 @@ import type { IntegrationDef } from "./registry";
 export const SPEC_SIZE_LIMIT = 1_000_000;
 
 export type IntegrationFetchResult =
-  | { ok: true; result: OpenApiImportResult }
+  | {
+      ok: true;
+      result: OpenApiImportResult;
+      // Spec fingerprint for `openapi-url` fetches — the baseline a
+      // later staleness check compares against. Absent for curated
+      // providers (no upstream spec to drift).
+      fingerprint?: string;
+    }
   | {
       ok: false;
       reason: "bridge-unavailable" | "fetch-failed" | "too-large" | "parse-failed";
       detail: string;
     };
+
+// Case-insensitive HTTP header lookup — header casing varies by
+// server, so `ETag` / `etag` / `Last-Modified` all resolve.
+export function headerValue(headers: HttpHeader[], name: string): string {
+  const lower = name.toLowerCase();
+  for (const h of headers) {
+    if (h.name.toLowerCase() === lower) return h.value;
+  }
+  return "";
+}
 
 // Pure — turn an already-fetched spec body into importable items.
 // Separated from the bridge call so it is unit-testable without a
@@ -99,5 +117,13 @@ export async function fetchIntegrationSpec(def: IntegrationDef): Promise<Integra
   if (res.status >= 400) {
     return { ok: false, reason: "fetch-failed", detail: `HTTP ${res.status}` };
   }
-  return parseIntegrationSpec(res.body, def);
+  const parsed = parseIntegrationSpec(res.body, def);
+  if (parsed.ok) {
+    // Capture the spec fingerprint so the gallery's staleness check
+    // has a baseline to compare a later re-fetch against.
+    const etag = headerValue(res.headers, "etag");
+    const lastModified = headerValue(res.headers, "last-modified");
+    return { ...parsed, fingerprint: specFingerprint(etag, lastModified, res.body) };
+  }
+  return parsed;
 }
