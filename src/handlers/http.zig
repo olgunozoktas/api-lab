@@ -1,4 +1,18 @@
 // Olgun Özoktaş geliştirdi · API Lab
+//
+// http.zig — the `http.request` bridge handler. Shells out to `curl`
+// so HTTP calls bypass WKWebView's CORS sandbox; routing requests
+// through a native subprocess is the whole reason this app needs a
+// Zig shell at all. Pure `buildArgv` + parser helpers are unit-tested
+// (see http_test.zig); `runRequest` is the I/O entry point.
+//
+// curl is invoked with `--write-out` JSON metrics appended after the
+// `SEPARATOR` sentinel, so a single subprocess yields both the
+// response body and the timing block on one stdout stream that
+// `runRequest` later splits on that separator.
+//
+// The JSON-string escaper and `formatTransportError` defined here are
+// the single source the gRPC handler imports — see grpc.zig's header.
 const std = @import("std");
 const zero_native = @import("zero-native");
 const bridge = zero_native.bridge;
