@@ -2,7 +2,11 @@
 // Hand-rolled SVG bar / line chart. No charting dependency — matches
 // the project posture (markdown, hexdump, JSON highlight, LCS diff are
 // all hand-rolled). Pure presenter: data + type in, SVG out.
-import { useMemo } from "react";
+//
+// `forwardRef`s the underlying <svg> so a caller can serialize the
+// live node — the Visualize "Export chart" action reaches the element
+// through this ref (see lib/vizExport.ts `serializeSvg`).
+import { forwardRef, useMemo } from "react";
 import { cn } from "../lib/cn";
 import type { SeriesPoint } from "../lib/chartable";
 
@@ -27,7 +31,10 @@ function niceCeil(n: number): number {
   return Math.ceil(n / mag) * mag;
 }
 
-export function MiniChart({ data, type, className, "aria-label": ariaLabel }: MiniChartProps) {
+export const MiniChart = forwardRef<SVGSVGElement, MiniChartProps>(function MiniChart(
+  { data, type, className, "aria-label": ariaLabel },
+  ref
+) {
   const geom = useMemo(() => {
     const values = data.map((d) => d.value);
     const rawMax = values.length ? Math.max(...values) : 0;
@@ -49,6 +56,7 @@ export function MiniChart({ data, type, className, "aria-label": ariaLabel }: Mi
 
   return (
     <svg
+      ref={ref}
       viewBox={`0 0 ${VW} ${VH}`}
       role="img"
       aria-label={ariaLabel}
@@ -153,4 +161,4 @@ export function MiniChart({ data, type, className, "aria-label": ariaLabel }: Mi
       )}
     </svg>
   );
-}
+});
