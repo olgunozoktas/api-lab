@@ -1,10 +1,8 @@
 /** Olgun Özoktaş geliştirdi · API Lab */
 import { useStore } from "../store";
-import { useCallback, useEffect, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useState } from "react";
 import { EnvEditorModal } from "./EnvEditorModal";
 import { SettingsModal } from "./SettingsModal";
-import { ChangelogModal } from "./ChangelogModal";
-import { GuideHub } from "./GuideHub";
 import { MockControlPanel } from "./MockControlPanel";
 import { ResponseDiffModal } from "./ResponseDiffModal";
 import { IntegrationsModal } from "./IntegrationsModal";
@@ -29,6 +27,16 @@ import {
   Settings,
   Settings2,
 } from "lucide-react";
+
+// The changelog + guide modals are opened on demand and each pulls in
+// a glob of markdown content (changelogEntries.ts / guides.ts). Lazy-
+// load them so that prose corpus lands in an async chunk, not the
+// first-paint bundle. The version-gate (useChangelogAutoOpen) stays
+// eager — it's cheap; only the modal body is deferred.
+const ChangelogModal = lazy(() =>
+  import("./ChangelogModal").then((m) => ({ default: m.ChangelogModal }))
+);
+const GuideHub = lazy(() => import("./GuideHub").then((m) => ({ default: m.GuideHub })));
 
 export function TopBar() {
   const envs = useStore((s) => s.envs);
@@ -215,8 +223,18 @@ export function TopBar() {
       </header>
       {editingEnv && <EnvEditorModal open onOpenChange={(o) => !o && setEditingEnv(false)} />}
       <SettingsModal open={editingSettings} onOpenChange={setEditingSettings} />
-      <ChangelogModal open={changelogOpen} onOpenChange={setChangelogOpen} />
-      <GuideHub open={guideOpen} onOpenChange={setGuideOpen} />
+      {/* Mounted only once open — keeps the lazy chunk (and its
+          markdown glob) off first paint until the modal is needed. */}
+      {changelogOpen && (
+        <Suspense fallback={null}>
+          <ChangelogModal open={changelogOpen} onOpenChange={setChangelogOpen} />
+        </Suspense>
+      )}
+      {guideOpen && (
+        <Suspense fallback={null}>
+          <GuideHub open={guideOpen} onOpenChange={setGuideOpen} />
+        </Suspense>
+      )}
       <MockControlPanel open={mockOpen} onOpenChange={setMockOpen} />
       <ResponseDiffModal open={diffOpen} onOpenChange={setDiffOpen} />
       <IntegrationsModal open={integrationsOpen} onOpenChange={setIntegrationsOpen} />

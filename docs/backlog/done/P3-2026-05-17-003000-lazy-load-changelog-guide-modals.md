@@ -21,17 +21,25 @@ straight onto first paint.
 
 ## Items
 
-- [ ] Lazy-load `<ChangelogModal>` from its mount (TopBar / modal
+- [x] Lazy-load `<ChangelogModal>` from its mount (TopBar / modal
   host) via `lazy()` + `Suspense`, mirroring the `ResponseBinaryBody`
   and `PdfViewer` pattern.
-- [ ] Lazy-load `<GuideHub>` the same way.
-- [ ] Ensure the glob-imported markdown (`lib/changelog.ts`,
+- [x] Lazy-load `<GuideHub>` the same way.
+- [x] Ensure the glob-imported markdown (`lib/changelog.ts`,
   `lib/guides.ts`) lands in the lazy chunk(s), not the entry chunk —
   the dynamic-import boundary must sit above those modules so Rolldown
   splits them out. Verify with `scripts/check-bundle-size.sh`.
-- [ ] Keep the changelog auto-open-on-first-launch behaviour working —
+  *(Required splitting `lib/changelog.ts`: the changelog glob moved to
+  a new `lib/changelogEntries.ts` imported only by the lazy modal,
+  while the light version helpers stayed in `lib/changelog.ts` for the
+  eager importers. `lib/guides.ts` needed no split — only `<GuideHub>`
+  imports it at runtime. `index` chunk 1495 → 1233 KB.)*
+- [x] Keep the changelog auto-open-on-first-launch behaviour working —
   the version-gate check (`useChangelogAutoOpen`) is cheap and can
-  stay eager; only the modal's render path is deferred.
+  stay eager; only the modal's render path is deferred. *(The gate's
+  `lib/changelog_gate.ts` imports only the light `lib/changelog.ts`,
+  so it stays eager; the modal mounts — and fetches its chunk — when
+  the gate flips `changelogOpen` true.)*
 
 ## Acceptance
 

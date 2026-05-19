@@ -1,6 +1,7 @@
 /** Olgun Özoktaş geliştirdi · API Lab */
 import { describe, it, expect } from "vitest";
-import { cmpVersion, isNewer, selectChangelogEntries, _internal } from "../changelog";
+import { cmpVersion, isNewer } from "../changelog";
+import { selectChangelogEntries, _internal } from "../changelogEntries";
 
 describe("changelog version compare", () => {
   it("cmpVersion handles equal versions", () => {
