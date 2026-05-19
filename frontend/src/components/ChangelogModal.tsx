@@ -3,7 +3,8 @@ import { useMemo } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
 import { useT } from "../lib/i18n/useT";
 import { useStore } from "../store";
-import { CHANGELOG_ENTRIES, APP_VERSION, selectChangelogEntries } from "../lib/changelog";
+import { APP_VERSION } from "../lib/changelog";
+import { CHANGELOG_ENTRIES, selectChangelogEntries } from "../lib/changelogEntries";
 import { ChangelogEntryCard } from "./ChangelogEntryCard";
 
 export type ChangelogModalProps = {
