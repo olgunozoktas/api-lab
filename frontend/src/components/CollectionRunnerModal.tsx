@@ -2,6 +2,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
 import { Button } from "./ui/button";
+import { EmptyState } from "./ui/empty-state";
 import { CollectionRunProgress } from "./CollectionRunProgress";
 import { CollectionRunSummary } from "./CollectionRunSummary";
 import { useStore, useActiveVars } from "../store";
@@ -136,8 +137,8 @@ export function CollectionRunnerModal({
         </DialogHeader>
 
         {!folder || requests.length === 0 ? (
-          <div className="flex-1 flex items-center justify-center px-8 text-center">
-            <p className="text-sm text-[var(--color-fg-muted)]">{t("runner.noRequests")}</p>
+          <div className="flex-1 flex items-center justify-center">
+            <EmptyState title={t("runner.noRequests")} />
           </div>
         ) : (
           <>

@@ -19,11 +19,18 @@ their own ad-hoc JSX and now look inconsistent next to the rich ones:
 
 ## Items
 
-- [ ] Fold `ResponseVisualize`'s `NotVisualizable` onto `EmptyState`.
-- [ ] Fold the search-empty / no-results blocks onto `EmptyState`
+- [x] Fold `ResponseVisualize`'s `NotVisualizable` onto `EmptyState`.
+- [x] Fold the search-empty / no-results blocks onto `EmptyState`
       (smaller padding variant — they sit inside scroll areas).
-- [ ] Sweep `frontend/src/components/` for any remaining centered
+      *(Added a `size="compact"` prop — `className` alone can't restyle
+      the baked title; converted CollectionList / HistoryList /
+      ResponseBody header search / GuideHub search.)*
+- [x] Sweep `frontend/src/components/` for any remaining centered
       empty messages and convert or consciously leave them.
+      *(Also converted CollectionRunnerModal `runner.noRequests`,
+      ResponseDiffModal `diff.empty`, OpenApiEditor
+      `spec.docs.unavailable`, ResponseBinaryBody `bodyTooLarge` — 9
+      surfaces total. `ResponseEmpty` already used the primitive.)*
 
 ## Acceptance
 

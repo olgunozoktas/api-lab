@@ -436,6 +436,7 @@ export const tr = {
   "scripts.console.empty": "Konsol çıktısı yok — script'teki console.log burada görünür.",
   "response.hex.truncated": "İlk {limit} bayt gösteriliyor.",
   "response.xml.invalid": "Yanıt geçerli XML değil.",
+  "response.binary.tooLargeTitle": "Yanıt önizlenemeyecek kadar büyük",
   "response.binary.tooLarge":
     "Yanıt önizlemek için çok büyük ({size}). İkili köprü {limit} ile sınırlı.",
   "response.binary.image.alt": "İkili yanıt önizlemesi",

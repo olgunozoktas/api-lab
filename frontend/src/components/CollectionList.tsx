@@ -103,13 +103,7 @@ export function CollectionList({ query = "" }: { query?: string }) {
   }
 
   if (filtering && !hasMatches) {
-    return (
-      <div className="px-1.5 pb-3">
-        <div className="text-center text-2xs text-[var(--color-fg-muted)] py-3">
-          {t("collections.search.empty")}
-        </div>
-      </div>
-    );
+    return <EmptyState size="compact" title={t("collections.search.empty")} className="px-1.5" />;
   }
 
   return (

@@ -436,6 +436,7 @@ export const en: Dict = {
   "scripts.console.empty": "No console output — console.log from a script shows up here.",
   "response.hex.truncated": "Showing the first {limit} bytes.",
   "response.xml.invalid": "Response is not well-formed XML.",
+  "response.binary.tooLargeTitle": "Response too large to preview",
   "response.binary.tooLarge":
     "Response too large to preview ({size}). The binary bridge caps at {limit}.",
   "response.binary.image.alt": "Binary response preview",

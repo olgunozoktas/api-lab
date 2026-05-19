@@ -5,6 +5,7 @@ import { useT } from "../lib/i18n/useT";
 import { useStore } from "../store";
 import { GUIDES, groupGuides, searchGuides, selectGuides, type GuideEntry } from "../lib/guides";
 import { GuideCard } from "./GuideCard";
+import { EmptyState } from "./ui/empty-state";
 import { cn } from "../lib/cn";
 
 export type GuideHubProps = {
@@ -74,9 +75,7 @@ export function GuideHub({ open, onOpenChange, initialSlug }: GuideHubProps) {
             </div>
             <nav className="flex-1 overflow-y-auto px-2 py-2 text-sm">
               {groups.length === 0 ? (
-                <p className="text-xs text-[var(--color-fg-muted)] px-2 py-3">
-                  {t("guides.search.empty")}
-                </p>
+                <EmptyState size="compact" title={t("guides.search.empty")} />
               ) : (
                 groups.map((g) => (
                   <div key={g.group} className="mb-3">

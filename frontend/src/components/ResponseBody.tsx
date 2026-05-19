@@ -9,6 +9,7 @@ import { useCopyFeedback } from "../lib/useCopyFeedback";
 import { CodeEditor } from "./ui/code-editor";
 import { SaveAsVariableMenu } from "./SaveAsVariable";
 import { ResponseEmpty } from "./ResponseEmpty";
+import { EmptyState } from "./ui/empty-state";
 import { HexViewer } from "./HexViewer";
 import { XmlTreeView } from "./XmlTreeView";
 import type { ResponseHeader, ResponseSnapshot, ResponseTab } from "../lib/types";
@@ -260,9 +261,7 @@ function ResponseHeadersTable({ headers }: { headers: ResponseHeader[] }) {
       </div>
       <div className="flex-1 overflow-auto px-3 pb-3">
         {filtered.length === 0 ? (
-          <div className="text-center text-2xs text-[var(--color-fg-muted)] py-6">
-            {t("collections.search.empty")}
-          </div>
+          <EmptyState size="compact" title={t("collections.search.empty")} />
         ) : (
           <table className="w-full border-collapse font-mono text-2xs select-text">
             <tbody>
