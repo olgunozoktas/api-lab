@@ -33,15 +33,17 @@ rest up to that bar.
       for comments that restate the code. Replace each with a *why*
       (rationale / gotcha / constraint) or delete it if there's
       nothing non-obvious to say.
-- [ ] **Audit `src/` (Zig)** — same sweep over the native shell +
+- [x] **Audit `src/` (Zig)** — same sweep over the native shell +
       handlers; the bridge / curl / grpc handlers especially have
       gotchas (buffer caps, brace-balancing, Zig 0.16 API shifts)
-      worth making explicit.
-- [ ] **File-header comments** — every `src/` and `frontend/src/`
+      worth making explicit. *(Shipped via the Zig-pass child file —
+      `P3-2026-05-18-163004-comment-quality-zig-pass.md`.)*
+- [x] **File-header comments** — every `src/` and `frontend/src/`
       file should open with one or two lines stating what the file is
       *for* and any cross-file contract it participates in — not just
       the `/** Olgun Özoktaş geliştirdi · API Lab */` attribution.
-      *(frontend/src done — Zig `src/` pending; see Follow-ups.)*
+      *(frontend/src done in this file; Zig `src/` done via the
+      Zig-pass child file.)*
 - [x] **No behaviour change** — comments only. If a comment can't be
       written truthfully without first understanding murky code, note
       that file as a candidate for a separate clarity refactor.

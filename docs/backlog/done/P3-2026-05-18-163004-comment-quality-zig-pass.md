@@ -20,11 +20,11 @@ size quirks.
 
 ## Items
 
-- [ ] **Audit `src/` `.zig` files** — sweep the native shell +
+- [x] **Audit `src/` `.zig` files** — sweep the native shell +
       handlers for echo-the-code comments; replace with a *why* or
       cut. Confirm every file opens with a purpose line beyond the
       `// Olgun Özoktaş geliştirdi · API Lab` attribution.
-- [ ] **Make the known gotchas explicit** — where the code relies on
+- [x] **Make the known gotchas explicit** — where the code relies on
       a Zig-0.16 API quirk, a buffer cap, or a WKWebView behaviour,
       ensure there's a comment naming it (cross-reference `CLAUDE.md`
       rather than duplicating the whole note).

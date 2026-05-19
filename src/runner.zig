@@ -1,4 +1,18 @@
 // Olgun Özoktaş geliştirdi · API Lab
+//
+// runner.zig — per-platform zero-native bootstrap. `runWithOptions`
+// branches on the comptime `build_options.platform` and hands off to
+// one of `runMacos` / `runLinux` / `runWindows` / `runNull`, each
+// building the same `zero_native.Runtime` against that platform's
+// host. The four bodies are deliberately near-identical rather than
+// one generic function: each platform's `*Platform.initWithOptions`
+// returns a distinct concrete type and Zig has no runtime polymorphism
+// over them, so the duplication is the unavoidable price of comptime
+// dispatch — not a refactor that was skipped.
+//
+// Also owns the stdout trace sink (gated by `build_options.trace`),
+// fanout to a file log when `setupLogging` succeeds, panic capture,
+// and restoring the last-saved window frame via `prepareStateStore`.
 const std = @import("std");
 const build_options = @import("build_options");
 const zero_native = @import("zero-native");
