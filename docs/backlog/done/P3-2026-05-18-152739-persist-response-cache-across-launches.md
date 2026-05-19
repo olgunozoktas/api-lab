@@ -18,17 +18,20 @@ blowing the storage budget.
 
 ## Items
 
-- [ ] **Byte-budget the cache.** `store/responseCache.ts` currently
+- [x] **Byte-budget the cache.** `store/responseCache.ts` currently
       bounds by entry count (30). Add a total-bytes cap; evict by
       recency until under budget. Large single responses must not be
-      cached at all past a per-entry ceiling.
-- [ ] **Persist `responseCache`** — add it to the store's `partialize`
+      cached at all past a per-entry ceiling. *(`putBoundedBytes` —
+      256 KB per-entry ceiling, 2 MB total budget, oldest-evicted.)*
+- [x] **Persist `responseCache`** — add it to the store's `partialize`
       (`store/index.ts`) so it rides the existing `idbStorage`
       adapter. Bump the persist `version` + add a migration if the
-      shape needs it.
-- [ ] **Stale-eviction on hydrate** — optionally drop cached responses
+      shape needs it. *(version 3 → 4 + `migrateV3toV4`.)*
+- [x] **Stale-eviction on hydrate** — optionally drop cached responses
       older than N days on load, so the cache doesn't resurrect
-      long-dead responses.
+      long-dead responses. *(`pruneStale`, 14-day TTL, run from the
+      persist `merge`. The cache value became `{ response, cachedAt }`
+      to carry the timestamp TTL needs.)*
 
 ## Acceptance
 

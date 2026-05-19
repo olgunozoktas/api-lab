@@ -179,7 +179,7 @@ export const createTabsSlice: StateCreator<Store, StoreMutators, [], TabsActions
       );
       // Per-request response memory — restore the saved request's last
       // response into the new tab; null when nothing is cached.
-      const restored = c.id ? (s.responseCache[c.id] ?? null) : null;
+      const restored = c.id ? (s.responseCache[c.id]?.response ?? null) : null;
       const fresh: OpenTab = {
         id: uid(),
         name: c.name,

@@ -103,9 +103,9 @@ export const createCurrentSlice: StateCreator<Store, StoreMutators, [], CurrentA
         composerTabFor(r.isGraphql)
       );
       // Per-request response memory — restore this request's last
-      // response from the session cache; falls back to null (the
-      // empty panel) when nothing is cached.
-      const restored = c.id ? (s.responseCache[c.id] ?? null) : null;
+      // response from the cache; falls back to null (the empty panel)
+      // when nothing is cached.
+      const restored = c.id ? (s.responseCache[c.id]?.response ?? null) : null;
       return {
         current: ld.current,
         lastResponse: restored,
