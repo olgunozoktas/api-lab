@@ -10,7 +10,13 @@ import {
   TOAST_DEFAULT_DURATION,
 } from "../lib/toast";
 import { uid } from "../lib/utils";
-import { putBounded, RESPONSE_CACHE_CAP } from "./responseCache";
+import {
+  putBoundedBytes,
+  cachedResponseBytes,
+  RESPONSE_CACHE_CAP,
+  RESPONSE_CACHE_MAX_ENTRY_BYTES,
+  RESPONSE_CACHE_MAX_TOTAL_BYTES,
+} from "./responseCache";
 
 export type ResponseActions = {
   setLastResponse: (r: ResponseSnapshot | null) => void;
@@ -33,7 +39,17 @@ export const createResponseSlice: StateCreator<Store, StoreMutators, [], Respons
       const cacheId = s.current.id;
       const responseCache =
         r !== null && cacheId
-          ? putBounded(s.responseCache, cacheId, r, RESPONSE_CACHE_CAP)
+          ? putBoundedBytes(
+              s.responseCache,
+              cacheId,
+              { response: r, cachedAt: Date.now() },
+              {
+                cap: RESPONSE_CACHE_CAP,
+                maxEntryBytes: RESPONSE_CACHE_MAX_ENTRY_BYTES,
+                maxTotalBytes: RESPONSE_CACHE_MAX_TOTAL_BYTES,
+                sizeOf: cachedResponseBytes,
+              }
+            )
           : s.responseCache;
       return {
         lastResponse: r,

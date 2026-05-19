@@ -1,8 +1,15 @@
 /** Olgun Özoktaş geliştirdi · API Lab */
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
-import { buildInitialState, migrateV1toV2, migrateV2toV3, type CoreState } from "./internal";
+import {
+  buildInitialState,
+  migrateV1toV2,
+  migrateV2toV3,
+  migrateV3toV4,
+  type CoreState,
+} from "./internal";
 import { idbStorage } from "./idbStorage";
+import { pruneStale, RESPONSE_CACHE_TTL_MS } from "./responseCache";
 import type { Store } from "./types";
 import { createCollectionsSlice } from "./collections";
 import { createTabsSlice } from "./tabs";
@@ -43,12 +50,26 @@ export const useStore = create<Store>()(
     }),
     {
       name: "apilab.store.v1",
-      version: 3,
+      version: 4,
       migrate: (persisted, fromVersion) => {
         let s: unknown = persisted;
         if (fromVersion < 2) s = migrateV1toV2(s);
         if (fromVersion < 3) s = migrateV2toV3(s);
+        if (fromVersion < 4) s = migrateV3toV4(s);
         return s as CoreState;
+      },
+      // Custom merge so the persisted responseCache is TTL-pruned on
+      // every hydrate — a relaunch shouldn't resurrect responses
+      // cached longer ago than RESPONSE_CACHE_TTL_MS. Otherwise this
+      // is the default shallow merge (persisted overrides current).
+      merge: (persisted, current) => {
+        const merged = { ...current, ...(persisted as Partial<Store>) } as Store;
+        merged.responseCache = pruneStale(
+          merged.responseCache ?? {},
+          RESPONSE_CACHE_TTL_MS,
+          Date.now()
+        );
+        return merged;
       },
       // IndexedDB-backed storage. Uncaps the 5 MB localStorage limit
       // and includes a one-shot migration on first read for users
@@ -73,6 +94,9 @@ export const useStore = create<Store>()(
           // syncConfig persists (repo URL + enabled); syncStatus does
           // NOT — it's this session's runtime sync state.
           syncConfig: s.syncConfig,
+          // Per-request response memory — byte-budgeted on write,
+          // TTL-pruned on hydrate (see the `merge` above).
+          responseCache: s.responseCache,
         }) as Store,
     }
   )

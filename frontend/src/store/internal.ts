@@ -26,6 +26,7 @@ import {
   DEFAULT_LAYOUT,
 } from "../lib/types";
 import type { ToastEntry } from "../lib/toast";
+import type { CachedResponse } from "./responseCache";
 import { uid } from "../lib/utils";
 import { detectLocale, type Locale } from "../lib/i18n";
 
@@ -46,10 +47,10 @@ export type CoreState = {
   current: CurrentRequest;
   lastResponse: ResponseSnapshot | null;
   // Per-saved-request response memory, keyed by CollectionItem id.
-  // Session-only — NOT in `partialize` — so re-selecting a request
-  // restores its last response without persisting bodies to IDB.
-  // See store/responseCache.ts.
-  responseCache: Record<string, ResponseSnapshot>;
+  // Persisted (in `partialize`, since v4) — re-selecting a request
+  // restores its last response even across a relaunch. Byte-budgeted
+  // + TTL-pruned on hydrate; see store/responseCache.ts.
+  responseCache: Record<string, CachedResponse>;
   ui: UiState;
   locale: Locale;
   defaults: RequestDefaults;
@@ -247,6 +248,15 @@ export function migrateV2toV3(persisted: unknown): CoreState {
     samplesSectionHidden: false,
     enabledIntegrations: [],
   } as CoreState;
+}
+
+// v3 → v4 migration. v4 promoted `responseCache` into `partialize`,
+// so pre-v4 snapshots never carried it (it was session-only). There's
+// nothing to migrate — just ensure the field is present so the
+// CoreState shape check doesn't see it as undefined.
+export function migrateV3toV4(persisted: unknown): CoreState {
+  const old = (persisted as Partial<CoreState>) ?? {};
+  return { ...old, responseCache: old.responseCache ?? {} } as CoreState;
 }
 
 // Recursive descendants helper — returns the IDs of every descendant of
