@@ -172,6 +172,8 @@ export const en: Dict = {
   "collections.newFolderDefault": "New folder",
   "collections.newRequestDefault": "New request",
   "collections.confirmDeleteFolder": 'Delete folder "{name}" and ALL requests inside it?',
+  "collections.itemDeleted": "Deleted",
+  undo: "Undo",
   "collections.context.newRequest": "New HTTP request",
   "collections.context.newGraphql": "New GraphQL",
   "collections.context.newWs": "New WebSocket",

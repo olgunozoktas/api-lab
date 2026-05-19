@@ -2,6 +2,7 @@
 import type { StateCreator } from "zustand";
 import type { CollectionItem, Environment, RequestSnapshot } from "../lib/types";
 import { uid } from "../lib/utils";
+import { t } from "../lib/i18n";
 import { descendantIds, nextOrder } from "./internal";
 import type { Store, StoreMutators } from "./types";
 
@@ -17,6 +18,11 @@ export type NewRequestKind = "http" | "graphql" | "ws" | "sse" | "grpc";
 
 export type CollectionsActions = {
   deleteCollectionItem: (id: string) => void;
+  // Re-insert a previously-deleted subtree (the Undo path for
+  // `deleteCollectionItem`). `items` is the verbatim removed slice;
+  // `expanded` restores the folders' expansion state. Idempotent —
+  // ids already present are skipped, so a double-fired Undo is safe.
+  restoreCollectionItems: (items: CollectionItem[], expanded: Record<string, boolean>) => void;
   addFolder: (parentId: string | null, name: string) => string;
   addRequest: (parentId: string | null, name: string, kind?: NewRequestKind) => CollectionItem;
   renameCollectionItem: (id: string, name: string) => void;
@@ -58,26 +64,61 @@ function emptyRequestSnapshot(kind: NewRequestKind = "http"): RequestSnapshot {
 }
 
 export const createCollectionsSlice: StateCreator<Store, StoreMutators, [], CollectionsActions> = (
-  set
+  set,
+  get
 ) => ({
-  deleteCollectionItem: (id) =>
-    set((s) => {
-      // Recursive: collect all descendants (folders take their kids
-      // with them) and purge in one pass.
-      const toRemove = new Set<string>([id, ...descendantIds(s.collectionItems, id)]);
-      const items = s.collectionItems.filter((c) => !toRemove.has(c.id));
-      const expanded = { ...s.collectionsExpanded };
+  deleteCollectionItem: (id) => {
+    const s = get();
+    // Recursive: a folder takes its whole subtree with it.
+    const toRemove = new Set<string>([id, ...descendantIds(s.collectionItems, id)]);
+    // Snapshot the removed slice + the removed folders' expansion
+    // state BEFORE the purge — this closure holds it for the Undo.
+    const removed = s.collectionItems.filter((c) => toRemove.has(c.id));
+    if (removed.length === 0) return;
+    const removedExpanded: Record<string, boolean> = {};
+    for (const k of toRemove) {
+      if (k in s.collectionsExpanded) removedExpanded[k] = s.collectionsExpanded[k];
+    }
+
+    set((st) => {
+      const items = st.collectionItems.filter((c) => !toRemove.has(c.id));
+      const expanded = { ...st.collectionsExpanded };
       for (const k of toRemove) delete expanded[k];
       // If any open tab pointed at a removed request, drop the
       // collection link so the tab still works (just unsaved).
-      const tabs = s.tabs.map((t) =>
-        t.request.id && toRemove.has(t.request.id)
-          ? { ...t, request: { ...t.request, id: null } }
-          : t
+      const tabs = st.tabs.map((tb) =>
+        tb.request.id && toRemove.has(tb.request.id)
+          ? { ...tb, request: { ...tb.request, id: null } }
+          : tb
       );
       const current =
-        s.current.id && toRemove.has(s.current.id) ? { ...s.current, id: null } : s.current;
+        st.current.id && toRemove.has(st.current.id) ? { ...st.current, id: null } : st.current;
       return { collectionItems: items, collectionsExpanded: expanded, tabs, current };
+    });
+
+    // Exercise the toast action affordance: an Undo button that
+    // re-inserts the snapshot. The longer action-toast duration gives
+    // the user time to react before the closure (and its snapshot) go.
+    get().showToast(t(get().locale, "collections.itemDeleted"), {
+      severity: "info",
+      action: {
+        label: t(get().locale, "undo"),
+        onAction: () => get().restoreCollectionItems(removed, removedExpanded),
+      },
+    });
+  },
+
+  restoreCollectionItems: (items, expanded) =>
+    set((st) => {
+      // Skip ids that already exist (a double-fired Undo) so restore
+      // is idempotent and never duplicates a row.
+      const present = new Set(st.collectionItems.map((c) => c.id));
+      const revived = items.filter((c) => !present.has(c.id));
+      if (revived.length === 0) return {};
+      return {
+        collectionItems: [...st.collectionItems, ...revived],
+        collectionsExpanded: { ...st.collectionsExpanded, ...expanded },
+      };
     }),
 
   addFolder: (parentId, name) => {

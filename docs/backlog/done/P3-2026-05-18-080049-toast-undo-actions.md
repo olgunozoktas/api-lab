@@ -19,14 +19,30 @@ the modern, discoverable pattern and now costs only the wiring.
 
 ## Items
 
-- [ ] Identify the destructive operations worth an Undo toast — at
+- [x] Identify the destructive operations worth an Undo toast — at
       minimum collection-item delete; consider tab close, history clear.
-- [ ] For each, capture the pre-delete state, then
+      *(Scoped to collection-item delete per the Tradeoffs first-cut
+      guidance; tab close / history clear noted as Follow-ups.)*
+- [x] For each, capture the pre-delete state, then
       `showToast(t("…"), { severity: "info", action: { label: t("undo"),
       onAction: () => restore() } })`.
-- [ ] Add the `undo` (+ per-operation) i18n keys to `tr.ts` / `en.ts`.
-- [ ] Confirm the restore path is correct (order, parentId, expansion
-      state for folders).
+- [x] Add the `undo` (+ per-operation) i18n keys to `tr.ts` / `en.ts`.
+- [x] Confirm the restore path is correct (order, parentId, expansion
+      state for folders). *(`restoreCollectionItems` re-inserts the
+      verbatim removed slice — `id`/`parentId`/`order` intact — and
+      merges back the removed folders' expansion state; covered by
+      `collectionUndo.test.ts`.)*
+
+## Follow-ups
+
+Tab close already has the `reopenLastClosedTab` shortcut; history
+clear has no Undo. Both are candidate Undo-toast wirings but were left
+out of this first cut per the Tradeoffs guidance ("scope the first cut
+to single-item delete and grow from there"). One known gap: an open
+tab that pointed at a deleted request gets its collection link nulled
+on delete and is *not* re-linked by Undo — the tree item returns but
+the tab stays unsaved. Re-linking would need the nulled-tab set
+captured too; deferred as minor.
 
 ## Acceptance
 
