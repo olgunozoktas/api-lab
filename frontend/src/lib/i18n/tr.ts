@@ -171,6 +171,8 @@ export const tr = {
   "collections.newRequestDefault": "Yeni istek",
   "collections.confirmDeleteFolder":
     '"{name}" klasörünü ve içindeki TÜM istekleri silmek istediğine emin misin?',
+  "collections.itemDeleted": "Silindi",
+  undo: "Geri al",
   "collections.context.newRequest": "Yeni HTTP isteği",
   "collections.context.newGraphql": "Yeni GraphQL",
   "collections.context.newWs": "Yeni WebSocket",
