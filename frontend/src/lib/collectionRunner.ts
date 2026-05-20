@@ -147,7 +147,20 @@ export async function runCollection(plan: RunPlan, hooks: RunHooks = {}): Promis
   };
 
   if (plan.mode === "parallel") {
-    await Promise.all(work.map((_, i) => runOne(i)));
+    // Bounded worker pool — caps concurrency at PARALLEL_CONCURRENCY
+    // so a 500-cell run (10 requests × 50 CSV rows) doesn't fire 500
+    // curl subprocesses at once. The pre-fix code did exactly that
+    // via `Promise.all(work.map(runOne))` — enough to exhaust file
+    // descriptors, trip API rate limits hard, or wedge the machine.
+    //
+    // The pool pulls indices off a shared cursor; each worker loops
+    // until either the cursor exceeds `work.length` or the abort
+    // signal fires. The signal check INSIDE each worker iteration
+    // means a cancellation during a long run drains in-flight work
+    // without firing further cells. `runOne` itself also checks
+    // `signal.aborted` at entry, so the worst case after abort is
+    // the currently-in-flight cells finishing.
+    await runParallel(work.length, PARALLEL_CONCURRENCY, runOne, hooks.signal);
   } else {
     for (let i = 0; i < work.length; i++) {
       if (hooks.signal?.aborted) break;
@@ -155,6 +168,45 @@ export async function runCollection(plan: RunPlan, hooks: RunHooks = {}): Promis
     }
   }
   return results;
+}
+
+// Default worker count for parallel mode. 6 is the same default
+// Chrome uses for per-origin connection limits — high enough to feel
+// fast on a real network, low enough that hammering localhost or a
+// rate-limited API doesn't immediately tip over. A user-tunable
+// input is queued as a follow-up if anyone asks.
+export const PARALLEL_CONCURRENCY = 6;
+
+// N-worker pool. Exported for the in-flight-counter unit test. The
+// pool is order-agnostic — cells finish in whatever order curl
+// returns; the per-cell `i` index in the work list controls which
+// row gets the result, NOT the order of completion.
+export async function runParallel(
+  total: number,
+  workers: number,
+  runOne: (i: number) => Promise<void>,
+  signal?: AbortSignal | { aborted: boolean }
+): Promise<void> {
+  let cursor = 0;
+  const next = (): number | null => {
+    if (signal?.aborted) return null;
+    if (cursor >= total) return null;
+    return cursor++;
+  };
+  const workerLoop = async (): Promise<void> => {
+    while (true) {
+      const i = next();
+      if (i === null) return;
+      await runOne(i);
+    }
+  };
+  // Don't spawn more workers than there is work — for a 3-cell run
+  // with a 6-worker cap, three workers would exit immediately on
+  // the first next() call. Cheap, but wasteful; clamp.
+  const lanesCount = Math.min(workers, total);
+  const lanes: Promise<void>[] = [];
+  for (let w = 0; w < lanesCount; w++) lanes.push(workerLoop());
+  await Promise.all(lanes);
 }
 
 // Aggregate a finished (or in-progress) run into summary counts.

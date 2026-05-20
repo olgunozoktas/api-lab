@@ -19,13 +19,13 @@ footgun.
 
 ## Items
 
-- [ ] Add a concurrency limit to `runCollection`'s parallel path — a
+- [x] Add a concurrency limit to `runCollection`'s parallel path — a
       simple N-worker pool draining the work queue instead of one
       `Promise.all` over every cell.
-- [ ] Surface the limit (default 6) — a small number input next to
+- [x] Surface the limit (default 6) — a small number input next to
       the parallel toggle, or a sensible fixed cap documented in the
       UI hint.
-- [ ] Unit-test that no more than N sends are ever in flight at once
+- [x] Unit-test that no more than N sends are ever in flight at once
       (instrument the fake `send`).
 
 ## Acceptance
