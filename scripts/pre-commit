@@ -1,10 +1,13 @@
 #!/usr/bin/env bash
 # Pre-commit hook for api-lab.
 #
-# Two checks, both fast:
+# Three checks, all fast:
 #   1. `zig fmt --check` on every staged .zig file
 #   2. `prettier --check` on every staged frontend/src/**/*.{ts,tsx,css,json,md}
 #      via dnpm (Docker isolation, per frontend/CLAUDE.md)
+#   3. `scripts/check-token-scale.sh` when any frontend/src/ .ts/.tsx is
+#      staged — blocks raw `text-[Npx]` from re-entering the bundle
+#      after the 2026-05-18 migration onto the @theme scale.
 #
 # Skip with: `git commit --no-verify`. Don't make a habit of it — CI runs
 # the same checks and will reject the push if formatting drifts.
@@ -86,6 +89,29 @@ if [ "${#PRETTIER_FILES[@]}" -gt 0 ]; then
         exit 1
       fi
     ) || FAIL=1
+  fi
+fi
+
+# ---------------------------------------------------------------------------
+# 3. token-scale guard (scripts/check-token-scale.sh)
+# ---------------------------------------------------------------------------
+# Run only when a .ts / .tsx under frontend/src/ is staged — the
+# script greps the whole tree, but firing it on every Zig-only or
+# doc-only commit is wasted I/O. Same exit shape as the others.
+HAS_FRONTEND_STAGED=0
+for f in "${PRETTIER_FILES[@]}"; do
+  case "$f" in
+    frontend/src/*.ts|frontend/src/*.tsx) HAS_FRONTEND_STAGED=1; break ;;
+  esac
+done
+if [ "$HAS_FRONTEND_STAGED" = "1" ] && [ -x scripts/check-token-scale.sh ]; then
+  echo "[pre-commit] token-scale guard..."
+  if ! bash scripts/check-token-scale.sh; then
+    echo
+    echo "::error:: raw text-[<num>] value(s) detected outside the @theme scale."
+    echo "Fix: switch to text-4xs / text-3xs / text-2xs / text-xs,"
+    echo "or annotate a deliberate exception with a // token-scale-allow comment."
+    FAIL=1
   fi
 fi
 

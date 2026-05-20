@@ -50,8 +50,9 @@ zig build run -Dzero-native-path=/path/to/zero-native   # override default ../ze
 # Verify the binary + tail logs:
 ./zig-out/bin/api-lab               # tail ~/Library/Logs/dev.olgun.api-lab/zero-native.jsonl in another shell
 
-# Pre-commit hooks (zig fmt + prettier --check):
+# Pre-commit hooks (zig fmt + prettier --check + token-scale guard):
 bash scripts/install-hooks.sh       # one-time per clone (idempotent; sets core.hooksPath)
+bash scripts/check-token-scale.sh   # standalone: scan for raw text-[Npx] outside the @theme scale
 ```
 
 `./build.sh` is the canonical build entry point — sequences the
@@ -160,6 +161,8 @@ Every component is a candidate library export. Reviews reject violations.
 - Stores: split per slice (`store/collections.ts`, `store/env.ts`, …) instead of one monolithic file.
 
 This is non-negotiable. Reviews reject any file exceeding 400 lines. Legacy files at the time of this rule landing must be refactored before extension.
+
+**Tailwind text scale: use the named `@theme` tokens, not raw `text-[Npx]`.** The `@theme` block in `frontend/src/main.css` defines `text-4xs` (9px), `text-3xs` (10px), `text-2xs` (11px), `text-xs` (12px) and the standard scale upward. Components MUST use those classes — `text-[10px]` and friends bypass the design system and re-introduce the silent drift the 2026-05-18 migration deleted. `scripts/check-token-scale.sh` runs in the pre-commit hook and blocks any new raw `text-[N…]` value under `frontend/src/`. Deliberate exceptions (e.g. `App.tsx`'s app-wide 13px base) are permitted via a `// token-scale-allow` comment on the same line or the line immediately above the use site; the marker is the project's stable, greppable convention for documented opt-outs.
 
 **Changelog: every user-visible change ships an entry.** Every commit / PR that touches user-facing behavior MUST drop a markdown file under `frontend/changelog/unreleased/` in the same commit. Internal-only refactors (no user-visible delta — pure renames, file splits, type-only changes) do NOT need an entry; the author judges, the reviewer pushes back if the call is wrong.
 

@@ -19,15 +19,15 @@ prettier). A token-scale guard belongs in the same place.
 
 ## Items
 
-- [ ] Add `scripts/check-token-scale.sh` — fails (exit 1) if
+- [x] Add `scripts/check-token-scale.sh` — fails (exit 1) if
       `grep -rE 'text-\[[0-9]' frontend/src/components` finds any hit.
       Allow an opt-out comment marker for genuinely off-scale cases
       (mirror the `App.tsx` `text-[13px]` documented-exception pattern).
-- [ ] Wire it into the pre-commit hook (`scripts/install-hooks.sh`)
+- [x] Wire it into the pre-commit hook (`scripts/install-hooks.sh`)
       alongside the existing zig-fmt + prettier checks.
-- [ ] Optionally also guard arbitrary spacing (`p-[Npx]` etc.) and
+- [x] Optionally also guard arbitrary spacing (`p-[Npx]` etc.) and
       arbitrary non-token colours, if cheap to add in the same script.
-- [ ] Document the guard + the exception-marker convention in
+- [x] Document the guard + the exception-marker convention in
       `frontend/CLAUDE.md` or the main `CLAUDE.md`.
 
 ## Acceptance
