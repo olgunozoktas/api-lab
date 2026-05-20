@@ -292,6 +292,9 @@ export const tr = {
   "switcher.section.tabs": "Açık sekmeler",
   "switcher.section.collections": "Koleksiyonlar",
   "switcher.section.history": "Geçmiş",
+  "switcher.commandBadge": "KMT",
+  "switcher.command.diff": "Yanıtları karşılaştır",
+  "switcher.command.diff.hint": "Yanıt karşılaştırma penceresini aç",
 
   "kv.addParam": "+ Param ekle",
   "kv.addHeader": "+ Header ekle",

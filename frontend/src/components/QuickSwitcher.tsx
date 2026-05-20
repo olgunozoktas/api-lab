@@ -8,26 +8,58 @@ import { cn } from "../lib/cn";
 import { methodClass, statusPillClass, statusText } from "../lib/utils";
 import type { CollectionItem, HistoryItem, OpenTab } from "../lib/types";
 import { SAMPLES, type Sample } from "../lib/samples";
-import { History, FolderOpen, LayoutGrid, Sparkles } from "lucide-react";
+import { GitCompareArrows, History, FolderOpen, LayoutGrid, Sparkles } from "lucide-react";
+import type { TKey } from "../lib/i18n";
 
 // =============================================================================
 // QuickSwitcher — ⌘+P / Ctrl+P modal. Fuzzy-search across:
 //   1. Open tabs (jump-to-tab)
 //   2. Collections (load into current tab)
 //   3. Recent history items (load into current tab)
+//   4. App commands (e.g. "Compare responses" → opens diff modal)
 //
 // Keyboard:
 //   ↑/↓        — navigate items
 //   Enter      — activate selected
-//   Cmd/Ctrl-Enter — open in NEW tab
+//   Cmd/Ctrl-Enter — open in NEW tab (no-op for command items)
 //   Esc        — close
 // =============================================================================
+
+// Command-palette entry — verb-shaped actions surfaced alongside the
+// user-data items. `id` is the stable analytics-friendly slug; `nameKey`
+// resolves to the localised label the user sees AND the text the
+// ranker indexes against. `action` runs on Enter / click.
+type Command = {
+  id: string;
+  nameKey: TKey;
+  // Optional one-line hint shown on the right (where data items show
+  // their URL). Localised key — undefined = no hint.
+  hintKey?: TKey;
+  // Icon to render in the leading slot. Keeps the visual differentiation
+  // from data items obvious at a glance.
+  icon: typeof GitCompareArrows;
+  action: () => void;
+};
+
+const COMMANDS: ReadonlyArray<Command> = [
+  {
+    id: "compare-responses",
+    nameKey: "switcher.command.diff",
+    hintKey: "switcher.command.diff.hint",
+    icon: GitCompareArrows,
+    // Dispatch the same window event HistoryList + TabStrip use, but
+    // with no seed payload — opens the modal in its default unseeded
+    // flow (TopBar's `apilab:open-diff` listener clears any prior seed).
+    action: () => window.dispatchEvent(new CustomEvent("apilab:open-diff")),
+  },
+];
 
 type Item =
   | { kind: "tab"; tab: OpenTab }
   | { kind: "collection"; col: CollectionItem }
   | { kind: "history"; entry: HistoryItem }
-  | { kind: "sample"; sample: Sample };
+  | { kind: "sample"; sample: Sample }
+  | { kind: "command"; command: Command };
 
 function score(query: string, target: string): number {
   if (!query) return 1;
@@ -40,7 +72,7 @@ function score(query: string, target: string): number {
   return qi === q.length ? 1 : 0;
 }
 
-function rankItems(query: string, items: Item[]): Item[] {
+function rankItems(query: string, items: Item[], commandText: (c: Command) => string): Item[] {
   const scored = items.map((item) => {
     const text =
       item.kind === "tab"
@@ -49,11 +81,17 @@ function rankItems(query: string, items: Item[]): Item[] {
           ? `${item.col.name} ${item.col.request!.url} ${item.col.request!.method}`
           : item.kind === "history"
             ? `${item.entry.request.url} ${item.entry.request.method}`
-            : // sample — use the i18n key fragments + kind + url. Samples
-              // are deliberately indexed by their stable structural keys
-              // (not the localized display name) so the same "ws echo"
-              // query matches in both Turkish and English UI sessions.
-              `${item.sample.id} ${item.sample.kind} ${item.sample.nameKey} ${item.sample.url}`;
+            : item.kind === "sample"
+              ? // sample — use the i18n key fragments + kind + url.
+                // Samples are deliberately indexed by their stable
+                // structural keys (not the localized display name) so
+                // the same "ws echo" query matches in both Turkish and
+                // English UI sessions.
+                `${item.sample.id} ${item.sample.kind} ${item.sample.nameKey} ${item.sample.url}`
+              : // command — index on the localised label + id. Includes
+                // the id so a stable analytics slug ("compare-responses")
+                // matches even in a UI language where the label drifted.
+                commandText(item.command);
     return { item, s: score(query, text) };
   });
   return scored.filter((x) => x.s > 0).map((x) => x.item);
@@ -113,9 +151,14 @@ export function QuickSwitcher({ open, onOpenChange }: QuickSwitcherProps) {
       // content. The full SAMPLES manifest is included regardless of
       // the user's hidden state — that's the "always reach" rule.
       ...SAMPLES.map((sample) => ({ kind: "sample" as const, sample })),
+      // Commands sit at the bottom of the unfiltered list — they
+      // surface to the top of the ranked list when the user types
+      // their label (e.g. "compare"), so they're discoverable by
+      // search without crowding the default tab/collection order.
+      ...COMMANDS.map((command) => ({ kind: "command" as const, command })),
     ];
-    return rankItems(query, base);
-  }, [tabs, collections, history, query]);
+    return rankItems(query, base, (c) => `${c.id} ${t(c.nameKey)}`);
+  }, [tabs, collections, history, query, t]);
 
   const visibleHighlight = Math.min(highlight, Math.max(0, items.length - 1));
 
@@ -138,6 +181,10 @@ export function QuickSwitcher({ open, onOpenChange }: QuickSwitcherProps) {
       // Re-reveal in the sidebar so the user can see what they just
       // picked. No-op if the sample was never hidden.
       showSample(item.sample.id);
+    } else if (item.kind === "command") {
+      // Commands ignore openInNew — they're verb actions, not items
+      // with a "load somewhere" mode. The action runs, switcher closes.
+      item.command.action();
     }
     onOpenChange(false);
   };
@@ -212,7 +259,9 @@ export function QuickSwitcher({ open, onOpenChange }: QuickSwitcherProps) {
                           ? `col:${item.col.id}`
                           : item.kind === "history"
                             ? `hist:${item.entry.id}`
-                            : `sample:${item.sample.id}`
+                            : item.kind === "sample"
+                              ? `sample:${item.sample.id}`
+                              : `cmd:${item.command.id}`
                     }
                     type="button"
                     onMouseEnter={() => setHighlight(i)}
@@ -232,15 +281,17 @@ export function QuickSwitcher({ open, onOpenChange }: QuickSwitcherProps) {
                         <FolderOpen className="w-3.5 h-3.5" />
                       ) : item.kind === "history" ? (
                         <History className="w-3.5 h-3.5" />
-                      ) : (
+                      ) : item.kind === "sample" ? (
                         <Sparkles className="w-3.5 h-3.5" />
+                      ) : (
+                        <item.command.icon className="w-3.5 h-3.5" />
                       )}
                     </span>
 
                     <span
                       className={cn(
                         "shrink-0 text-3xs font-mono font-semibold uppercase w-12",
-                        item.kind === "sample"
+                        item.kind === "sample" || item.kind === "command"
                           ? "text-[var(--color-fg-muted)]"
                           : methodClass(
                               item.kind === "tab"
@@ -251,13 +302,15 @@ export function QuickSwitcher({ open, onOpenChange }: QuickSwitcherProps) {
                             )
                       )}
                     >
-                      {item.kind === "sample"
-                        ? item.sample.kind.toUpperCase()
-                        : item.kind === "tab"
-                          ? item.tab.request.method
-                          : item.kind === "collection"
-                            ? item.col.request!.method
-                            : item.entry.request.method}
+                      {item.kind === "command"
+                        ? t("switcher.commandBadge")
+                        : item.kind === "sample"
+                          ? item.sample.kind.toUpperCase()
+                          : item.kind === "tab"
+                            ? item.tab.request.method
+                            : item.kind === "collection"
+                              ? item.col.request!.method
+                              : item.entry.request.method}
                     </span>
 
                     <span className="flex-1 min-w-0 truncate text-sm">
@@ -267,7 +320,9 @@ export function QuickSwitcher({ open, onOpenChange }: QuickSwitcherProps) {
                           ? item.col.name
                           : item.kind === "history"
                             ? item.entry.request.url || "(empty)"
-                            : t(item.sample.nameKey)}
+                            : item.kind === "sample"
+                              ? t(item.sample.nameKey)
+                              : t(item.command.nameKey)}
                     </span>
 
                     {item.kind === "history" ? (
@@ -292,7 +347,11 @@ export function QuickSwitcher({ open, onOpenChange }: QuickSwitcherProps) {
                           ? item.tab.request.url
                           : item.kind === "collection"
                             ? item.col.request!.url
-                            : item.sample.url}
+                            : item.kind === "sample"
+                              ? item.sample.url
+                              : item.command.hintKey
+                                ? t(item.command.hintKey)
+                                : ""}
                       </span>
                     )}
                   </button>

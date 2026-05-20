@@ -292,6 +292,9 @@ export const en: Dict = {
   "switcher.section.tabs": "Open tabs",
   "switcher.section.collections": "Collections",
   "switcher.section.history": "History",
+  "switcher.commandBadge": "CMD",
+  "switcher.command.diff": "Compare responses",
+  "switcher.command.diff.hint": "Open the response diff modal",
 
   "kv.addParam": "+ Add param",
   "kv.addHeader": "+ Add header",
