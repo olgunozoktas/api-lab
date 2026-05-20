@@ -22,11 +22,11 @@ Both are nice-to-haves the parent slice deliberately deferred.
   array, and pass an `accept` hint from `pickFiles` in
   `frontend/src/lib/fileBody.ts` (e.g. images for an image field).
   This needs a zero-native change — coordinate there.
-- [ ] **File size.** Add a small `fs.stat({path}) -> {exists, size}`
+- [x] **File size.** Add a small `fs.stat({path}) -> {exists, size}`
   bridge handler (new `src/handlers/fs.zig`, mirrors the `http.zig`
   Context pattern; `filesystem` permission). `BodyBinary` and the
   multipart file rows then show a human-readable size.
-- [ ] Tests for the matcher / stat handler + the size formatting.
+- [x] Tests for the matcher / stat handler + the size formatting.
 
 ## Acceptance
 

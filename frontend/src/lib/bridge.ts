@@ -42,6 +42,24 @@ export async function shellOpen(url: string): Promise<boolean> {
   }
 }
 
+// `fs.stat` — look up `{exists, size}` for an absolute path. The Zig
+// handler refuses relative paths and surfaces FileNotFound /
+// NotDir / IsDir as `exists: false` (rather than an error). Returns
+// null when the bridge is unavailable (browser-mode dev) so callers
+// can render a fallback without writing `bridge.available` checks.
+export type FsStatResponse = { exists?: boolean; size?: number; error?: string };
+
+export async function fsStat(path: string): Promise<{ exists: boolean; size: number } | null> {
+  if (!bridge.available) return null;
+  try {
+    const res = await bridge.invoke<FsStatResponse>("fs.stat", { path });
+    if (res.error !== undefined) return null;
+    return { exists: res.exists === true, size: res.size ?? 0 };
+  } catch {
+    return null;
+  }
+}
+
 export type HttpHeader = { name: string; value: string };
 
 export type HttpRequest = {

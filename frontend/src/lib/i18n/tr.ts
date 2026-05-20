@@ -380,6 +380,7 @@ export const tr = {
   "body.multipart.pickFile": "Dosya seç",
   "body.binary.pickFile": "Dosya seç",
   "body.binary.clear": "Dosyayı kaldır",
+  "body.binary.size": "Dosya boyutu",
 
   "graphql.note": "Method otomatik POST, body application/json olarak gönderilir.",
   "graphql.query": "Query",
