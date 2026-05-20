@@ -60,6 +60,30 @@ export async function fsStat(path: string): Promise<{ exists: boolean; size: num
   }
 }
 
+// `shell.writeTempFile` — stage a single file under the app's
+// `~/Library/Caches/API Lab/exports/<random>/` cache so a follow-up
+// `shellOpen("file://<path>")` call can hand it to the browser. The
+// handler picks the random subdir; the caller only supplies the
+// leaf filename (which must be a plain basename — no slashes, no
+// `..`). Returns the absolute path on success or null on any
+// failure (bridge unavailable, invalid name, no HOME, etc.) so
+// callers can fall back to a download flow.
+export type ShellWriteTempFileResponse = { ok?: boolean; path?: string; error?: string };
+
+export async function shellWriteTempFile(name: string, contents: string): Promise<string | null> {
+  if (!bridge.available) return null;
+  try {
+    const res = await bridge.invoke<ShellWriteTempFileResponse>("shell.writeTempFile", {
+      name,
+      contents,
+    });
+    if (res.error !== undefined || !res.path) return null;
+    return res.path;
+  } catch {
+    return null;
+  }
+}
+
 export type HttpHeader = { name: string; value: string };
 
 export type HttpRequest = {

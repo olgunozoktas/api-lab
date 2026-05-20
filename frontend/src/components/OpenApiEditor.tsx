@@ -17,6 +17,7 @@ import { validateSpec, type SpecIssue } from "../lib/specValidate";
 import { lintSpec, type LintFinding } from "../lib/spectralLint";
 import { downloadTextFile } from "../lib/responseDownload";
 import { buildRedocHtml } from "../lib/redocHtml";
+import { bridge, shellOpen, shellWriteTempFile } from "../lib/bridge";
 import { CodeEditor, type CodeLanguage } from "./ui/code-editor";
 import { Button } from "./ui/button";
 import { SpecSidePanel, type Outline } from "./SpecSidePanel";
@@ -124,10 +125,27 @@ export function OpenApiEditor({
 
   const errorCount = issues.filter((i) => i.severity === "error").length;
 
-  const exportDocs = () => {
+  const exportDocs = async () => {
     if (!parsedDoc) return;
     const base = fileName.replace(/\.[^.]+$/, "");
-    downloadTextFile(buildRedocHtml(parsedDoc, base), `${base}-docs.html`, "text/html");
+    const html = buildRedocHtml(parsedDoc, base);
+    const name = `${base}-docs.html`;
+
+    // Native path (zero-native): stage the bundle under the cache
+    // exports root, then ask the OS to open it in the user's
+    // default browser. Falls back to the download flow when the
+    // bridge isn't reachable (browser-mode dev) or any step fails
+    // — staying behind the existing "Export HTML" button label
+    // keeps the user's expectation that they'll *get a file*
+    // either way.
+    if (bridge.available) {
+      const path = await shellWriteTempFile(name, html);
+      if (path) {
+        const opened = await shellOpen(`file://${path}`);
+        if (opened) return;
+      }
+    }
+    downloadTextFile(html, name, "text/html");
   };
 
   return (

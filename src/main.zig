@@ -84,6 +84,11 @@ const command_policies = [_]zero_native.BridgeCommandPolicy{
     // than introducing a `shell` permission to app.zon — the net
     // capability is "ask the OS to navigate to this web URL".
     .{ .name = "shell.open", .permissions = &.{"network"}, .origins = &allowed_origins },
+    // `shell.writeTempFile` stages a file under
+    // ~/Library/Caches/API Lab/exports/<rand>/ so `shell.open` can
+    // hand it to the system browser. Filesystem-only — writes the
+    // file but does not invoke any subprocess on its own.
+    .{ .name = "shell.writeTempFile", .permissions = &.{"filesystem"}, .origins = &allowed_origins },
     // `fs.stat` reads file metadata — read-only filesystem access.
     .{ .name = "fs.stat", .permissions = &.{"filesystem"}, .origins = &allowed_origins },
 };
@@ -157,6 +162,7 @@ pub fn main(init: std.process.Init) !void {
         git_sync_handler.resolveHandler(&git_sync_ctx),
         mcp_handler.handler(&mcp_ctx),
         shell_handler.handler(&shell_ctx),
+        shell_handler.writeTempFileHandler(&shell_ctx),
         fs_handler.statHandler(&fs_ctx),
     };
     const registry = zero_native.BridgeRegistry{ .handlers = &handler_list };

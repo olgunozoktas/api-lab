@@ -24,20 +24,20 @@ hand the OS a rendered HTML page, we need to:
 
 ## Items
 
-- [ ] Add a `shell.writeTempFile` bridge command — accepts
+- [x] Add a `shell.writeTempFile` bridge command — accepts
       `{name, contents, contentType}`, writes to
       `~/Library/Caches/API Lab/exports/<random>/<name>`, returns the
       absolute path. Bounds: name must be a plain basename (no
       slashes, no `..`); contents capped at 8 MB.
-- [ ] Extend `shell.open` to accept `file://` URLs whose canonical
+- [x] Extend `shell.open` to accept `file://` URLs whose canonical
       path starts with the cache-exports root. Reject everything
       else with the existing `invalid_url_scheme` error.
-- [ ] Wire `frontend/src/components/OpenApiEditor.tsx` `exportDocs()`
+- [x] Wire `frontend/src/components/OpenApiEditor.tsx` `exportDocs()`
       to call `shell.writeTempFile(buildRedocHtml(...))` then
       `shell.open(file://<path>)`. Fall back to the current
       `downloadTextFile` path when the bridge is unavailable
       (browser-mode dev).
-- [ ] Test the cache-root containment check (file://path traversal
+- [x] Test the cache-root containment check (file://path traversal
       attempts get rejected).
 
 ## Acceptance
