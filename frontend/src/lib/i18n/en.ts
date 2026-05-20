@@ -717,6 +717,11 @@ export const en: Dict = {
   "runner.run": "Run",
   "runner.cancel": "Cancel",
   "runner.export": "Export JSON",
+  "runner.rerunFailed": "Re-run failed ({n})",
+  "runner.responseStatus": "Response status: {status}",
+  "runner.detail.noAssertMessages":
+    "(no assertion messages — request errored before assertions ran)",
+  "runner.detail.passedTally": "({count} other assertion(s) passed)",
   "runner.iteration": "#{n}",
   "runner.assertShort": "{passed}/{total}",
   "runner.status.pending": "pending",

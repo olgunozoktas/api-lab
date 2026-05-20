@@ -41,6 +41,14 @@ export type RunPlan = {
   mode: RunMode;
   baseVars: Record<string, string>;
   defaults: RequestDefaults;
+  // Optional explicit work list — when set, the runner fires exactly
+  // these (requestId, iteration) pairs instead of the full
+  // `requests × rows` cross-product. Powers "Re-run failed" without
+  // mutating the rest of the plan: the caller keeps the same
+  // requests + rows so the result key shape (`${iteration}::${id}`)
+  // stays stable across the prior and re-run results, letting the
+  // UI merge them back into one list.
+  workList?: { requestId: string; iteration: number }[];
 };
 
 export type SendFn = (
@@ -95,8 +103,24 @@ export async function runCollection(plan: RunPlan, hooks: RunHooks = {}): Promis
   const rows = plan.rows.length > 0 ? plan.rows : [{}];
 
   const work: { req: RunnableRequest; row: Record<string, string>; it: number }[] = [];
-  for (let it = 0; it < rows.length; it++) {
-    for (const req of plan.requests) work.push({ req, row: rows[it], it });
+  if (plan.workList && plan.workList.length > 0) {
+    // Explicit work list — pick the matching (request, row) pair for
+    // each entry. Unknown ids / out-of-range iterations are silently
+    // skipped (callers building the list from prior results should
+    // have valid ids, but a missing request is a recoverable shape
+    // mismatch, not a crash).
+    const byId = new Map(plan.requests.map((r) => [r.id, r]));
+    for (const { requestId, iteration } of plan.workList) {
+      const req = byId.get(requestId);
+      if (!req) continue;
+      if (iteration < 0 || iteration >= rows.length) continue;
+      work.push({ req, row: rows[iteration], it: iteration });
+    }
+  } else {
+    // Full cross-product (default) — every request fires once per row.
+    for (let it = 0; it < rows.length; it++) {
+      for (const req of plan.requests) work.push({ req, row: rows[it], it });
+    }
   }
 
   const results: RunResultRow[] = work.map((w) => ({

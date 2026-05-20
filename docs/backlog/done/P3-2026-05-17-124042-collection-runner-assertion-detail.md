@@ -18,11 +18,11 @@ fix-and-retry", the core debugging loop.
 
 ## Items
 
-- [ ] Click a `fail` / `error` cell in `CollectionRunProgress` to
+- [x] Click a `fail` / `error` cell in `CollectionRunProgress` to
       expand the failing assertion names + messages inline.
-- [ ] "Re-run failed" button after a run — builds a `RunPlan` from
+- [x] "Re-run failed" button after a run — builds a `RunPlan` from
       only the failed/errored cells' (request, iteration) pairs.
-- [ ] Keep the prior run's passed cells visible/greyed so the re-run
+- [x] Keep the prior run's passed cells visible/greyed so the re-run
       reads as a continuation, not a fresh run.
 
 ## Acceptance
