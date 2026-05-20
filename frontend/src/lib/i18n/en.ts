@@ -143,6 +143,7 @@ export const en: Dict = {
   "sidebar.confirmClearHistory": "Clear history?",
 
   "import.button": "Import",
+  "import.importing": "Importing…",
   "import.title":
     "Import a collection — OpenAPI, Postman, Insomnia, HAR, Bruno (.json, .yaml, .bru)",
   "import.empty": "No requests to import",

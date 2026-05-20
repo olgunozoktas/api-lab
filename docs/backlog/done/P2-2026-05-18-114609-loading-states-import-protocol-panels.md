@@ -21,10 +21,18 @@ The remaining surfaces with no loading state:
 
 ## Items
 
-- [ ] Loading indicator for collection import + OpenAPI spec parsing
+- [x] Loading indicator for collection import + OpenAPI spec parsing
       (the import handlers in `Sidebar.tsx` / `OpenApiEditor.tsx`).
-- [ ] Stream / connect indicators for the gRPC, SSE and WS panels.
-- [ ] Each surface consumes the shipped `lib/useDelayedFlag.ts` hook +
+      *(Extracted `ImportPostmanButton` to its own file — Sidebar
+      417 → 254 LOC, under the 400 cap — and wired an `importing`
+      state + delayed Spinner. The spec-parse "busy" state already
+      shipped: `OpenApiEditor`'s `busy`/`lintBusy` already feed
+      `SpecSidePanel`, so the in-flight indicator was in place; no
+      duplicate added.)*
+- [x] Stream / connect indicators for the gRPC, SSE and WS panels.
+      *(Each StatusPill gained a delayed Spinner glyph when its state
+      is `running` / `connecting` / `closing`.)*
+- [x] Each surface consumes the shipped `lib/useDelayedFlag.ts` hook +
       the `Skeleton` / `Spinner` primitives — no bespoke spinners.
 
 ## Acceptance

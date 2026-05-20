@@ -23,6 +23,8 @@ import {
   toEventSourceUrl,
 } from "../lib/sse";
 import { Button } from "./ui/button";
+import { Spinner } from "./ui/spinner";
+import { useDelayedFlag } from "../lib/useDelayedFlag";
 import { cn } from "../lib/cn";
 import { Plug, PlugZap, Trash2, ArrowDown, Info, RefreshCw } from "lucide-react";
 
@@ -100,8 +102,19 @@ function StatusPill({ status }: { status: SseStatus }) {
     error: "bg-red-500/15 text-[var(--color-danger)]",
   }[status];
   const label = t(`sse.status.${status}` as const);
+  // Spinner appears only if connecting drags past the delay threshold,
+  // so a fast EventSource open doesn't flash a placeholder.
+  const showSpinner = useDelayedFlag(status === "connecting");
   return (
-    <span className={"font-mono font-bold text-xs px-2.5 py-0.5 rounded-full " + cls}>{label}</span>
+    <span
+      className={
+        "inline-flex items-center gap-1 font-mono font-bold text-xs px-2.5 py-0.5 rounded-full " +
+        cls
+      }
+    >
+      {showSpinner && <Spinner />}
+      {label}
+    </span>
   );
 }
 
