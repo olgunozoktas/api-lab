@@ -29,7 +29,7 @@ README is the project's front door for every new clone.
 
 ## Items
 
-- [ ] **Rewrite the README build section around `./build.sh`.** Document
+- [x] **Rewrite the README build section around `./build.sh`.** Document
   the real flow: clone `api-lab` and `zero-native` as siblings, then
   `./build.sh` to build + launch. Cover the useful flags (`--no-run`,
   `--release`, `--frontend-only`, `--zig-only`, `--reset-state`).
@@ -37,11 +37,18 @@ README is the project's front door for every new clone.
   them to a clearly-labelled "advanced / manual" subsection that notes
   `frontend/dist/` must be populated first. Touchpoints: `README.md`.
   Verify by following the steps verbatim on a fresh clone.
-- [ ] **Add a "Why `dnpm` / why the build is sandboxed" explainer.**
+  *(Done — README "Quick start" leads with `./build.sh`, covers every
+  flag, and has a "Why the build flow is one script" section. The
+  obsolete `zig build run` path is documented as not-shelling-to-npm.)*
+- [x] **Add a "Why `dnpm` / why the build is sandboxed" explainer.**
   A short section explaining that all Node/npm work runs in a hardened
   Docker container (supply-chain defense), with a link to
   `frontend/CLAUDE.md` for the full policy rather than duplicating it.
   Mention the `dnpm setup` first-run step for fresh clones.
+  *(Done — README's frontend-builder list (preferred/alternative/last-
+  resort) links to `frontend/CLAUDE.md`, the "How `./build.sh` picks
+  its frontend builder" section explains the hardening, and the
+  preferred bullet now names `dnpm setup` as the first-run step.)*
   Touchpoints: `README.md`.
 
 ## Acceptance

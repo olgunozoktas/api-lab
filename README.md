@@ -49,7 +49,7 @@ Prerequisites:
 - **Zig 0.16+** — `brew install zig`
 - **`curl`** (preinstalled on macOS)
 - **A frontend builder** (auto-detected by `./build.sh`):
-  - Preferred: **OrbStack** (or Docker Desktop) + **`dnpm`** wrapper — frontend builds run inside a hardened Linux container; npm never touches your host
+  - Preferred: **OrbStack** (or Docker Desktop) + **`dnpm`** wrapper — frontend builds run inside a hardened Linux container; npm never touches your host. First-time setup in a fresh clone: `cd frontend && dnpm setup` (scaffolds the container, dependencies, and security baseline — see [`frontend/CLAUDE.md`](frontend/CLAUDE.md) for the full policy).
   - Alternative: **Docker Compose** alone — uses the project-rooted `docker-compose.yml` (less hardened than dnpm but still containerized)
   - Last resort: **Node 22 + `npm`** on the host (simplest, but sidesteps the supply-chain isolation — not recommended for daily use)
 
