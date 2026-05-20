@@ -6,7 +6,7 @@
 // McpServersModal the TopBar's icon does — same store backs both
 // surfaces, only one is interactive at a time.
 import { useState } from "react";
-import { Settings } from "lucide-react";
+import { Save, Settings } from "lucide-react";
 import { useStore } from "../store";
 import { useT } from "../lib/i18n/useT";
 import { Button } from "./ui/button";
@@ -26,6 +26,7 @@ export function McpServerBar() {
   const mcp = useStore((s) => s.current.mcp);
   const servers = useStore((s) => s.mcpServers);
   const setCurrent = useStore((s) => s.setCurrent);
+  const saveCurrent = useStore((s) => s.saveCurrent);
   const t = useT();
   const [modalOpen, setModalOpen] = useState(false);
 
@@ -74,6 +75,19 @@ export function McpServerBar() {
       >
         <Settings className="w-3.5 h-3.5" />
         {t("mcp.requestPanel.manageServers")}
+      </Button>
+      {/* Visible Save mirrors ⌘S — the shortcut still works, the
+          affordance is no longer hidden. saveCurrent itself derives
+          an MCP-aware `<server> · <tool>` name from the snapshot
+          when the tab is still on its placeholder label. */}
+      <Button
+        variant="primary"
+        size="sm"
+        onClick={() => saveCurrent()}
+        title={t("mcp.request.save")}
+      >
+        <Save className="w-3.5 h-3.5" />
+        {t("mcp.request.save")}
       </Button>
       <McpServersModal open={modalOpen} onOpenChange={setModalOpen} />
     </div>

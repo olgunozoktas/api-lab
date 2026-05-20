@@ -173,3 +173,116 @@ describe("addRequestFromMcpServer", () => {
     expect(st.current.mcp?.serverId).toBe(sid);
   });
 });
+
+describe("installMcpServerFromIntegration", () => {
+  it("adds a row with the integrationId marker on first install", () => {
+    const id = useStore
+      .getState()
+      .installMcpServerFromIntegration(
+        "findutils",
+        "findutils",
+        { kind: "http", url: "https://mcp.findutils.test" },
+        "MCP demo"
+      );
+    const stored = useStore.getState().mcpServers;
+    expect(stored).toHaveLength(1);
+    expect(stored[0].id).toBe(id);
+    expect(stored[0].integrationId).toBe("findutils");
+    expect(stored[0].name).toBe("findutils");
+    expect(stored[0].description).toBe("MCP demo");
+  });
+
+  it("updates the existing row in place on re-install (same integrationId, same id)", () => {
+    const first = useStore.getState().installMcpServerFromIntegration("findutils", "findutils", {
+      kind: "http",
+      url: "https://mcp.findutils.test",
+    });
+    const second = useStore
+      .getState()
+      .installMcpServerFromIntegration("findutils", "findutils v2", {
+        kind: "http",
+        url: "https://mcp2.findutils.test",
+      });
+    expect(second).toBe(first);
+    const stored = useStore.getState().mcpServers;
+    expect(stored).toHaveLength(1);
+    expect(stored[0].name).toBe("findutils v2");
+    expect(stored[0].transport).toEqual({ kind: "http", url: "https://mcp2.findutils.test" });
+  });
+
+  it("re-install invalidates the tools cache for that row", () => {
+    const id = useStore.getState().installMcpServerFromIntegration("findutils", "findutils", {
+      kind: "http",
+      url: "https://mcp.findutils.test",
+    });
+    useMcpToolsCache.getState().setCached(id, [{ name: "x" } as never]);
+    expect(useMcpToolsCache.getState().getCached(id)).not.toBeNull();
+    useStore.getState().installMcpServerFromIntegration("findutils", "findutils", {
+      kind: "http",
+      url: "https://mcp-new.findutils.test",
+    });
+    expect(useMcpToolsCache.getState().getCached(id)).toBeNull();
+  });
+
+  it("does not touch a non-integration server with the same name", () => {
+    const userId = useStore.getState().addMcpServer({
+      name: "findutils",
+      transport: { kind: "http", url: "https://my.findutils.test" },
+    });
+    useStore.getState().installMcpServerFromIntegration("findutils", "findutils", {
+      kind: "http",
+      url: "https://mcp.findutils.test",
+    });
+    const stored = useStore.getState().mcpServers;
+    expect(stored).toHaveLength(2);
+    const user = stored.find((m) => m.id === userId);
+    expect(user?.integrationId).toBeUndefined();
+    expect(user?.transport).toEqual({ kind: "http", url: "https://my.findutils.test" });
+  });
+});
+
+describe("removeMcpServerByIntegration", () => {
+  it("removes the integration-flagged row + cascades references", () => {
+    const id = useStore.getState().installMcpServerFromIntegration("findutils", "findutils", {
+      kind: "http",
+      url: "https://mcp.findutils.test",
+    });
+    useStore.setState({
+      collectionItems: [mcpRequest("saved-1", null, id)],
+      current: {
+        ...useStore.getState().current,
+        mcp: { serverId: id, toolName: "t", argsJson: "{}" },
+      },
+    });
+    useStore.getState().removeMcpServerByIntegration("findutils");
+    expect(useStore.getState().mcpServers).toHaveLength(0);
+    expect(useStore.getState().collectionItems[0].request?.mcp?.serverId).toBeNull();
+    expect(useStore.getState().collectionItems[0].request?.mcp?.toolName).toBe("search");
+    expect(useStore.getState().current.mcp?.serverId).toBeNull();
+    expect(useStore.getState().current.mcp?.toolName).toBe("t");
+  });
+
+  it("a non-integration server with the same name survives", () => {
+    const userId = useStore.getState().addMcpServer({
+      name: "findutils",
+      transport: { kind: "http", url: "https://my.findutils.test" },
+    });
+    useStore.getState().installMcpServerFromIntegration("findutils", "findutils", {
+      kind: "http",
+      url: "https://mcp.findutils.test",
+    });
+    useStore.getState().removeMcpServerByIntegration("findutils");
+    const stored = useStore.getState().mcpServers;
+    expect(stored).toHaveLength(1);
+    expect(stored[0].id).toBe(userId);
+  });
+
+  it("is a no-op when no integration-flagged server matches", () => {
+    useStore.getState().addMcpServer({
+      name: "user",
+      transport: { kind: "http", url: "https://example.test" },
+    });
+    expect(() => useStore.getState().removeMcpServerByIntegration("nope")).not.toThrow();
+    expect(useStore.getState().mcpServers).toHaveLength(1);
+  });
+});

@@ -11,7 +11,7 @@
 // different server without losing their work — same pattern
 // `removeIntegrationCollection` uses for integration folders.
 import type { StateCreator } from "zustand";
-import type { McpRequestState, McpServerConfig } from "../lib/types";
+import type { McpRequestState, McpServerConfig, McpTransport } from "../lib/types";
 import { uid } from "../lib/utils";
 import { useMcpToolsCache } from "./mcpToolsCache";
 import type { Store, StoreMutators } from "./types";
@@ -31,6 +31,23 @@ export type McpServersActions = {
   // (active-tab snapshot, response-panel reset) flow through the
   // canonical actions. Returns the new tab id.
   addRequestFromMcpServer: (serverId: string) => string;
+  // Install an integration-provided server into the library —
+  // idempotent on `integrationId`. If a row with that integrationId
+  // already exists, update its name/transport/description in place
+  // (keeps the same internal id, so saved requests stay linked) and
+  // invalidate its tools cache. Otherwise add a fresh row. Returns
+  // the row's id.
+  installMcpServerFromIntegration: (
+    integrationId: string,
+    name: string,
+    transport: McpTransport,
+    description?: string
+  ) => string;
+  // Tear down an integration-provided server when its integration is
+  // disabled — reuses `deleteMcpServer`'s cascade so toolName +
+  // argsJson on every referencing tab / collectionItem / current
+  // survive while the serverId is nulled.
+  removeMcpServerByIntegration: (integrationId: string) => void;
 };
 
 // Returns the same `mcp` reference when nothing changes, so callers
@@ -95,5 +112,35 @@ export const createMcpServersSlice: StateCreator<Store, StoreMutators, [], McpSe
     get().newTab();
     get().setCurrent({ mcp: { serverId, toolName: "", argsJson: "{}" } });
     return get().activeTabId;
+  },
+
+  installMcpServerFromIntegration: (integrationId, name, transport, description) => {
+    const existing = get().mcpServers.find((m) => m.integrationId === integrationId);
+    if (existing) {
+      // Re-apply the registry definition in place — keeps the same
+      // internal id so every saved request pointing at this server
+      // stays linked. Transport may have moved, so drop the cached
+      // tool set; the next list call hits the wire.
+      set((s) => ({
+        mcpServers: s.mcpServers.map((m) =>
+          m.id === existing.id ? { ...m, name, transport, description, integrationId } : m
+        ),
+      }));
+      useMcpToolsCache.getState().invalidate(existing.id);
+      return existing.id;
+    }
+    const id = uid();
+    set((s) => ({
+      mcpServers: [...s.mcpServers, { id, name, transport, description, integrationId }],
+    }));
+    return id;
+  },
+
+  removeMcpServerByIntegration: (integrationId) => {
+    const target = get().mcpServers.find((m) => m.integrationId === integrationId);
+    if (!target) return;
+    // Reuse the canonical cascade — toolName + argsJson on every
+    // referencing tab / item / current are preserved.
+    get().deleteMcpServer(target.id);
   },
 });

@@ -64,7 +64,12 @@ describe("fetchIntegrationSpec — curated path", () => {
   });
 
   it("never reports a curated provider as too-large", async () => {
+    // MCP integrations never go through fetchIntegrationSpec — they
+    // install directly from the IntegrationsModal — so they're
+    // expected to fail this path (parse-failed sentinel). Skip them
+    // here and only assert on the curated rows.
     for (const def of INTEGRATIONS) {
+      if (def.fetch.kind !== "curated") continue;
       const res = await fetchIntegrationSpec(def);
       expect(res.ok).toBe(true);
     }

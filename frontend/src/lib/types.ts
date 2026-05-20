@@ -186,6 +186,12 @@ export type McpServerConfig = {
   name: string;
   transport: McpTransport;
   description?: string;
+  // Set when this server was installed via the integrations gallery
+  // (e.g. findutils). The library treats those rows as read-only —
+  // Edit/Delete are locked and removal happens by disabling the
+  // matching integration, not from the library. Mirrors how
+  // `CollectionItem.integrationId` flags integration-wrapper folders.
+  integrationId?: string;
 };
 
 // Per-request MCP state. The transport itself isn't stored here — it
