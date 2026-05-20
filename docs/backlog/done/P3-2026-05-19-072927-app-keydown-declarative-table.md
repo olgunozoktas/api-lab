@@ -21,15 +21,15 @@ other side.
 
 ## Items
 
-- [ ] Give each `Shortcut` in `lib/shortcuts.ts` a stable `id` and an
+- [x] Give each `Shortcut` in `lib/shortcuts.ts` a stable `id` and an
       optional declarative match descriptor (`{ key, meta?, shift?,
       alt? }`) where the binding is a simple key+modifier combo.
-- [ ] Convert `App.tsx`'s keydown chain to dispatch off that table:
+- [x] Convert `App.tsx`'s keydown chain to dispatch off that table:
       look the event up by descriptor, run the mapped action. Keep
       bespoke handling (tab-jump `1`-`9` ranges, `⌥⌘→/←` cycling) as
       explicit cases, but driven by the same table so the entry's
       existence is the source of truth.
-- [ ] Extend `shortcuts.test.ts` to assert the binding direction:
+- [x] Extend `shortcuts.test.ts` to assert the binding direction:
       every descriptor in the table is reachable, and no handler case
       exists without a table entry.
 
