@@ -126,6 +126,57 @@ describe("runCollection — iterations", () => {
     expect(out.every((r) => r.status === "pass")).toBe(true);
   });
 
+  it("workList: only fires the listed (request, iteration) pairs", async () => {
+    // 2-request × 2-iteration plan, but the runner is told to fire
+    // exactly one cell. Returned results should contain only that
+    // cell — mirrors how "Re-run failed" calls back in: the caller
+    // merges results into its prior list rather than replacing it.
+    const fired: string[] = [];
+    const send: SendFn = async (request) => {
+      fired.push(request.url);
+      return {
+        response: {
+          status: 200,
+          statusText: "OK",
+          headers: [],
+          body: "",
+          contentType: "application/json",
+          sizeBytes: 0,
+          elapsedMs: 0,
+          url: request.url,
+          transport: "native" as const,
+        },
+        request,
+        env: {},
+      };
+    };
+    const p: RunPlan = {
+      ...plan([runnable("a"), runnable("b")], [{ n: "0" }, { n: "1" }]),
+      mode: "sequential",
+      workList: [{ requestId: "b", iteration: 1 }],
+    };
+    const out = await runCollection(p, { send });
+    expect(out).toHaveLength(1);
+    expect(out[0].requestId).toBe("b");
+    expect(out[0].iteration).toBe(1);
+    expect(fired).toEqual(["http://x/b"]);
+  });
+
+  it("workList: unknown requestId / out-of-range iteration is silently skipped", async () => {
+    const send = makeSend({});
+    const p: RunPlan = {
+      ...plan([runnable("a")], [{}]),
+      workList: [
+        { requestId: "a", iteration: 0 }, // valid
+        { requestId: "ghost", iteration: 0 }, // unknown id
+        { requestId: "a", iteration: 99 }, // out of range
+      ],
+    };
+    const out = await runCollection(p, { send });
+    expect(out).toHaveLength(1);
+    expect(out[0].requestId).toBe("a");
+  });
+
   it("parallel mode never has more than PARALLEL_CONCURRENCY sends in flight", async () => {
     // Instrument `send` with an in-flight counter — each call holds
     // a microtask gate via setTimeout(0) so the next worker has a

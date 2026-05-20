@@ -104,6 +104,56 @@ export function CollectionRunnerModal({
     abortRef.current = null;
   };
 
+  // Re-run only the failed / errored cells from the previous run. The
+  // engine fires those specific (request, iteration) pairs via the
+  // optional `workList` arg — keys stay stable across runs (same
+  // shape `${iteration}::${id}`), so we merge each new result back
+  // into the prior list rather than replacing it. Previously-passed
+  // cells stay visible + green; the user sees the re-run as a
+  // continuation, not a fresh start.
+  const rerunFailed = async () => {
+    const failedRows = results.filter((r) => r.status === "fail" || r.status === "error");
+    if (failedRows.length === 0) return;
+    const workList = failedRows.map((r) => ({ requestId: r.requestId, iteration: r.iteration }));
+    // Reset the targeted cells to pending so the progress UI shows
+    // them firing again; passed cells stay untouched.
+    const targeted = new Set(failedRows.map((r) => r.key));
+    setResults((prev) =>
+      prev.map((r) =>
+        targeted.has(r.key)
+          ? { ...r, status: "pending", durationMs: 0, asserts: [], error: undefined }
+          : r
+      )
+    );
+    const ac = new AbortController();
+    abortRef.current = ac;
+    setPhase("running");
+    const plan: RunPlan = { requests, rows: parsed, mode, baseVars, defaults, workList };
+    const t0 = performance.now();
+    const partial = await runCollection(plan, {
+      // Merge each progress update back into the previous results so
+      // unaffected cells keep their state. Without the merge the
+      // partial result list (just the failed cells) would temporarily
+      // replace the full list.
+      onProgress: (rows) =>
+        setResults((prev) => {
+          const byKey = new Map(rows.map((r) => [r.key, r]));
+          return prev.map((r) => byKey.get(r.key) ?? r);
+        }),
+      signal: ac.signal,
+    });
+    const byKey = new Map(partial.map((r) => [r.key, r]));
+    setResults((prev) => prev.map((r) => byKey.get(r.key) ?? r));
+    setWallMs((prev) => prev + (performance.now() - t0));
+    setPhase("done");
+    abortRef.current = null;
+  };
+
+  const failedCount = useMemo(
+    () => results.filter((r) => r.status === "fail" || r.status === "error").length,
+    [results]
+  );
+
   const summary = useMemo(() => summarize(results), [results]);
   const iterationCount = parsed.length || 1;
 
@@ -217,6 +267,11 @@ export function CollectionRunnerModal({
                 {phase === "done" && (
                   <Button size="sm" variant="ghost" onClick={exportJson}>
                     {t("runner.export")}
+                  </Button>
+                )}
+                {phase === "done" && failedCount > 0 && (
+                  <Button size="sm" variant="ghost" onClick={rerunFailed}>
+                    {t("runner.rerunFailed", { n: String(failedCount) })}
                   </Button>
                 )}
               </div>

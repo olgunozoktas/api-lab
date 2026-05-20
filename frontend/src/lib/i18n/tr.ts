@@ -714,6 +714,11 @@ export const tr = {
   "runner.run": "Çalıştır",
   "runner.cancel": "İptal",
   "runner.export": "JSON dışa aktar",
+  "runner.rerunFailed": "Başarısızları tekrar dene ({n})",
+  "runner.responseStatus": "Yanıt durum kodu: {status}",
+  "runner.detail.noAssertMessages":
+    "(assertion mesajı yok — istek assertion'lar çalışmadan hata aldı)",
+  "runner.detail.passedTally": "({count} assertion daha geçti)",
   "runner.iteration": "#{n}",
   "runner.assertShort": "{passed}/{total}",
   "runner.status.pending": "bekliyor",
