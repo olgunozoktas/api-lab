@@ -41,6 +41,7 @@ import { isWsUrl } from "./lib/ws";
 import { isGrpcUrl } from "./lib/grpc";
 import { isSseUrl } from "./lib/sse";
 import { envSubst } from "./lib/utils";
+import { SHORTCUTS, matchesShortcut, type ShortcutId } from "./lib/shortcuts";
 import {
   COMPOSER_PX_MAX,
   COMPOSER_PX_MIN,
@@ -177,102 +178,64 @@ export function App() {
   }, [busy, current, defaults, isGraphql, pushHistory, setLastResponse, showToast, t, vars]);
 
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      const cmd = e.metaKey || e.ctrlKey;
-      if (!cmd) return;
-
-      // Action shortcuts
-      if (e.key === "Enter") {
-        e.preventDefault();
-        onSend();
-        return;
-      }
-      // ⌘+. (period) — cancel the in-flight request. macOS canonical
-      // "abort current foreground action" gesture (mirrors Finder /
-      // Xcode / many native apps).
-      if (e.key === ".") {
-        e.preventDefault();
-        onCancel();
-        return;
-      }
-      if (e.key === "s" || e.key === "S") {
-        e.preventDefault();
-        saveCurrent();
-        return;
-      }
-      if (e.key === "n" || e.key === "N") {
-        e.preventDefault();
-        resetCurrent();
-        return;
-      }
-
-      // Tab management
-      if (e.key === "t" || e.key === "T") {
-        e.preventDefault();
-        // ⌘+Shift+T — reopen last closed tab (browser standard).
-        // Falls through to ⌘+T newTab when the reopen stack is empty,
-        // so a single-shortcut muscle memory still creates a tab.
-        if (e.shiftKey) {
-          const had = useStore.getState().recentlyClosed.length > 0;
-          if (had) {
-            reopenLastClosedTab();
-            return;
-          }
+    // Table-driven dispatch: each entry in lib/shortcuts.ts that App
+    // owns gets an action function keyed by its `id`. The keydown
+    // handler walks SHORTCUTS in order, matches against each entry's
+    // declarative `match`, and invokes the registered action. The
+    // shortcuts.test drift check asserts every id with `match` is
+    // referenced here OR in one of the *_shortcut.ts hooks — so a
+    // new binding cannot ship without a SHORTCUTS entry, and a new
+    // SHORTCUTS entry without a binding fails the test.
+    // Keys are quoted (even the JS-identifier-safe ones like `send`)
+    // so the shortcuts.test binding-drift regex sees every id as a
+    // literal string token — a `send` shorthand would slip past it.
+    const APP_ACTIONS: Partial<Record<ShortcutId, (e: KeyboardEvent) => void>> = {
+      send: () => onSend(),
+      cancel: () => onCancel(),
+      save: () => saveCurrent(),
+      new: () => resetCurrent(),
+      // ⌘+Shift+T reopens the last closed tab (id "tab-reopen" in
+      // SHORTCUTS, surfaced as its own Settings entry); bare ⌘+T (or
+      // ⇧+T with empty reopen stack) creates a new tab. One case
+      // handles both via the SHORTCUT's `shiftAny: true` flag, so
+      // "tab-reopen" never matches first.
+      "tab-new": (e) => {
+        if (e.shiftKey && useStore.getState().recentlyClosed.length > 0) {
+          reopenLastClosedTab();
+          return;
         }
         newTab();
-        return;
-      }
-      if (e.key === "w" || e.key === "W") {
-        e.preventDefault();
-        closeTab(useStore.getState().activeTabId);
-        return;
-      }
+      },
+      "tab-close": () => closeTab(useStore.getState().activeTabId),
       // ⌘P AND ⌘K both open the quick switcher. ⌘P matches the
       // existing muscle memory; ⌘K is the modern command-palette
       // convention (Linear / Notion / Slack / GitHub) and the one
       // most users reach for first.
-      if (e.key === "p" || e.key === "P" || e.key === "k" || e.key === "K") {
-        e.preventDefault();
-        setSwitcherOpen(true);
-        return;
-      }
-
+      switcher: () => setSwitcherOpen(true),
       // ⌘L — focus + select-all on the URL bar (browser address-bar
       // standard). Dispatched as a window event so UrlBar can listen
       // without prop-drilling a ref. Active-tab's UrlBar is the only
       // one in the DOM render tree, so a single listener is fine.
-      if (e.key === "l" || e.key === "L") {
-        e.preventDefault();
-        window.dispatchEvent(new CustomEvent("apilab:focus-url"));
-        return;
-      }
-
+      "focus-url": () => window.dispatchEvent(new CustomEvent("apilab:focus-url")),
       // ⌘B — toggle the sidebar (VS Code / Cursor / Linear primary-
       // sidebar shortcut). Collapses the saved-requests + history
       // pane so the composer + response viewer get the full width.
-      if (e.key === "b" || e.key === "B") {
-        e.preventDefault();
+      "toggle-sidebar": () => {
         const cur = useStore.getState().ui.sidebarCollapsed ?? false;
         useStore.getState().setUi({ sidebarCollapsed: !cur });
-        return;
-      }
-
+      },
       // Cmd+1..9 — jump to tab N (or last if N > tabs.length)
-      if (e.key >= "1" && e.key <= "9") {
-        e.preventDefault();
+      "tab-jump": (e) => {
         const tabs = useStore.getState().tabs;
         if (tabs.length === 0) return;
         const idx =
           e.key === "9" ? tabs.length - 1 : Math.min(parseInt(e.key, 10) - 1, tabs.length - 1);
         setActiveTab(tabs[idx].id);
-        return;
-      }
-
+      },
       // ⌥⌘→ / ⌥⌘← — cycle to next / previous tab (Safari standard).
       // Wraps around at the boundary so power users can sweep through
       // every tab without releasing the modifiers.
-      if (e.altKey && (e.key === "ArrowRight" || e.key === "ArrowLeft")) {
-        e.preventDefault();
+      "tab-cycle": (e) => {
         const { tabs, activeTabId } = useStore.getState();
         if (tabs.length <= 1) return;
         const idx = tabs.findIndex((t) => t.id === activeTabId);
@@ -280,6 +243,15 @@ export function App() {
         const step = e.key === "ArrowRight" ? 1 : -1;
         const next = (idx + step + tabs.length) % tabs.length;
         setActiveTab(tabs[next].id);
+      },
+    };
+    const onKey = (e: KeyboardEvent) => {
+      for (const s of SHORTCUTS) {
+        const action = APP_ACTIONS[s.id as ShortcutId];
+        if (!action) continue;
+        if (!matchesShortcut(s.match, e)) continue;
+        e.preventDefault();
+        action(e);
         return;
       }
     };
