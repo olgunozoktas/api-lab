@@ -1,5 +1,6 @@
 /** Olgun Özoktaş geliştirdi · API Lab */
 import type { AuthType, McpTransport } from "../types";
+import type { AuthHints } from "./auth";
 import type { CuratedProvider } from "./curated/types";
 import { cloudflareCurated } from "./curated/cloudflare";
 import { stripeCurated } from "./curated/stripe";
@@ -8,6 +9,8 @@ import { openaiCurated } from "./curated/openai";
 import { slackCurated } from "./curated/slack";
 import { notionCurated } from "./curated/notion";
 import { linearCurated } from "./curated/linear";
+import { awsS3Curated } from "./curated/aws-s3";
+import { awsLambdaCurated } from "./curated/aws-lambda";
 
 // How an integration's API surface is sourced.
 //
@@ -41,6 +44,10 @@ export interface IntegrationDef {
   // Auth shape pre-scaffolded onto every imported request — the user
   // supplies only the secret.
   authType: AuthType;
+  // Optional auth-scaffolding hints (e.g. AWS S3 sets
+  // `sigv4Service: "s3"` so the user doesn't have to type it on
+  // every imported request).
+  authHints?: AuthHints;
 }
 
 // The curated registry. Opt-in: nothing here is loaded until the user
@@ -108,6 +115,28 @@ export const INTEGRATIONS: IntegrationDef[] = [
     homepage: "https://developers.linear.app/docs",
     fetch: { kind: "curated", provider: linearCurated },
     authType: "bearer",
+  },
+  {
+    id: "aws-s3",
+    name: "AWS S3",
+    category: "Cloud",
+    description:
+      "AWS S3 REST API — list buckets, list objects, get / put / delete object. Curated essentials, signed with SigV4.",
+    homepage: "https://docs.aws.amazon.com/AmazonS3/latest/API/Welcome.html",
+    fetch: { kind: "curated", provider: awsS3Curated },
+    authType: "aws-sigv4",
+    authHints: { sigv4Service: "s3" },
+  },
+  {
+    id: "aws-lambda",
+    name: "AWS Lambda",
+    category: "Cloud",
+    description:
+      "AWS Lambda REST API — list / get / invoke / list-aliases. Curated essentials, signed with SigV4.",
+    homepage: "https://docs.aws.amazon.com/lambda/latest/api/welcome.html",
+    fetch: { kind: "curated", provider: awsLambdaCurated },
+    authType: "aws-sigv4",
+    authHints: { sigv4Service: "lambda" },
   },
   {
     id: "findutils",

@@ -137,7 +137,7 @@ export function IntegrationsModal({ open, onOpenChange }: IntegrationsModalProps
     setStates((prev) => ({ ...prev, [id]: { status: "fetching" } }));
     const res = await fetchIntegrationSpec(def);
     if (res.ok) {
-      const items = applyAuthToItems(res.result.items, def.authType);
+      const items = applyAuthToItems(res.result.items, def.authType, def.authHints);
       importItems(items, res.result.envVars, def.name, def.id);
       enableIntegration(id);
       // Capture the spec fingerprint so a later open can detect drift.
@@ -168,7 +168,7 @@ export function IntegrationsModal({ open, onOpenChange }: IntegrationsModalProps
     setStates((prev) => ({ ...prev, [id]: { status: "fetching" } }));
     const res = await fetchIntegrationSpec(def);
     if (res.ok) {
-      const items = applyAuthToItems(res.result.items, def.authType);
+      const items = applyAuthToItems(res.result.items, def.authType, def.authHints);
       removeIntegrationCollection(id);
       importItems(items, res.result.envVars, def.name, def.id);
       if (res.fingerprint) setIntegrationFingerprint(id, res.fingerprint);
