@@ -410,6 +410,8 @@ export const tr = {
   "response.headers.searchAria": "Yanıt header'larını filtrele",
   "response.copyAs": "Kod Kopyala",
   "response.copyAs.title": "Kod olarak kopyala",
+  "response.copyAs.redact": "Sırları gizle",
+  "response.copyAs.redactHint": "Sırlar gizlendi — üretilen kod olduğu gibi çalışmaz.",
   "response.tab.body": "Body",
   "response.tab.headers": "Headers",
   "response.tab.raw": "Raw",

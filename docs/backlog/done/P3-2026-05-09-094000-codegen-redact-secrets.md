@@ -15,11 +15,11 @@ slice — flagged here so it doesn't get forgotten.
 
 ## Items
 
-- [ ] Add a "Redact secrets" toggle to the CopyAsMenu (default off, persisted via Zustand)
-- [ ] Maintain a small allowlist of header names treated as sensitive: `Authorization`, `Cookie`, `Set-Cookie`, `X-Api-Key`, `X-Auth-Token`, `Proxy-Authorization` (case-insensitive match)
-- [ ] When the toggle is on, replace those header values with `<REDACTED>` in the formatter input before passing it to `formatter.format()`
-- [ ] Detect bearer-token-shaped values in the body (`"token":"sk-..."`, `"api_key":"..."`) and replace them too — start conservative (string keys named `token`, `api_key`, `secret`, `password`)
-- [ ] Surface a one-line hint under the menu when redaction is on: "Secrets redacted — generated code will not run as-is."
+- [x] Add a "Redact secrets" toggle to the CopyAsMenu (default off, persisted via Zustand)
+- [x] Maintain a small allowlist of header names treated as sensitive: `Authorization`, `Cookie`, `Set-Cookie`, `X-Api-Key`, `X-Auth-Token`, `Proxy-Authorization` (case-insensitive match)
+- [x] When the toggle is on, replace those header values with `<REDACTED>` in the formatter input before passing it to `formatter.format()`
+- [x] Detect bearer-token-shaped values in the body (`"token":"sk-..."`, `"api_key":"..."`) and replace them too — start conservative (string keys named `token`, `api_key`, `secret`, `password`)
+- [x] Surface a one-line hint under the menu when redaction is on: "Secrets redacted — generated code will not run as-is."
 
 ## Acceptance
 
