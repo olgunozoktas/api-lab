@@ -410,6 +410,8 @@ export const en: Dict = {
   "response.headers.searchAria": "Filter response headers",
   "response.copyAs": "Copy as code",
   "response.copyAs.title": "Copy request as code",
+  "response.copyAs.redact": "Redact secrets",
+  "response.copyAs.redactHint": "Secrets redacted — generated code will not run as-is.",
   "response.tab.body": "Body",
   "response.tab.headers": "Headers",
   "response.tab.raw": "Raw",

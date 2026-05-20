@@ -3,20 +3,38 @@ import { useEffect, useRef, useState } from "react";
 import { useStore, useActiveVars } from "../store";
 import { useT } from "../lib/i18n/useT";
 import { formatters, type CodegenLang, type CodegenInput } from "../lib/codegen";
+import { redactInput } from "../lib/codegen/redact";
 import { buildHeadersList, buildUrl, buildBody, effectiveContentType } from "../lib/sendRequest";
 import { Button } from "./ui/button";
 import { cn } from "../lib/cn";
 import { FileCode2, ChevronDown, Check } from "lucide-react";
 
-// Presenter — pure props in / actions in.
+// Presenter — pure props in / actions in. The redact toggle is owned
+// by the container so the same state survives menu open/close cycles
+// and persists across launches via the store's UI slice.
 export type CopyAsMenuProps = {
   buttonLabel: string;
   buttonTitle?: string;
   onSelect: (lang: CodegenLang, label: string) => void;
   className?: string;
+  // Redaction state + label/hint copy. Hint is shown under the menu
+  // when the toggle is on so users notice the snippet won't run as-is.
+  redact: boolean;
+  onToggleRedact: () => void;
+  redactLabel: string;
+  redactHint: string;
 };
 
-export function CopyAsMenu({ buttonLabel, buttonTitle, onSelect, className }: CopyAsMenuProps) {
+export function CopyAsMenu({
+  buttonLabel,
+  buttonTitle,
+  onSelect,
+  className,
+  redact,
+  onToggleRedact,
+  redactLabel,
+  redactHint,
+}: CopyAsMenuProps) {
   const [open, setOpen] = useState(false);
   const [lastCopied, setLastCopied] = useState<CodegenLang | null>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
@@ -60,7 +78,7 @@ export function CopyAsMenu({ buttonLabel, buttonTitle, onSelect, className }: Co
       {open && (
         <div
           role="menu"
-          className="absolute right-0 top-full mt-1 z-20 min-w-[180px] rounded-md border border-[var(--color-border)] bg-[var(--color-bg-elev)] shadow-lg py-1"
+          className="absolute right-0 top-full mt-1 z-20 min-w-[200px] rounded-md border border-[var(--color-border)] bg-[var(--color-bg-elev)] shadow-lg py-1"
         >
           {formatters.map((f) => (
             <button
@@ -76,6 +94,22 @@ export function CopyAsMenu({ buttonLabel, buttonTitle, onSelect, className }: Co
               )}
             </button>
           ))}
+          <div className="border-t border-[var(--color-border)] mt-1 pt-1 px-3 pb-1">
+            <label className="flex items-center gap-2 text-xs text-[var(--color-fg)] cursor-pointer">
+              <input
+                type="checkbox"
+                checked={redact}
+                onChange={onToggleRedact}
+                className="accent-[var(--color-accent)]"
+              />
+              <span>{redactLabel}</span>
+            </label>
+            {redact && (
+              <p className="text-2xs text-[var(--color-fg-muted)] mt-1 leading-snug">
+                {redactHint}
+              </p>
+            )}
+          </div>
         </div>
       )}
     </div>
@@ -87,6 +121,8 @@ export function CopyAsMenuContainer() {
   const current = useStore((s) => s.current);
   const isGraphql = useStore((s) => s.ui.composerTab === "graphql");
   const showToast = useStore((s) => s.showToast);
+  const redact = useStore((s) => s.ui.codegenRedact === true);
+  const setUi = useStore((s) => s.setUi);
   const vars = useActiveVars();
   const t = useT();
 
@@ -103,9 +139,9 @@ export function CopyAsMenuContainer() {
   };
 
   const onSelect = (lang: CodegenLang, label: string) => {
-    const input = buildInput();
     const formatter = formatters.find((f) => f.id === lang);
     if (!formatter) return;
+    const input = redact ? redactInput(buildInput()) : buildInput();
     const code = formatter.format(input);
     navigator.clipboard
       .writeText(code)
@@ -117,6 +153,10 @@ export function CopyAsMenuContainer() {
       buttonLabel={t("response.copyAs")}
       buttonTitle={t("response.copyAs.title")}
       onSelect={onSelect}
+      redact={redact}
+      onToggleRedact={() => setUi({ codegenRedact: !redact })}
+      redactLabel={t("response.copyAs.redact")}
+      redactHint={t("response.copyAs.redactHint")}
     />
   );
 }

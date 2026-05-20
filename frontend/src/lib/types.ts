@@ -384,6 +384,11 @@ export type UiState = {
   // snapshots hydrate cleanly (`undefined` → card still shows); set to
   // `true` once the user dismisses it, persisted via idbStorage.
   firstRunDismissed?: boolean;
+  // "Copy as code" redact-secrets toggle. Off by default so the
+  // emitted snippet stays runnable; users opt in when they need to
+  // share the code in a bug report / chat. Persisted via idbStorage
+  // so the choice survives across launches.
+  codegenRedact?: boolean;
 };
 
 // Default request behaviors — surfaced in the Settings modal so power
