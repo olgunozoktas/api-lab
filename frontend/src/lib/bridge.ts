@@ -22,6 +22,26 @@ export const bridge = {
   },
 };
 
+// `shell.open` — ask the native shell to open a URL in the system
+// default browser. The Zig handler validates the scheme (`http://`
+// or `https://` only) and refuses everything else, so a bad URL
+// rejects with `{error}` rather than launching anything. Returns
+// true on success; never throws — callers wire this from click
+// handlers that should degrade gracefully (open the URL in-process
+// via `window.location` is NOT a safe fallback under zero://app,
+// so on failure we just toast or no-op).
+export type ShellOpenResponse = { ok?: boolean; error?: string };
+
+export async function shellOpen(url: string): Promise<boolean> {
+  if (!bridge.available) return false;
+  try {
+    const res = await bridge.invoke<ShellOpenResponse>("shell.open", { url });
+    return res.ok === true;
+  } catch {
+    return false;
+  }
+}
+
 export type HttpHeader = { name: string; value: string };
 
 export type HttpRequest = {
