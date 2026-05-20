@@ -5,7 +5,16 @@ import { useT } from "../lib/i18n/useT";
 import type { CollectionItem, OpenTab } from "../lib/types";
 import { displayTabName, methodClass, statusPillClass, statusText } from "../lib/utils";
 import { cn } from "../lib/cn";
-import { Plus, X, Copy as CopyIcon, ChevronsRight, Pin, PinOff, XCircle } from "lucide-react";
+import {
+  Plus,
+  X,
+  Copy as CopyIcon,
+  ChevronsRight,
+  GitCompareArrows,
+  Pin,
+  PinOff,
+  XCircle,
+} from "lucide-react";
 import {
   ContextMenu,
   ContextMenuContent,
@@ -64,6 +73,14 @@ export type TabStripPresenterProps = {
   onCloseToRight?: (id: string) => void;
   onDuplicate?: (id: string) => void;
   onTogglePin?: (id: string) => void;
+  /** Right-click → "Compare response with…". Optional: undefined or
+      a falsy `canCompare[id]` hides the entry entirely. Container
+      wires this to the `apilab:open-diff` window event. */
+  onCompare?: (id: string) => void;
+  /** Per-tab diffable flag. A tab is diffable when it has a text
+      response (no binary, not over-budget). Undefined → assume not
+      diffable, so the entry won't render even if `onCompare` is set. */
+  canCompare?: Record<string, boolean>;
   onNewTab: () => void;
   onReorder: (fromIdx: number, toIdx: number) => void;
   newTabLabel?: string;
@@ -79,6 +96,7 @@ export type TabStripPresenterProps = {
   duplicateLabel?: string;
   pinLabel?: string;
   unpinLabel?: string;
+  compareLabel?: string;
   /** Localised "Last response" prefix for the per-tab status pill's
       aria-label. */
   lastResponseLabel?: string;
@@ -95,6 +113,8 @@ export function TabStripPresenter({
   onCloseToRight,
   onDuplicate,
   onTogglePin,
+  onCompare,
+  canCompare,
   onNewTab,
   onReorder,
   // Label defaults are empty, never English literals — the container
@@ -109,6 +129,7 @@ export function TabStripPresenter({
   duplicateLabel = "",
   pinLabel = "",
   unpinLabel = "",
+  compareLabel = "",
   lastResponseLabel = "",
   className,
 }: TabStripPresenterProps) {
@@ -347,6 +368,15 @@ export function TabStripPresenter({
                   {tab.pinned ? unpinLabel : pinLabel}
                 </ContextMenuItem>
               ) : null}
+              {onCompare && canCompare?.[tab.id] ? (
+                <>
+                  <ContextMenuSeparator />
+                  <ContextMenuItem onSelect={() => onCompare(tab.id)}>
+                    <GitCompareArrows className="w-3.5 h-3.5" aria-hidden />
+                    {compareLabel}
+                  </ContextMenuItem>
+                </>
+              ) : null}
               {(onCloseOthers || onCloseToRight) && <ContextMenuSeparator />}
               {onCloseOthers ? (
                 <ContextMenuItem onSelect={() => onCloseOthers(tab.id)} disabled={tabs.length <= 1}>
@@ -412,6 +442,15 @@ export function TabStripContainer() {
   const dirty: Record<string, boolean> = {};
   for (const tab of tabs) dirty[tab.id] = isTabDirty(tab, collections);
 
+  // Diffability map — a tab is a valid diff source iff it has a text
+  // response in memory (binary + over-budget bodies aren't diffable;
+  // matches ResponseDiffModal's source list filter exactly).
+  const canCompare: Record<string, boolean> = {};
+  for (const tab of tabs) {
+    const r = tab.lastResponse;
+    canCompare[tab.id] = !!r && !r.bodyBase64 && !r.bodyTooLarge;
+  }
+
   // After tab close/open, focus the active tab so keyboard users land in
   // the right spot. Skip the very first render to avoid stealing focus.
   const firstRender = useRef(true);
@@ -429,6 +468,13 @@ export function TabStripContainer() {
   const onCloseToRight = useCallback((id: string) => closeTabsToRight(id), [closeTabsToRight]);
   const onDuplicate = useCallback((id: string) => duplicateTab(id), [duplicateTab]);
   const onTogglePin = useCallback((id: string) => togglePinTab(id), [togglePinTab]);
+  // "Compare response with…" — dispatch the shared window event with
+  // this tab pre-seeded as the left source. TopBar listens and opens
+  // the modal; the modal falls back to default sources[0]/[1] if the
+  // tab has closed by the time the modal mounts.
+  const onCompare = useCallback((id: string) => {
+    window.dispatchEvent(new CustomEvent("apilab:open-diff", { detail: { leftId: `tab:${id}` } }));
+  }, []);
   const onNewTab = useCallback(() => newTab(), [newTab]);
   const onReorder = useCallback(
     (fromIdx: number, toIdx: number) => reorderTabs(fromIdx, toIdx),
@@ -446,6 +492,8 @@ export function TabStripContainer() {
       onCloseToRight={onCloseToRight}
       onDuplicate={onDuplicate}
       onTogglePin={onTogglePin}
+      onCompare={onCompare}
+      canCompare={canCompare}
       onNewTab={onNewTab}
       onReorder={onReorder}
       newTabLabel={t("tabs.new")}
@@ -457,6 +505,7 @@ export function TabStripContainer() {
       duplicateLabel={t("tabs.duplicate")}
       pinLabel={t("tabs.pin")}
       unpinLabel={t("tabs.unpin")}
+      compareLabel={t("tabs.compareResponse")}
       lastResponseLabel={t("tabs.lastResponseAria")}
     />
   );

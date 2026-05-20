@@ -1,5 +1,5 @@
 /** Olgun Özoktaş geliştirdi · API Lab */
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { ResponseDiff } from "./ResponseDiff";
@@ -12,6 +12,15 @@ import { timeAgo } from "../lib/utils";
 export type ResponseDiffModalProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  // Optional pre-seeded source ids — set by the "Compare with…" /
+  // "Compare response with…" context-menu entries so the modal
+  // opens with one side already filled. Either side accepts a tab
+  // ("tab:<id>") or history ("hist:<id>") form. The selection
+  // resets to the seed every time `open` flips true; if the
+  // referenced source no longer exists (a closed tab, a trimmed
+  // history entry), the fallback (`sources[0]`) kicks in below.
+  initialLeftId?: string | null;
+  initialRightId?: string | null;
 };
 
 // A response that can be fed into the diff — sourced from an open tab
@@ -28,7 +37,12 @@ const shortUrl = (url: string): string => url.replace(/^https?:\/\//, "").slice(
 
 // Container — collects diffable sources from the store, owns the
 // left/right selection, computes the diff, and hosts the presenter.
-export function ResponseDiffModal({ open, onOpenChange }: ResponseDiffModalProps) {
+export function ResponseDiffModal({
+  open,
+  onOpenChange,
+  initialLeftId = null,
+  initialRightId = null,
+}: ResponseDiffModalProps) {
   const t = useT();
   const tabs = useStore((s) => s.tabs);
   const history = useStore((s) => s.history);
@@ -63,6 +77,18 @@ export function ResponseDiffModal({ open, onOpenChange }: ResponseDiffModalProps
 
   const [leftId, setLeftId] = useState<string | null>(null);
   const [rightId, setRightId] = useState<string | null>(null);
+
+  // Reset selection to the seeds every time the modal opens. The
+  // modal stays mounted in the React tree (only DialogContent flips
+  // with `open`), so without this effect the seeds from a "Compare
+  // with…" context menu would be ignored on the second open. Pass
+  // both seeds as null to fall back to the default sources[0] /
+  // sources[1] picks — preserving the original TopBar-button flow.
+  useEffect(() => {
+    if (!open) return;
+    setLeftId(initialLeftId);
+    setRightId(initialRightId);
+  }, [open, initialLeftId, initialRightId]);
 
   // Resolve the effective selection — fall back to the first two
   // sources when nothing is picked yet or a prior pick has vanished.

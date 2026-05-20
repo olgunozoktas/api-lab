@@ -26,7 +26,7 @@ import {
   ContextMenuSeparator,
   ContextMenuTrigger,
 } from "./ui/context-menu";
-import { Copy, ExternalLink, Play, Terminal, Trash2 } from "lucide-react";
+import { Copy, ExternalLink, GitCompareArrows, Play, Terminal, Trash2 } from "lucide-react";
 import type { CurrentRequest, HistoryItem } from "../lib/types";
 
 type StatusClass = null | 200 | 300 | 400 | 500;
@@ -234,6 +234,20 @@ export function HistoryList({ query = "" }: { query?: string }) {
                   <Terminal className="w-3.5 h-3.5" aria-hidden />
                   {t("history.context.copyCurl")}
                 </ContextMenuItem>
+                {h.response.body !== undefined && (
+                  <ContextMenuItem
+                    onSelect={() =>
+                      window.dispatchEvent(
+                        new CustomEvent("apilab:open-diff", {
+                          detail: { leftId: `hist:${h.id}` },
+                        })
+                      )
+                    }
+                  >
+                    <GitCompareArrows className="w-3.5 h-3.5" aria-hidden />
+                    {t("history.context.compareWith")}
+                  </ContextMenuItem>
+                )}
                 <ContextMenuSeparator />
                 <ContextMenuItem onSelect={() => removeHistoryItem(h.id)}>
                   <Trash2 className="w-3.5 h-3.5" aria-hidden />
