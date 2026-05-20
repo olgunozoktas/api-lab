@@ -380,6 +380,7 @@ export const en: Dict = {
   "body.multipart.pickFile": "Choose file",
   "body.binary.pickFile": "Choose file",
   "body.binary.clear": "Remove file",
+  "body.binary.size": "File size",
 
   "graphql.note": "Method is automatically POST; body sent as application/json.",
   "graphql.query": "Query",

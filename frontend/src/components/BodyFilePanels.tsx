@@ -3,11 +3,14 @@
 // the raw-binary single-file picker. Both are presenters — value in,
 // onChange out. They call `pickFiles` (a lib helper around the native
 // dialog bridge), never the store.
+import { useEffect, useState } from "react";
 import { File, Paperclip, Trash2, Type, Upload, X } from "lucide-react";
 import { Button } from "./ui/button";
 import { useT } from "../lib/i18n/useT";
 import { basename, contentTypeForPath, pickFiles } from "../lib/fileBody";
 import { emptyMultipartField, type MultipartField } from "../lib/types";
+import { fsStat } from "../lib/bridge";
+import { humanSize } from "../lib/utils";
 
 const inputCls =
   "bg-[var(--color-bg-elev)] border border-[var(--color-border)] rounded " +
@@ -130,6 +133,7 @@ export type BodyBinaryProps = {
 
 export function BodyBinary({ filePath, fileName, onChange }: BodyBinaryProps) {
   const t = useT();
+  const size = useFileSize(filePath);
 
   const choose = async () => {
     const picked = await pickFiles(false);
@@ -152,6 +156,7 @@ export function BodyBinary({ filePath, fileName, onChange }: BodyBinaryProps) {
         <p className="text-sm truncate">{fileName}</p>
         <p className="text-2xs font-mono text-[var(--color-fg-muted)]">
           {contentTypeForPath(filePath)}
+          {size !== null && <span aria-label={t("body.binary.size")}> · {humanSize(size)}</span>}
         </p>
       </div>
       <Button variant="ghost" size="sm" onClick={choose}>
@@ -168,4 +173,29 @@ export function BodyBinary({ filePath, fileName, onChange }: BodyBinaryProps) {
       </Button>
     </div>
   );
+}
+
+// Stat the picked file when its path changes; returns null when the
+// bridge is unavailable (browser mode) OR the file isn't reachable
+// — the UI just hides the size in that case rather than rendering
+// "0 B" / "unknown". Cancellable so a rapid path-change (user re-
+// picking) doesn't show a stale size from the prior file.
+function useFileSize(filePath: string): number | null {
+  const [size, setSize] = useState<number | null>(null);
+  useEffect(() => {
+    if (!filePath) {
+      setSize(null);
+      return;
+    }
+    let cancelled = false;
+    void (async () => {
+      const stat = await fsStat(filePath);
+      if (cancelled) return;
+      setSize(stat?.exists ? stat.size : null);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [filePath]);
+  return size;
 }

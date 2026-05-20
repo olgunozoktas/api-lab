@@ -31,6 +31,9 @@ const mcp_handler = @import("handlers/mcp.zig");
 // system default browser. URL scheme is gated to http(s) only; see
 // handlers/shell.zig.
 const shell_handler = @import("handlers/shell.zig");
+// `fs.stat` — read-only path stat (exists + size). Used by the
+// binary-body panel to display picked file sizes. See handlers/fs.zig.
+const fs_handler = @import("handlers/fs.zig");
 
 pub const panic = std.debug.FullPanic(zero_native.debug.capturePanic);
 
@@ -81,6 +84,8 @@ const command_policies = [_]zero_native.BridgeCommandPolicy{
     // than introducing a `shell` permission to app.zon — the net
     // capability is "ask the OS to navigate to this web URL".
     .{ .name = "shell.open", .permissions = &.{"network"}, .origins = &allowed_origins },
+    // `fs.stat` reads file metadata — read-only filesystem access.
+    .{ .name = "fs.stat", .permissions = &.{"filesystem"}, .origins = &allowed_origins },
 };
 
 // Builtin-bridge commands provided by zero-native itself (not our
@@ -131,6 +136,10 @@ pub fn main(init: std.process.Init) !void {
         .io = init.io,
         .env_map = init.environ_map,
     };
+    var fs_ctx = fs_handler.Context{
+        .gpa = gpa,
+        .io = init.io,
+    };
 
     var handler_list = [_]zero_native.BridgeHandler{
         http_handler.handler(&http_ctx),
@@ -148,6 +157,7 @@ pub fn main(init: std.process.Init) !void {
         git_sync_handler.resolveHandler(&git_sync_ctx),
         mcp_handler.handler(&mcp_ctx),
         shell_handler.handler(&shell_ctx),
+        fs_handler.statHandler(&fs_ctx),
     };
     const registry = zero_native.BridgeRegistry{ .handlers = &handler_list };
 
@@ -200,4 +210,5 @@ test {
     _ = @import("handlers/grpc.zig");
     _ = @import("handlers/grpc_reflect.zig");
     _ = @import("handlers/shell.zig");
+    _ = @import("handlers/fs.zig");
 }
