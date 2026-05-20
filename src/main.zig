@@ -27,6 +27,10 @@ const git_sync_handler = @import("handlers/git_sync.zig");
 // `mcp.stdio` — spawns a stdio-transport MCP server and pipes one
 // batch of JSON-RPC frames through it. See handlers/mcp.zig.
 const mcp_handler = @import("handlers/mcp.zig");
+// `shell.open` — shells `open <url>` so external links open in the
+// system default browser. URL scheme is gated to http(s) only; see
+// handlers/shell.zig.
+const shell_handler = @import("handlers/shell.zig");
 
 pub const panic = std.debug.FullPanic(zero_native.debug.capturePanic);
 
@@ -72,6 +76,11 @@ const command_policies = [_]zero_native.BridgeCommandPolicy{
     // network-equivalent (an MCP server is a peer the app talks to),
     // so it reuses `network` rather than introducing a new permission.
     .{ .name = "mcp.stdio", .permissions = &.{"network"}, .origins = &allowed_origins },
+    // `shell.open` hands a URL to `open(1)`. The URL is validated as
+    // http(s)-only at the handler, so this rides on `network` rather
+    // than introducing a `shell` permission to app.zon — the net
+    // capability is "ask the OS to navigate to this web URL".
+    .{ .name = "shell.open", .permissions = &.{"network"}, .origins = &allowed_origins },
 };
 
 // Builtin-bridge commands provided by zero-native itself (not our
@@ -117,6 +126,11 @@ pub fn main(init: std.process.Init) !void {
         .io = init.io,
         .env_map = init.environ_map,
     };
+    var shell_ctx = shell_handler.Context{
+        .gpa = gpa,
+        .io = init.io,
+        .env_map = init.environ_map,
+    };
 
     var handler_list = [_]zero_native.BridgeHandler{
         http_handler.handler(&http_ctx),
@@ -133,6 +147,7 @@ pub fn main(init: std.process.Init) !void {
         git_sync_handler.pushHandler(&git_sync_ctx),
         git_sync_handler.resolveHandler(&git_sync_ctx),
         mcp_handler.handler(&mcp_ctx),
+        shell_handler.handler(&shell_ctx),
     };
     const registry = zero_native.BridgeRegistry{ .handlers = &handler_list };
 
@@ -184,4 +199,5 @@ test {
     _ = @import("handlers/mcp.zig");
     _ = @import("handlers/grpc.zig");
     _ = @import("handlers/grpc_reflect.zig");
+    _ = @import("handlers/shell.zig");
 }

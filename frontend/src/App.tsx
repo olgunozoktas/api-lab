@@ -42,6 +42,7 @@ import { isGrpcUrl } from "./lib/grpc";
 import { isSseUrl } from "./lib/sse";
 import { envSubst } from "./lib/utils";
 import { SHORTCUTS, matchesShortcut, type ShortcutId } from "./lib/shortcuts";
+import { useExternalLinkInterceptor } from "./lib/externalLinks";
 import {
   COMPOSER_PX_MAX,
   COMPOSER_PX_MIN,
@@ -70,6 +71,11 @@ export function App() {
   // Git-based collection sync — pulls on launch, debounce-pushes on
   // edit. No-op unless sync is configured + enabled in Settings.
   useSyncEngine();
+  // Route every `<a target="_blank" href="https?://...">` click
+  // through the shell.open bridge so the OS default browser opens
+  // the URL — without this, those links silently no-op under the
+  // WKWebView host (no native popup-window manager).
+  useExternalLinkInterceptor();
   const [switcherOpen, setSwitcherOpen] = useState(false);
   // Collection runner — the folder context menu dispatches
   // `apilab:run-collection` (window-event channel, same pattern as

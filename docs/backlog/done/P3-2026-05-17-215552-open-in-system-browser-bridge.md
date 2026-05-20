@@ -18,11 +18,11 @@ well-bounded Zig handler.
 
 ## Items
 
-- [ ] Add a `shell.open` bridge command — `src/handlers/shell.zig`
+- [x] Add a `shell.open` bridge command — `src/handlers/shell.zig`
       shelling out to `open` (macOS) with a URL or file path.
-- [ ] Register the command + policy in `src/main.zig` (a new
+- [x] Register the command + policy in `src/main.zig` (a new
       `shell` permission, or reuse an existing one — decide at impl).
-- [ ] `frontend/src/lib/bridge.ts` wrapper + wire the docs **Export
+- [x] `frontend/src/lib/bridge.ts` wrapper + wire the docs **Export
       HTML** flow to optionally open the result instead of (or after)
       downloading.
 

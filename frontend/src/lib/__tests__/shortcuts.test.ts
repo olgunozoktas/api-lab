@@ -66,8 +66,14 @@ describe("SHORTCUTS map", () => {
       readSrc("lib/env_editor_shortcut.ts"),
     ].join("\n");
     for (const s of SHORTCUTS) {
-      const quoted = new RegExp(`["']${s.id.replace(/[-/\\^$*+?.()|[\]{}]/g, "\\$&")}["']`);
-      expect(quoted.test(sources), `no binding source references id="${s.id}"`).toBe(true);
+      // The id may appear quoted (kebab-case keys MUST be quoted) or
+      // as a bare identifier followed by `:` (prettier strips
+      // unnecessary quotes off identifier-safe shorthand keys like
+      // `send:`). Both forms are valid object-key syntax — accept
+      // either so prettier passes don't break the drift guard.
+      const escaped = s.id.replace(/[-/\\^$*+?.()|[\]{}]/g, "\\$&");
+      const pattern = new RegExp(`["']${escaped}["']|(?:^|[\\s,{])${escaped}\\s*:`, "m");
+      expect(pattern.test(sources), `no binding source references id="${s.id}"`).toBe(true);
     }
   });
 });
