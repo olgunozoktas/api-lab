@@ -310,10 +310,12 @@ pub fn formatMissingBinaryError(output: []u8) []const u8 {
     return output[0..body.len];
 }
 
-// Tests live in `grpc_test.zig` + `grpc_tls_test.zig` to keep this file
-// under the 400-line cap (CLAUDE.md "Hard rules"). The references below
-// ensure `zig build test` picks them up via this module's import graph.
+// Tests live in `grpc_test.zig`, `grpc_tls_test.zig`, and
+// `grpc_messages_test.zig` to keep this file under the 400-line cap
+// (CLAUDE.md "Hard rules"). The references below ensure `zig build
+// test` picks them up via this module's import graph.
 test {
     _ = @import("grpc_test.zig");
     _ = grpc_tls;
+    _ = grpc_messages;
 }

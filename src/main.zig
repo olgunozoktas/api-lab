@@ -182,4 +182,6 @@ test {
     _ = @import("handlers/http.zig");
     _ = @import("handlers/mock.zig");
     _ = @import("handlers/mcp.zig");
+    _ = @import("handlers/grpc.zig");
+    _ = @import("handlers/grpc_reflect.zig");
 }

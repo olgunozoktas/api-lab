@@ -23,18 +23,18 @@ This item makes the whole Zig test suite real again.
 
 ## Items
 
-- [ ] Audit every `src/handlers/*_test.zig` for Zig 0.16 std-API
+- [x] Audit every `src/handlers/*_test.zig` for Zig 0.16 std-API
   bit-rot. Known: `grpc_tls_test.zig:43` calls `f.readAll(testing.io,
   &buf)` — `Io.File.readAll` no longer takes that shape. Check the
   other grpc test files (`grpc_test.zig`, `grpc_messages_test.zig`,
   `grpc_reflect_parsers_test.zig`) the same way.
-- [ ] Fix each bit-rotted test against the current std API so it
+- [x] Fix each bit-rotted test against the current std API so it
   compiles and passes.
-- [ ] Extend `main.zig`'s `test {}` block to `_ = @import(...)` every
+- [x] Extend `main.zig`'s `test {}` block to `_ = @import(...)` every
   handler file (`http.zig`, `grpc.zig`, `grpc_reflect.zig`,
   `grpc_tls.zig`, plus `mock.zig` which is already there), so
   `zig build test` discovers the full suite.
-- [ ] Confirm `zig build test` (CI-default, no `-Dmock-it`) runs the
+- [x] Confirm `zig build test` (CI-default, no `-Dmock-it`) runs the
   full suite green, and consider flipping the mock integration test
   on in CI now that it is proven stable.
 
