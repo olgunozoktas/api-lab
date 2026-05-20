@@ -12,6 +12,8 @@ import {
   DEFAULT_PING_PAYLOAD,
 } from "../lib/ws";
 import { Button } from "./ui/button";
+import { Spinner } from "./ui/spinner";
+import { useDelayedFlag } from "../lib/useDelayedFlag";
 import { cn } from "../lib/cn";
 import { Plug, PlugZap, Send, Trash2, ArrowDown, ArrowUp, Info } from "lucide-react";
 
@@ -124,8 +126,20 @@ function StatusPill({ status }: { status: WsStatus }) {
     error: "bg-red-500/15 text-[var(--color-danger)]",
   }[status];
   const label = t(`ws.status.${status}` as const);
+  // Spinner shows once a connect / close handshake has stayed in
+  // flight past the delay-show threshold, so a fast localhost open
+  // doesn't flicker one onto the screen.
+  const showSpinner = useDelayedFlag(status === "connecting" || status === "closing");
   return (
-    <span className={"font-mono font-bold text-xs px-2.5 py-0.5 rounded-full " + cls}>{label}</span>
+    <span
+      className={
+        "inline-flex items-center gap-1 font-mono font-bold text-xs px-2.5 py-0.5 rounded-full " +
+        cls
+      }
+    >
+      {showSpinner && <Spinner />}
+      {label}
+    </span>
   );
 }
 

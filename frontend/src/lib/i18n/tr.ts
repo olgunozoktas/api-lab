@@ -141,6 +141,7 @@ export const tr = {
   "sidebar.confirmClearHistory": "Geçmiş silinsin mi?",
 
   "import.button": "Import",
+  "import.importing": "İçe aktarılıyor…",
   "import.title":
     "Koleksiyon içe aktar — OpenAPI, Postman, Insomnia, HAR, Bruno (.json, .yaml, .bru)",
   "import.empty": "İçe aktarılacak istek yok",

@@ -7,6 +7,8 @@ import type { GrpcResponse } from "../lib/bridge";
 import JsonView from "@uiw/react-json-view";
 import { CodeEditor } from "./ui/code-editor";
 import { TabsContent } from "./ui/tabs";
+import { Spinner } from "./ui/spinner";
+import { useDelayedFlag } from "../lib/useDelayedFlag";
 import { AlertCircle } from "lucide-react";
 
 export type GrpcStatus = "idle" | "running" | "ok" | "error" | "missing-binary";
@@ -49,8 +51,18 @@ export function GrpcStatusPill({
     if (status === "error") return t("grpc.status.error");
     return t("grpc.status.idle");
   })();
+  // Spinner appears once a `running` call has stayed in flight past
+  // the delay-show threshold, so a fast localhost call doesn't flash
+  // one onto the screen.
+  const showSpinner = useDelayedFlag(status === "running");
   return (
-    <span className={"font-mono font-bold text-3xs px-2.5 py-0.5 rounded-full " + tone}>
+    <span
+      className={
+        "inline-flex items-center gap-1 font-mono font-bold text-3xs px-2.5 py-0.5 rounded-full " +
+        tone
+      }
+    >
+      {showSpinner && <Spinner />}
       {label}
     </span>
   );
