@@ -1,6 +1,7 @@
 /** Olgun Özoktaş geliştirdi · API Lab */
 import { describe, it, expect } from "vitest";
 import {
+  PARALLEL_CONCURRENCY,
   runCollection,
   summarize,
   toNewmanJson,
@@ -123,6 +124,47 @@ describe("runCollection — iterations", () => {
     const out = await runCollection(p, { send });
     expect(out).toHaveLength(2);
     expect(out.every((r) => r.status === "pass")).toBe(true);
+  });
+
+  it("parallel mode never has more than PARALLEL_CONCURRENCY sends in flight", async () => {
+    // Instrument `send` with an in-flight counter — each call holds
+    // a microtask gate via setTimeout(0) so the next worker has a
+    // chance to pick up before this one resolves. Without that the
+    // synchronous fake-send would finish before any concurrency
+    // could build up and the test would pass trivially.
+    let inFlight = 0;
+    let peak = 0;
+    const send: SendFn = async (request) => {
+      inFlight++;
+      peak = Math.max(peak, inFlight);
+      await new Promise((r) => setTimeout(r, 1));
+      inFlight--;
+      return {
+        response: {
+          status: 200,
+          statusText: "OK",
+          headers: [],
+          body: "",
+          contentType: "application/json",
+          sizeBytes: 0,
+          elapsedMs: 0,
+          url: request.url,
+          transport: "native" as const,
+        },
+        request,
+        env: {},
+      };
+    };
+    // 500 cells (the parent backlog's worst-case shape: 10 requests
+    // × 50 CSV rows). Without the bounded pool peak would be 500.
+    const requests = Array.from({ length: 10 }, (_, i) => runnable(`r${i}`));
+    const rows = Array.from({ length: 50 }, (_, i) => ({ idx: String(i) }));
+    const p: RunPlan = { ...plan(requests, rows), mode: "parallel" };
+    await runCollection(p, { send });
+    expect(peak).toBeLessThanOrEqual(PARALLEL_CONCURRENCY);
+    // Sanity-check that we DID build up some real concurrency —
+    // catches a regression where the cap collapses to 1.
+    expect(peak).toBeGreaterThan(1);
   });
 
   it("fires onProgress as cells change state", async () => {
