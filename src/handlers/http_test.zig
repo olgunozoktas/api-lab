@@ -477,3 +477,26 @@ test "buildArgv: no mTLS fields omit --cert / --key" {
         try testing.expect(!std.mem.eql(u8, arg, "--key"));
     }
 }
+
+test "buildArgv: cookies emit -b <name=value>" {
+    var arena = std.heap.ArenaAllocator.init(testing.allocator);
+    defer arena.deinit();
+    const a = arena.allocator();
+
+    const req = http.HttpRequest{
+        .url = "https://api.example.com/me",
+        .cookies = "session=abc; csrf=xyz",
+    };
+    const argv = try http.buildArgv(a, req);
+
+    try testing.expectEqualStrings("session=abc; csrf=xyz", argvPairAfter(argv, "-b").?);
+}
+
+test "buildArgv: empty cookies omit -b" {
+    var arena = std.heap.ArenaAllocator.init(testing.allocator);
+    defer arena.deinit();
+    const a = arena.allocator();
+
+    const argv = try http.buildArgv(a, .{ .url = "https://x.test" });
+    for (argv) |arg| try testing.expect(!std.mem.eql(u8, arg, "-b"));
+}

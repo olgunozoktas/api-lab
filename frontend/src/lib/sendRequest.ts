@@ -6,6 +6,8 @@
 // leaves; pre/post-request scripts run around the send.
 import { bridge } from "./bridge";
 import type { HttpHeader, HttpResponse } from "./bridge";
+import { useStore } from "../store";
+import { buildCookieHeader, cookiesForUrl } from "./cookies";
 import type { CurrentRequest, RequestDefaults, ResponseSnapshot, ScriptOutcome } from "./types";
 import { defaultRequestDefaults } from "./types";
 import { envSubst } from "./utils";
@@ -138,7 +140,8 @@ async function viaNative(
   signal?: AbortSignal,
   multipart?: MultipartWire[],
   binaryPath?: string,
-  mtls?: MtlsWire
+  mtls?: MtlsWire,
+  cookieHeader?: string
 ): Promise<ResponseSnapshot> {
   // Soft cancel: the zero-native bridge dispatches synchronously on the
   // main thread — an in-flight `http.request` blocks the bridge thread
@@ -168,6 +171,10 @@ async function viaNative(
     ...(mtls?.certPath ? { client_cert: mtls.certPath } : {}),
     ...(mtls?.keyPath ? { client_key: mtls.keyPath } : {}),
     ...(mtls?.passphrase ? { client_key_pass: mtls.passphrase } : {}),
+    // Cookie jar replay — empty when no jar match or when the user
+    // set their own `Cookie:` header (caller handles the gate so the
+    // store dependency stays out of viaNative).
+    ...(cookieHeader ? { cookies: cookieHeader } : {}),
   });
   const r: HttpResponse = signal
     ? await Promise.race([
@@ -368,10 +375,56 @@ export async function sendWithScripts(
         }
       : undefined;
 
+  // Cookie jar replay — read the matching subset of the jar and
+  // build the `Cookie:` header value. We pass it to viaNative as a
+  // separate `cookies` field (curl `-b`) rather than mutating
+  // `headers`, so the user's outbound headers stay clean and a
+  // user-set `Cookie:` header takes precedence — when one is set,
+  // skip jar replay entirely so the server doesn't see two Cookie
+  // headers. Fetch path uses the browser's own jar, so we don't
+  // thread there.
+  const userSetCookieHeader = headers.has("cookie");
+  let cookieHeader: string | undefined;
+  if (!userSetCookieHeader) {
+    const jar = useStore.getState().cookies;
+    if (jar.length > 0) {
+      const matching = cookiesForUrl(jar, url);
+      if (matching.length > 0) cookieHeader = buildCookieHeader(matching);
+    }
+  }
+
   const t0 = performance.now();
   const response = bridge.available
-    ? await viaNative(url, method, headers, body, defaults, opts.signal, multipart, binPath, mtls)
+    ? await viaNative(
+        url,
+        method,
+        headers,
+        body,
+        defaults,
+        opts.signal,
+        multipart,
+        binPath,
+        mtls,
+        cookieHeader
+      )
     : await viaFetch(url, method, headers, body, t0, opts.signal, !!(multipart?.length || binPath));
+
+  // Set-Cookie absorption — fold any `Set-Cookie` response headers
+  // back into the jar. Skipped under viaFetch (the browser already
+  // captured them into its own jar) and skipped when the request
+  // host can't be parsed (malformed URLs short-circuit before here,
+  // but defensive null-host catches edge cases). Response headers
+  // ship as `{k, v}` tuples in ResponseSnapshot — normalise to the
+  // `{name, value}` shape parseSetCookieHeaders expects.
+  if (bridge.available) {
+    try {
+      const host = new URL(url).hostname;
+      const headerTuples = (response.headers ?? []).map((h) => ({ name: h.k, value: h.v }));
+      useStore.getState().absorbSetCookies(headerTuples, host);
+    } catch {
+      /* invalid URL — bridge wouldn't have run anyway */
+    }
+  }
 
   let postOutcome: ScriptOutcome | undefined;
   if (req.postScript && req.postScript.trim()) {

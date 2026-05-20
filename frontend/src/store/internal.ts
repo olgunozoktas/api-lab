@@ -18,6 +18,7 @@ import type {
   SyncConfig,
   SyncStatus,
 } from "../lib/types";
+import type { Cookie } from "../lib/cookies";
 import {
   emptyRequest,
   emptyTab,
@@ -72,6 +73,13 @@ export type CoreState = {
   // library modal. Persisted via partialize. An MCP request points at
   // one by id; see `lib/types.ts` `McpRequestState`.
   mcpServers: McpServerConfig[];
+  // Cookie jar — global (NOT per-env at v1; per-env scoping is a
+  // documented follow-up). Auto-captured on every `Set-Cookie`
+  // response header; the send pipeline reads matching cookies via
+  // `lib/cookies.ts` `cookiesForUrl` and pipes them into the
+  // `http.request` bridge as a `cookies` field. Persisted via
+  // partialize (v6 → v7 migration: defaults to []).
+  cookies: Cookie[];
   // Per-integration spec fingerprint (ETag / Last-Modified / body
   // hash) captured at import time — keyed by registry id. The gallery
   // re-fetches conditionally and compares against this to flag a
@@ -136,6 +144,7 @@ export function buildInitialState(): CoreState {
     enabledIntegrations: [],
     integrationFingerprints: {},
     mcpServers: [],
+    cookies: [],
     syncConfig: defaultSyncConfig(),
     syncStatus: defaultSyncStatus(),
   };
@@ -224,6 +233,7 @@ export function migrateV1toV2(persisted: unknown): V2State {
     enabledIntegrations: [],
     integrationFingerprints: {},
     mcpServers: [],
+    cookies: [],
     responseCache: {},
   };
 }
@@ -287,6 +297,15 @@ export function migrateV4toV5(persisted: unknown): CoreState {
 export function migrateV5toV6(persisted: unknown): CoreState {
   const old = (persisted as Partial<CoreState>) ?? {};
   return { ...old, mcpServers: old.mcpServers ?? [] } as CoreState;
+}
+
+// v6 → v7 migration. v7 added `cookies` — the cookie-jar slice that
+// auto-captures Set-Cookie response headers and replays matching
+// cookies on subsequent requests. Pre-v7 snapshots never carried it;
+// default to an empty jar.
+export function migrateV6toV7(persisted: unknown): CoreState {
+  const old = (persisted as Partial<CoreState>) ?? {};
+  return { ...old, cookies: old.cookies ?? [] } as CoreState;
 }
 
 // Recursive descendants helper — returns the IDs of every descendant of

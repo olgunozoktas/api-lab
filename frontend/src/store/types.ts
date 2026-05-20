@@ -15,6 +15,7 @@ import type { SamplesActions } from "./samples";
 import type { SyncActions } from "./sync";
 import type { IntegrationsActions } from "./integrations";
 import type { McpServersActions } from "./mcpServers";
+import type { CookiesActions } from "./cookies";
 
 export type Actions = CollectionsActions &
   TabsActions &
@@ -27,7 +28,8 @@ export type Actions = CollectionsActions &
   SamplesActions &
   SyncActions &
   IntegrationsActions &
-  McpServersActions;
+  McpServersActions &
+  CookiesActions;
 
 export type Store = CoreState & Actions;
 

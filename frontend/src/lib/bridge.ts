@@ -84,6 +84,10 @@ export type HttpRequest = {
   client_cert?: string;
   client_key?: string;
   client_key_pass?: string;
+  // Cookie jar replay — `name=value; name=value` string passed through
+  // to curl as `-b`. Built by the send pipeline from the matching
+  // subset of the jar (lib/cookies.ts cookiesForUrl + buildCookieHeader).
+  cookies?: string;
 };
 
 export type HttpResponse = {
