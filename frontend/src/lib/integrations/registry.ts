@@ -1,5 +1,5 @@
 /** Olgun Özoktaş geliştirdi · API Lab */
-import type { AuthType } from "../types";
+import type { AuthType, McpTransport } from "../types";
 import type { CuratedProvider } from "./curated/types";
 import { cloudflareCurated } from "./curated/cloudflare";
 import { stripeCurated } from "./curated/stripe";
@@ -18,9 +18,16 @@ import { linearCurated } from "./curated/linear";
 // - `openapi-url` — fetches a published OpenAPI 3.x document and runs
 //   it through the OpenAPI importer. Kept for small specs / future
 //   providers; large specs fail on the bridge buffer.
+// - `mcp` — installs a Model Context Protocol server into the MCP
+//   servers library (`store/mcpServers`). Doesn't import a
+//   collection — the user reaches the server from an MCP request
+//   tab. The library row shows an "Integration" badge and is
+//   read-only (Edit/Delete locked); removal happens by disabling
+//   the integration here.
 export type IntegrationFetchSpec =
   | { kind: "curated"; provider: CuratedProvider }
-  | { kind: "openapi-url"; specUrl: string };
+  | { kind: "openapi-url"; specUrl: string }
+  | { kind: "mcp"; transport: McpTransport };
 
 // One curated integration in the gallery. Pure data — no behaviour.
 export interface IntegrationDef {
@@ -101,6 +108,16 @@ export const INTEGRATIONS: IntegrationDef[] = [
     homepage: "https://developers.linear.app/docs",
     fetch: { kind: "curated", provider: linearCurated },
     authType: "bearer",
+  },
+  {
+    id: "findutils",
+    name: "findutils",
+    category: "MCP",
+    description:
+      "MCP server for findutils.com — search and code tools an LLM can call directly. Enable to install into your MCP servers library.",
+    homepage: "https://findutils.com",
+    fetch: { kind: "mcp", transport: { kind: "http", url: "https://mcp.findutils.com" } },
+    authType: "none",
   },
 ];
 

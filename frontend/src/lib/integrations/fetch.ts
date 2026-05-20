@@ -91,6 +91,14 @@ export async function fetchIntegrationSpec(def: IntegrationDef): Promise<Integra
   if (def.fetch.kind === "curated") {
     return buildCuratedResult(def);
   }
+  // MCP integrations don't go through the OpenAPI fetch pipeline —
+  // IntegrationsModal branches on `kind === "mcp"` before calling
+  // this. Defensive guard in case a future caller (staleness check,
+  // tests) hits this path: surface parse-failed rather than
+  // dereferencing a missing field.
+  if (def.fetch.kind === "mcp") {
+    return { ok: false, reason: "parse-failed", detail: "mcp integrations install directly" };
+  }
 
   if (!bridge.available) {
     return { ok: false, reason: "bridge-unavailable", detail: "native bridge required" };

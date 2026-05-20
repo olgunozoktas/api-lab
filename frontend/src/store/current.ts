@@ -202,12 +202,36 @@ export const createCurrentSlice: StateCreator<Store, StoreMutators, [], CurrentA
     // commit the auto-derived `METHOD shortUrl` label on save — same
     // logic the tab strip + sidebar already display. They can rename
     // afterwards; the goal is "Save shouldn't leave you with three
-    // 'New request' rows you can't tell apart".
-    const derived = displayTabName({
-      name: cur.name ?? "",
-      method: cur.method,
-      url: cur.url ?? "",
-    });
+    // 'New request' rows you can't tell apart". MCP requests carry
+    // no URL, so derive their name from `<server> · <tool>` instead
+    // — falls back gracefully when the server isn't picked or the
+    // tool isn't named.
+    let derived: string;
+    if (cur.mcp) {
+      const stored = (cur.name ?? "").trim();
+      if (stored && stored !== "Yeni istek" && stored !== "New request" && stored !== "Untitled") {
+        derived = stored;
+      } else {
+        const server = cur.mcp.serverId
+          ? get().mcpServers.find((m) => m.id === cur.mcp!.serverId)
+          : null;
+        const tool = cur.mcp.toolName.trim();
+        derived =
+          server && tool
+            ? `${server.name} · ${tool}`
+            : server
+              ? server.name
+              : tool
+                ? `MCP · ${tool}`
+                : "MCP";
+      }
+    } else {
+      derived = displayTabName({
+        name: cur.name ?? "",
+        method: cur.method,
+        url: cur.url ?? "",
+      });
+    }
     const name = (derived || "").trim() || "(adsız)";
     const isGraphql = get().ui.composerTab === "graphql";
     const snap: RequestSnapshot = {

@@ -57,6 +57,8 @@ export function IntegrationsModal({ open, onOpenChange }: IntegrationsModalProps
   const setIntegrationFingerprint = useStore((s) => s.setIntegrationFingerprint);
   const importItems = useStore((s) => s.importItems);
   const removeIntegrationCollection = useStore((s) => s.removeIntegrationCollection);
+  const installMcpServerFromIntegration = useStore((s) => s.installMcpServerFromIntegration);
+  const removeMcpServerByIntegration = useStore((s) => s.removeMcpServerByIntegration);
   const showToast = useStore((s) => s.showToast);
   const [states, setStates] = useState<Record<string, CardState>>({});
   // Ids flagged stale by the on-open check. Runtime-only (recomputed
@@ -104,11 +106,31 @@ export function IntegrationsModal({ open, onOpenChange }: IntegrationsModalProps
     if (!def) return;
 
     if (enabled.includes(id)) {
-      // Disable also removes the imported collection so the sidebar
-      // doesn't keep a dangling integration folder.
-      removeIntegrationCollection(id);
+      // Disable tears down whichever surface the integration owns:
+      // a sidebar collection for curated / openapi-url providers, or
+      // a row in the MCP servers library for `kind: "mcp"`. Both
+      // cascades null any references they leave behind, keeping the
+      // user's own work (toolName/argsJson, custom sibling requests)
+      // intact.
+      if (def.fetch.kind === "mcp") {
+        removeMcpServerByIntegration(id);
+      } else {
+        removeIntegrationCollection(id);
+      }
       disableIntegration(id);
       showToast(t("integrations.toast.disabled", { name: def.name }), { severity: "info" });
+      return;
+    }
+
+    // MCP integrations bypass the OpenAPI fetch pipeline entirely —
+    // there's nothing to fetch, just a server config to install. The
+    // install action is idempotent on integrationId, so re-enabling
+    // an integration whose registry definition changed picks up the
+    // new transport / name / description without duplicating rows.
+    if (def.fetch.kind === "mcp") {
+      installMcpServerFromIntegration(def.id, def.name, def.fetch.transport, def.description);
+      enableIntegration(id);
+      showToast(t("integrations.toast.enabledMcp", { name: def.name }), { severity: "success" });
       return;
     }
 

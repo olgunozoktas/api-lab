@@ -26,6 +26,14 @@ describe("INTEGRATIONS registry", () => {
     for (const def of INTEGRATIONS) {
       if (def.fetch.kind === "openapi-url") {
         expect(def.fetch.specUrl).toMatch(/^https:\/\//);
+      } else if (def.fetch.kind === "mcp") {
+        // MCP integrations install a server config — the transport
+        // must have a URL (http) or command (stdio).
+        if (def.fetch.transport.kind === "http") {
+          expect(def.fetch.transport.url).toMatch(/^https?:\/\//);
+        } else {
+          expect(def.fetch.transport.command.length).toBeGreaterThan(0);
+        }
       } else {
         expect(def.fetch.kind).toBe("curated");
         expect(def.fetch.provider.baseUrl).toMatch(/^https:\/\//);

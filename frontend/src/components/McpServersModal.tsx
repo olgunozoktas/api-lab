@@ -5,7 +5,6 @@
 // references a server by id. Local-state edit + explicit save mirrors
 // EnvEditorModal so cancelling a session of edits never half-writes.
 import { useState } from "react";
-import { Pencil, Trash2, ExternalLink } from "lucide-react";
 import { useStore } from "../store";
 import { useT } from "../lib/i18n/useT";
 import { uid } from "../lib/utils";
@@ -14,7 +13,7 @@ import type { McpServerConfig, McpTransport } from "../lib/types";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "./ui/dialog";
 import { Button } from "./ui/button";
 import { EmptyState } from "./ui/empty-state";
-import { McpServerForm } from "./McpServerForm";
+import { McpServerRow } from "./McpServerRow";
 
 type Props = { open: boolean; onOpenChange: (o: boolean) => void };
 
@@ -65,12 +64,24 @@ export function McpServersModal({ open, onOpenChange }: Props) {
   }
 
   // Commit edits to the store and close. Names are trimmed; nameless
-  // entries are dropped (probably abandoned mid-edit).
-  function save() {
-    const cleaned = servers
+  // entries are dropped (probably abandoned mid-edit). Integration-
+  // provided servers in the local buffer are dropped from the write
+  // path and replaced with the LIVE store list — so a Save here
+  // never clobbers an integration that was enabled / refreshed in
+  // another window after this modal opened.
+  function commit(): McpServerConfig[] {
+    const live = useStore.getState().mcpServers.filter((m) => !!m.integrationId);
+    const userEdited = servers
+      .filter((m) => !m.integrationId)
       .map((s) => ({ ...s, name: s.name.trim() }))
       .filter((s) => s.name.length > 0);
-    setMcpServers(cleaned);
+    const next = [...live, ...userEdited];
+    setMcpServers(next);
+    return next;
+  }
+
+  function save() {
+    commit();
     showToast(t("mcp.servers.saved"), { severity: "success" });
     onOpenChange(false);
   }
@@ -78,11 +89,8 @@ export function McpServersModal({ open, onOpenChange }: Props) {
   // Open-in-tab also commits pending edits — otherwise the new tab
   // would reference an unsaved server, which is confusing.
   function openInTab(serverId: string) {
-    const cleaned = servers
-      .map((s) => ({ ...s, name: s.name.trim() }))
-      .filter((s) => s.name.length > 0);
-    setMcpServers(cleaned);
-    if (!cleaned.some((s) => s.id === serverId)) {
+    const next = commit();
+    if (!next.some((s) => s.id === serverId)) {
       showToast(t("mcp.servers.nameRequired"), { severity: "warning" });
       return;
     }
@@ -124,84 +132,5 @@ export function McpServersModal({ open, onOpenChange }: Props) {
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  );
-}
-
-interface RowProps {
-  server: McpServerConfig;
-  editing: boolean;
-  summary: string;
-  onUpdate: (patch: Partial<McpServerConfig>) => void;
-  onToggleEdit: () => void;
-  onRemove: () => void;
-  onOpenInTab: () => void;
-}
-
-function McpServerRow({
-  server,
-  editing,
-  summary,
-  onUpdate,
-  onToggleEdit,
-  onRemove,
-  onOpenInTab,
-}: RowProps) {
-  const t = useT();
-  return (
-    <div className="rounded-md border border-[var(--color-border)] bg-[var(--color-bg-elev-2)] p-2.5">
-      <div className="flex items-start justify-between gap-2">
-        <div className="min-w-0 flex-1">
-          <div className="text-sm font-semibold truncate">
-            {server.name || t("mcp.servers.unnamed")}
-          </div>
-          <div className="text-3xs font-mono text-[var(--color-fg-muted)] truncate">{summary}</div>
-          {server.description && (
-            <div className="text-2xs text-[var(--color-fg-muted)] mt-1">{server.description}</div>
-          )}
-        </div>
-        <div className="flex items-center gap-1 shrink-0">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={onOpenInTab}
-            title={t("mcp.servers.openInTab")}
-            aria-label={t("mcp.servers.openInTab")}
-            disabled={!server.name.trim()}
-          >
-            <ExternalLink className="w-3.5 h-3.5" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={onToggleEdit}
-            aria-label={t("mcp.servers.edit")}
-            aria-pressed={editing}
-          >
-            <Pencil className="w-3.5 h-3.5" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={onRemove}
-            aria-label={t("mcp.servers.delete")}
-          >
-            <Trash2 className="w-3.5 h-3.5 text-[var(--color-danger)]" />
-          </Button>
-        </div>
-      </div>
-      {editing && (
-        <div className="mt-2 pt-2 border-t border-[var(--color-border)]">
-          <McpServerForm
-            value={{
-              name: server.name,
-              transport: server.transport,
-              description: server.description,
-            }}
-            onChange={(patch) => onUpdate(patch as Partial<McpServerConfig>)}
-            stdioAvailable={bridge.available}
-          />
-        </div>
-      )}
-    </div>
   );
 }
