@@ -35,13 +35,12 @@ test "prepareTlsTmpfiles: ca_cert only writes ca.pem; cleanup removes the dir" {
     try testing.expectEqualStrings("", prep.paths.client_cert_path);
     try testing.expectEqualStrings("", prep.paths.client_key_path);
 
-    // ca.pem exists with the expected content
+    // ca.pem exists with the expected content. `readFileAlloc` matches
+    // how mcp.zig reads its stdout redirect — `Io.File.readAll` was
+    // removed in Zig 0.16, so cwd-level helpers are the supported path.
     var cwd = std.Io.Dir.cwd();
-    var f = try cwd.openFile(testing.io, prep.paths.ca_cert_path, .{});
-    defer f.close(testing.io);
-    var buf: [256]u8 = undefined;
-    const n = try f.readAll(testing.io, &buf);
-    try testing.expectEqualStrings(ca_pem, buf[0..n]);
+    const got = try cwd.readFileAlloc(testing.io, prep.paths.ca_cert_path, a, .limited(256));
+    try testing.expectEqualStrings(ca_pem, got);
 }
 
 test "prepareTlsTmpfiles: all three PEMs present writes ca.pem + client.pem + client.key" {
