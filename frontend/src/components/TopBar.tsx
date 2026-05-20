@@ -7,6 +7,7 @@ import { MockControlPanel } from "./MockControlPanel";
 import { ResponseDiffModal } from "./ResponseDiffModal";
 import { IntegrationsModal } from "./IntegrationsModal";
 import { McpServersModal } from "./McpServersModal";
+import { CookieJarModal } from "./CookieJarModal";
 import { useChangelogAutoOpen } from "../lib/changelog_gate";
 import { APP_VERSION, formatBuildDate } from "../lib/changelog";
 import { useUpdateCheck } from "../lib/updateCheck";
@@ -20,6 +21,7 @@ import { KbdHint } from "./ui/kbd-hint";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import {
   Boxes,
+  Cookie as CookieIcon,
   Download,
   GitCompare,
   HelpCircle,
@@ -58,6 +60,7 @@ export function TopBar() {
   const [diffSeed, setDiffSeed] = useState<{ leftId?: string; rightId?: string }>({});
   const [integrationsOpen, setIntegrationsOpen] = useState(false);
   const [mcpOpen, setMcpOpen] = useState(false);
+  const [cookiesOpen, setCookiesOpen] = useState(false);
   // Launch-time GitHub-release check. Non-null only when a newer
   // release exists; renders a small "Update" pill next to the version.
   const update = useUpdateCheck();
@@ -222,6 +225,12 @@ export function TopBar() {
           icon={<Boxes className="w-3.5 h-3.5" />}
         />
         <IconButton
+          onClick={() => setCookiesOpen(true)}
+          aria-label={t("topbar.cookies")}
+          tooltip={t("topbar.cookies")}
+          icon={<CookieIcon className="w-3.5 h-3.5" />}
+        />
+        <IconButton
           onClick={() => setGuideOpen(true)}
           aria-label={t("topbar.guides")}
           tooltip={
@@ -279,6 +288,7 @@ export function TopBar() {
       />
       <IntegrationsModal open={integrationsOpen} onOpenChange={setIntegrationsOpen} />
       <McpServersModal open={mcpOpen} onOpenChange={setMcpOpen} />
+      <CookieJarModal open={cookiesOpen} onOpenChange={setCookiesOpen} />
     </>
   );
 }

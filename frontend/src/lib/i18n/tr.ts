@@ -229,6 +229,7 @@ export const tr = {
 
   "dialog.cancel": "İptal",
   "dialog.ok": "Tamam",
+  "dialog.close": "Kapat",
 
   "composer.requestName": "İstek adı",
   "composer.requestName.derivedTitle": "⌘+S basarsanız “{name}” olarak kaydedilir",
@@ -766,6 +767,15 @@ export const tr = {
   "integrations.error.fetch": "Getirme başarısız: {detail}",
   "integrations.error.parse": "Spec ayrıştırılamadı: {detail}",
   "topbar.mcp": "MCP sunucuları",
+  "topbar.cookies": "Çerez kavanozu",
+  "cookies.title": "Çerez kavanozu",
+  "cookies.filterPlaceholder": "Alana, ada veya yola göre filtrele…",
+  "cookies.empty": "Henüz saklanmış çerez yok",
+  "cookies.emptyHint":
+    "Yanıtların Set-Cookie header'ları otomatik yakalanır ve eşleşen isteklerde tekrar gönderilir.",
+  "cookies.noMatches": "Eşleşen çerez yok",
+  "cookies.delete": "Çerezi sil",
+  "cookies.clearAll": "Tümünü temizle",
   "mcp.title": "MCP sunucuları",
   "mcp.subtitle":
     "Bir Model Context Protocol sunucusuna bağlan, araçlarını listele ve birini çağır.",

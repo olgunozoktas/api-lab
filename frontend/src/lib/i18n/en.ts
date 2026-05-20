@@ -230,6 +230,7 @@ export const en: Dict = {
 
   "dialog.cancel": "Cancel",
   "dialog.ok": "OK",
+  "dialog.close": "Close",
 
   "composer.requestName": "Request name",
   "composer.requestName.derivedTitle": "⌘+S will save this as “{name}”",
@@ -769,6 +770,15 @@ export const en: Dict = {
   "integrations.error.fetch": "Fetch failed: {detail}",
   "integrations.error.parse": "Couldn't parse spec: {detail}",
   "topbar.mcp": "MCP servers",
+  "topbar.cookies": "Cookie jar",
+  "cookies.title": "Cookie jar",
+  "cookies.filterPlaceholder": "Filter by domain, name, or path…",
+  "cookies.empty": "No cookies stored yet",
+  "cookies.emptyHint":
+    "Cookies set via response Set-Cookie headers are captured here automatically and replayed on matching requests.",
+  "cookies.noMatches": "No matching cookies",
+  "cookies.delete": "Delete cookie",
+  "cookies.clearAll": "Clear all",
   "mcp.title": "MCP servers",
   "mcp.subtitle": "Connect to a Model Context Protocol server, list its tools, and invoke one.",
   "mcp.transport.stdio": "stdio",

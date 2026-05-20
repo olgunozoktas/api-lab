@@ -8,6 +8,7 @@ import {
   migrateV3toV4,
   migrateV4toV5,
   migrateV5toV6,
+  migrateV6toV7,
   type CoreState,
 } from "./internal";
 import { idbStorage } from "./idbStorage";
@@ -25,6 +26,7 @@ import { createSamplesSlice } from "./samples";
 import { createSyncSlice } from "./sync";
 import { createIntegrationsSlice } from "./integrations";
 import { createMcpServersSlice } from "./mcpServers";
+import { createCookiesSlice } from "./cookies";
 
 // Multi-request workspace store. `tabs[]` is the source of truth; each tab
 // carries its own request/lastResponse/composerTab/responseTab. The
@@ -51,10 +53,11 @@ export const useStore = create<Store>()(
       ...createSyncSlice(...args),
       ...createIntegrationsSlice(...args),
       ...createMcpServersSlice(...args),
+      ...createCookiesSlice(...args),
     }),
     {
       name: "apilab.store.v1",
-      version: 6,
+      version: 7,
       migrate: (persisted, fromVersion) => {
         let s: unknown = persisted;
         if (fromVersion < 2) s = migrateV1toV2(s);
@@ -62,6 +65,7 @@ export const useStore = create<Store>()(
         if (fromVersion < 4) s = migrateV3toV4(s);
         if (fromVersion < 5) s = migrateV4toV5(s);
         if (fromVersion < 6) s = migrateV5toV6(s);
+        if (fromVersion < 7) s = migrateV6toV7(s);
         return s as CoreState;
       },
       // Custom merge so the persisted responseCache is TTL-pruned on
@@ -103,6 +107,9 @@ export const useStore = create<Store>()(
           // by id; the configs themselves live here so editing one
           // updates every request that uses it.
           mcpServers: s.mcpServers,
+          // Cookie jar — global at v1; auto-captured on Set-Cookie
+          // and replayed on matching requests.
+          cookies: s.cookies,
           // syncConfig persists (repo URL + enabled); syncStatus does
           // NOT — it's this session's runtime sync state.
           syncConfig: s.syncConfig,

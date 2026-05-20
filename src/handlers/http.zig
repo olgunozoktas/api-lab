@@ -67,6 +67,12 @@ pub const HttpRequest = struct {
     client_cert: []const u8 = "",
     client_key: []const u8 = "",
     client_key_pass: []const u8 = "",
+    /// Cookie jar replay — `name=value` pairs joined by "; ". Emitted
+    /// via curl `-b` so the server sees a real `Cookie:` request
+    /// header. The frontend builds this from the matching subset of
+    /// the jar (see `lib/cookies.ts` `cookiesForUrl` +
+    /// `buildCookieHeader`); the handler just relays the string.
+    cookies: []const u8 = "",
 
     pub const Header = struct {
         name: []const u8,
@@ -306,6 +312,13 @@ pub fn buildArgv(a: std.mem.Allocator, req: HttpRequest) ![]const []const u8 {
     if (req.client_key_pass.len > 0) {
         try argv.append(a, "--pass");
         try argv.append(a, req.client_key_pass);
+    }
+    // Cookie jar replay — `-b "name=value; name=value"`. The frontend
+    // already filtered to cookies matching this request's URL, so the
+    // string is hand-off-ready.
+    if (req.cookies.len > 0) {
+        try argv.append(a, "-b");
+        try argv.append(a, req.cookies);
     }
     try argv.append(a, "--max-time");
     try argv.append(a, try std.fmt.allocPrint(a, "{d}", .{@max(req.timeout_ms / 1000, 1)}));
