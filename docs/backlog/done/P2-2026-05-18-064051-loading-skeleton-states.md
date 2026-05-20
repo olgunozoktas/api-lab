@@ -20,11 +20,19 @@ skeletons make the app feel responsive even when the network isn't.
       → `ResponseViewer` shows `<ResponseBodySkeleton>` (six `Skeleton`
         lines) in the body slot while a request is in-flight, gated by
         the delay threshold. `busy` is threaded App → ResponseViewer.
-- [ ] Loading state for collection import and OpenAPI spec parsing.
-      → **deferred** — see Follow-ups.
-- [ ] Stream / connect indicators for the gRPC, SSE and WS panels
+- [x] Loading state for collection import and OpenAPI spec parsing.
+      → shipped via the child file
+        `done/P2-2026-05-18-114609-loading-states-import-protocol-panels.md`
+        (2026-05-20, v0.15.1) — `ImportPostmanButton` was extracted
+        from `Sidebar.tsx` (over the 400-LOC cap) and wired an
+        `importing` spinner gated by `useDelayedFlag`. Spec parse
+        already drove `SpecSidePanel.busy`, so the in-flight indicator
+        was already in place.
+- [x] Stream / connect indicators for the gRPC, SSE and WS panels
       (`GrpcResponseSection.tsx`, `SsePanel.tsx`, `WsPanel.tsx`).
-      → **deferred** — see Follow-ups (the 400-LOC-cap-risk surfaces).
+      → shipped via the same child file — each StatusPill grew a
+        delayed Spinner glyph when its state is `running` /
+        `connecting` / `closing`.
 - [x] Sync-in-progress indicator in `SyncBanner.tsx`.
       → `SyncBanner` renders a calm spinner strip when
         `syncStatus.state === "syncing"` (the state already existed but
