@@ -24,10 +24,11 @@ new diff machinery.
       modal with that entry pre-selected as the left source.
 - [x] Tab context menu (or response viewer overflow menu): "Compare
       response with…" — pre-selects the active tab's response.
-- [ ] QuickSwitcher / palette entry for "Compare responses" so the
-      diff is keyboard-reachable. (Deferred — needs a new "commands"
-      sub-section in QuickSwitcher's typed Item union; ship when the
-      switcher grows other commands and it can earn its keep.)
+- [x] QuickSwitcher / palette entry for "Compare responses" so the
+      diff is keyboard-reachable. (Shipped 2026-05-21 v0.16.9 — added
+      a fifth "command" Item variant + COMMANDS array; first entry is
+      Compare responses, future palette actions plug into the same
+      slot with one line.)
 
 ## Acceptance
 
