@@ -72,6 +72,11 @@ export const createCurrentSlice: StateCreator<Store, StoreMutators, [], CurrentA
         fresh.url = "sses://";
       } else if (kind === "grpc") {
         fresh.url = "grpcs://";
+      } else if (kind === "mcp") {
+        // App.tsx routes the tab to the MCP panel on the presence of
+        // `mcp`, not on a URL prefix. A brand-new MCP request hasn't
+        // picked a server from the library yet.
+        fresh.mcp = { serverId: null, toolName: "", argsJson: "{}" };
       }
       const composerTab: ComposerTab = kind === "graphql" ? "graphql" : "params";
       return {

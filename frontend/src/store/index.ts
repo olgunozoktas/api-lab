@@ -24,6 +24,7 @@ import { createCurrentSlice } from "./current";
 import { createSamplesSlice } from "./samples";
 import { createSyncSlice } from "./sync";
 import { createIntegrationsSlice } from "./integrations";
+import { createMcpServersSlice } from "./mcpServers";
 
 // Multi-request workspace store. `tabs[]` is the source of truth; each tab
 // carries its own request/lastResponse/composerTab/responseTab. The
@@ -49,6 +50,7 @@ export const useStore = create<Store>()(
       ...createSamplesSlice(...args),
       ...createSyncSlice(...args),
       ...createIntegrationsSlice(...args),
+      ...createMcpServersSlice(...args),
     }),
     {
       name: "apilab.store.v1",

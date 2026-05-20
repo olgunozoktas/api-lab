@@ -6,7 +6,7 @@ import { SettingsModal } from "./SettingsModal";
 import { MockControlPanel } from "./MockControlPanel";
 import { ResponseDiffModal } from "./ResponseDiffModal";
 import { IntegrationsModal } from "./IntegrationsModal";
-import { McpPanel } from "./McpPanel";
+import { McpServersModal } from "./McpServersModal";
 import { useChangelogAutoOpen } from "../lib/changelog_gate";
 import { APP_VERSION, formatBuildDate } from "../lib/changelog";
 import { useUpdateCheck } from "../lib/updateCheck";
@@ -247,7 +247,7 @@ export function TopBar() {
       <MockControlPanel open={mockOpen} onOpenChange={setMockOpen} />
       <ResponseDiffModal open={diffOpen} onOpenChange={setDiffOpen} />
       <IntegrationsModal open={integrationsOpen} onOpenChange={setIntegrationsOpen} />
-      <McpPanel open={mcpOpen} onOpenChange={setMcpOpen} />
+      <McpServersModal open={mcpOpen} onOpenChange={setMcpOpen} />
     </>
   );
 }
