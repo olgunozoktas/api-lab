@@ -50,6 +50,12 @@ export function TopBar() {
   const [guideOpen, setGuideOpen] = useState(false);
   const [mockOpen, setMockOpen] = useState(false);
   const [diffOpen, setDiffOpen] = useState(false);
+  // Optional seeds for ResponseDiffModal — set by the "Compare with…"
+  // context-menu entries in HistoryList + TabStrip via the
+  // `apilab:open-diff` window event (see effect below). Cleared
+  // every time the modal closes so the next TopBar-button open
+  // returns to the seedless flow.
+  const [diffSeed, setDiffSeed] = useState<{ leftId?: string; rightId?: string }>({});
   const [integrationsOpen, setIntegrationsOpen] = useState(false);
   const [mcpOpen, setMcpOpen] = useState(false);
   // Launch-time GitHub-release check. Non-null only when a newer
@@ -72,6 +78,20 @@ export function TopBar() {
   // WebKit-native ⌘+E ("Use Selection for Find") in text fields.
   const openEnvEditor = useCallback(() => setEditingEnv(true), []);
   useEnvEditorShortcut(openEnvEditor);
+  // `apilab:open-diff` — dispatched from HistoryList / TabStrip
+  // context menus with an optional `{leftId, rightId}` payload so
+  // those surfaces can pre-seed the modal without prop-drilling.
+  // Matches the existing `apilab:focus-url` / `apilab:run-collection`
+  // window-event pattern.
+  useEffect(() => {
+    const onOpenDiff = (e: Event) => {
+      const detail = (e as CustomEvent<{ leftId?: string; rightId?: string }>).detail ?? {};
+      setDiffSeed({ leftId: detail.leftId, rightId: detail.rightId });
+      setDiffOpen(true);
+    };
+    window.addEventListener("apilab:open-diff", onOpenDiff);
+    return () => window.removeEventListener("apilab:open-diff", onOpenDiff);
+  }, []);
 
   // Window-event channels so anywhere in the app (e.g. the About
   // section in SettingsModal) can ask for these modals without
@@ -245,7 +265,18 @@ export function TopBar() {
         </Suspense>
       )}
       <MockControlPanel open={mockOpen} onOpenChange={setMockOpen} />
-      <ResponseDiffModal open={diffOpen} onOpenChange={setDiffOpen} />
+      <ResponseDiffModal
+        open={diffOpen}
+        onOpenChange={(o) => {
+          setDiffOpen(o);
+          // Drop the seeds once the modal closes so a subsequent
+          // TopBar-button open starts with the default
+          // sources[0]/sources[1] picks rather than a stale seed.
+          if (!o) setDiffSeed({});
+        }}
+        initialLeftId={diffSeed.leftId ?? null}
+        initialRightId={diffSeed.rightId ?? null}
+      />
       <IntegrationsModal open={integrationsOpen} onOpenChange={setIntegrationsOpen} />
       <McpServersModal open={mcpOpen} onOpenChange={setMcpOpen} />
     </>

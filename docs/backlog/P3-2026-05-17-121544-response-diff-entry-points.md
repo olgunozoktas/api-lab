@@ -18,14 +18,16 @@ new diff machinery.
 
 ## Items
 
-- [ ] `ResponseDiffModal` accepts optional `initialLeftId` /
+- [x] `ResponseDiffModal` accepts optional `initialLeftId` /
       `initialRightId` props; TopBar keeps opening it unseeded.
-- [ ] History list context menu: "Compare with…" — opens the diff
+- [x] History list context menu: "Compare with…" — opens the diff
       modal with that entry pre-selected as the left source.
-- [ ] Tab context menu (or response viewer overflow menu): "Compare
+- [x] Tab context menu (or response viewer overflow menu): "Compare
       response with…" — pre-selects the active tab's response.
 - [ ] QuickSwitcher / palette entry for "Compare responses" so the
-      diff is keyboard-reachable.
+      diff is keyboard-reachable. (Deferred — needs a new "commands"
+      sub-section in QuickSwitcher's typed Item union; ship when the
+      switcher grows other commands and it can earn its keep.)
 
 ## Acceptance
 
