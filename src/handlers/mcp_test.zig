@@ -42,3 +42,33 @@ test "joinFrames: round-trips — splitting on newline recovers every frame" {
     }
     try testing.expectEqual(frames.len, i);
 }
+
+// One integration test: a sleeper command that never exits on stdin
+// EOF gets killed after its (tiny) deadline and the response carries
+// the `timeout` error sentinel. This is the only runtime-spawning
+// test in this file — the rest of runStdio's I/O surface is exercised
+// end-to-end against a real MCP server, matching the git_sync.zig
+// precedent.
+test "runStdio: a hung server is killed after timeout_ms" {
+    var env = std.process.Environ.Map.init(testing.allocator);
+    defer env.deinit();
+    var ctx = mcp.Context{ .gpa = testing.allocator, .io = testing.io, .env_map = &env };
+
+    // `/bin/sleep 60` ignores its stdin entirely — exactly the
+    // "hung server" shape (stdin EOF doesn't make it exit). With a
+    // 300 ms deadline the watchdog should kill it well inside the
+    // test's own timeout.
+    const payload =
+        \\{"command":"/bin/sleep","args":["60"],"frames":[],"timeout_ms":300}
+    ;
+    var out: [4096]u8 = undefined;
+    const resp = try mcp.runStdio(&ctx, payload, &out);
+
+    // Should land an error envelope with the `timeout` sentinel,
+    // never an `exit_code` field. If the watchdog hadn't fired the
+    // test would take the full 60 seconds of `sleep` — the test
+    // runner's default timeout would surface that as a separate
+    // failure, so we don't bother re-asserting wall-clock here.
+    try testing.expect(std.mem.indexOf(u8, resp, "\"error\":\"timeout\"") != null);
+    try testing.expect(std.mem.indexOf(u8, resp, "\"exit_code\"") == null);
+}
