@@ -170,7 +170,43 @@ export type RequestSnapshot = {
   // landed hydrates cleanly — readers should fall back to
   // `emptyGrpcState()` when undefined.
   grpc?: GrpcState;
+  // MCP request state — populated when this request targets an MCP
+  // (Model Context Protocol) server. Its presence routes the active
+  // tab to the MCP panel instead of HTTP / WS / SSE / gRPC, mirroring
+  // how `grpc` flags the gRPC composer. `serverId` references an
+  // entry in the saved-servers library (`store/mcpServers`); null
+  // means the request hasn't picked a server yet.
+  mcp?: McpRequestState;
 };
+
+// Reusable MCP server config, named and managed in the saved-servers
+// library. Multiple saved requests reference one server by `id`.
+export type McpServerConfig = {
+  id: string;
+  name: string;
+  transport: McpTransport;
+  description?: string;
+};
+
+// Per-request MCP state. The transport itself isn't stored here — it
+// lives once on the referenced `McpServerConfig` so editing a server
+// updates every request that uses it without rewriting their snapshots.
+export type McpRequestState = {
+  serverId: string | null;
+  toolName: string;
+  // The tool's arguments as the user typed them (JSON text, not a
+  // parsed object — so a malformed draft survives a tab switch).
+  argsJson: string;
+};
+
+// MCP transport flavor. `stdio` spawns a local child process via the
+// `mcp.stdio` native bridge; `http` POSTs JSON-RPC over Streamable
+// HTTP. Defined here (not in `lib/mcp.ts`) so `McpServerConfig` can
+// reference it without a circular dependency between types and the
+// MCP client module.
+export type McpTransport =
+  | { kind: "stdio"; command: string; args: string[] }
+  | { kind: "http"; url: string };
 
 export type CurrentRequest = RequestSnapshot & {
   id: string | null;

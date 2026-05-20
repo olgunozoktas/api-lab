@@ -17,13 +17,16 @@
 // call. The JSON-RPC framing + response parsing here are pure and
 // unit-tested; the transports do the bridge I/O.
 import { bridge, type HttpResponse, type HttpHeader } from "./bridge";
+import type { McpTransport } from "./types";
+
+// Re-export so existing callers (`McpPanel`) can keep their
+// `from "../lib/mcp"` import. The canonical definition lives in
+// `./types` so `McpServerConfig` can reference it without forcing
+// `types.ts` to depend on this module.
+export type { McpTransport };
 
 // Protocol revision advertised in the `initialize` handshake.
 export const MCP_PROTOCOL_VERSION = "2025-06-18";
-
-export type McpTransport =
-  | { kind: "stdio"; command: string; args: string[] }
-  | { kind: "http"; url: string };
 
 export type McpTool = {
   name: string;

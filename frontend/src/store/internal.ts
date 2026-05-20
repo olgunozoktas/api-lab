@@ -9,6 +9,7 @@ import type {
   CollectionItem,
   CurrentRequest,
   HistoryItem,
+  McpServerConfig,
   OpenTab,
   ResponseSnapshot,
   UiState,
@@ -67,6 +68,10 @@ export type CoreState = {
   // Registry ids of integrations the user has enabled from the
   // integrations gallery. Persisted via partialize.
   enabledIntegrations: string[];
+  // Saved MCP server configs the user manages from the MCP servers
+  // library modal. Persisted via partialize. An MCP request points at
+  // one by id; see `lib/types.ts` `McpRequestState`.
+  mcpServers: McpServerConfig[];
   // Per-integration spec fingerprint (ETag / Last-Modified / body
   // hash) captured at import time — keyed by registry id. The gallery
   // re-fetches conditionally and compares against this to flag a
@@ -130,6 +135,7 @@ export function buildInitialState(): CoreState {
     samplesSectionHidden: false,
     enabledIntegrations: [],
     integrationFingerprints: {},
+    mcpServers: [],
     syncConfig: defaultSyncConfig(),
     syncStatus: defaultSyncStatus(),
   };
@@ -217,6 +223,7 @@ export function migrateV1toV2(persisted: unknown): V2State {
     toasts: [],
     enabledIntegrations: [],
     integrationFingerprints: {},
+    mcpServers: [],
     responseCache: {},
   };
 }
@@ -272,6 +279,14 @@ export function migrateV3toV4(persisted: unknown): CoreState {
 export function migrateV4toV5(persisted: unknown): CoreState {
   const old = (persisted as Partial<CoreState>) ?? {};
   return { ...old, integrationFingerprints: old.integrationFingerprints ?? {} } as CoreState;
+}
+
+// v5 → v6 migration. v6 added `mcpServers` — the saved-servers library
+// that backs the upgraded MCP panel. Pre-v6 snapshots never carried
+// it; default to an empty list.
+export function migrateV5toV6(persisted: unknown): CoreState {
+  const old = (persisted as Partial<CoreState>) ?? {};
+  return { ...old, mcpServers: old.mcpServers ?? [] } as CoreState;
 }
 
 // Recursive descendants helper — returns the IDs of every descendant of

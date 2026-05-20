@@ -2,7 +2,13 @@
 import { describe, it, expect } from "vitest";
 import { useStore } from "../index";
 import { buildLoadedRequestState, composerTabFor, currentFromSnapshot } from "../loadRequest";
-import type { CollectionItem, HistoryItem, RequestSnapshot } from "../../lib/types";
+import type {
+  CollectionItem,
+  GrpcState,
+  HistoryItem,
+  McpRequestState,
+  RequestSnapshot,
+} from "../../lib/types";
 
 const REQ: RequestSnapshot = {
   method: "POST",
@@ -40,6 +46,45 @@ describe("currentFromSnapshot", () => {
     expect(cur.auth).toEqual({ type: "none" });
     expect(cur.body).toEqual({ mode: "none", text: "" });
     expect(cur.gql).toEqual({ query: "", vars: "" });
+    // Protocol-specific fields stay absent on an HTTP-shape snapshot
+    // so the loaded CurrentRequest doesn't route to gRPC / MCP panels
+    // by accident.
+    expect(cur.grpc).toBeUndefined();
+    expect(cur.mcp).toBeUndefined();
+  });
+
+  // Regression guard. Until this slice, `currentFromSnapshot` silently
+  // dropped `grpc` and `mcp`, so a ⌘S→reopen on a gRPC request lost
+  // its fullMethod / message / metadata / TLS. The same omission
+  // would hit MCP if `request.mcp` were added without this fix.
+  it("round-trips request.grpc — the previously-dropped gRPC state", () => {
+    const grpc: GrpcState = {
+      fullMethod: "pkg.Service/Method",
+      message: '{"x":1}',
+      metadata: [{ enabled: true, k: "authorization", v: "Bearer t" }],
+      useReflection: false,
+      importPaths: ["/p1"],
+      protoFiles: ["/p1/svc.proto"],
+      plaintext: true,
+      tls: { caCert: "ca-pem" },
+    };
+    const cur = currentFromSnapshot({ ...REQ, grpc }, null, "g");
+    expect(cur.grpc).toEqual(grpc);
+    // Deep-cloned — mutating the result must not bleed into the source.
+    cur.grpc!.fullMethod = "other";
+    expect(grpc.fullMethod).toBe("pkg.Service/Method");
+  });
+
+  it("round-trips request.mcp — the new MCP state", () => {
+    const mcp: McpRequestState = {
+      serverId: "srv-1",
+      toolName: "search",
+      argsJson: '{"q":"foo"}',
+    };
+    const cur = currentFromSnapshot({ ...REQ, mcp }, null, "m");
+    expect(cur.mcp).toEqual(mcp);
+    cur.mcp!.toolName = "other";
+    expect(mcp.toolName).toBe("search");
   });
 });
 

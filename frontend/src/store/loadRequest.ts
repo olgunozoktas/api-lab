@@ -29,6 +29,15 @@ export function currentFromSnapshot(
     auth: clone(r.auth ?? { type: "none" }),
     body: clone(r.body ?? { mode: "none", text: "" }),
     gql: clone(r.gql ?? { query: "", vars: "" }),
+    // Protocol-specific state — only present for gRPC / MCP requests
+    // (and isGraphql for GraphQL). Loaders that forgot to copy these
+    // silently dropped them on ⌘S → reopen — the latent gRPC bug
+    // that this restores. Conditional spreads keep the fields absent
+    // (rather than `undefined`) on HTTP requests so the loaded shape
+    // stays tight.
+    ...(r.isGraphql !== undefined ? { isGraphql: r.isGraphql } : {}),
+    ...(r.grpc ? { grpc: clone(r.grpc) } : {}),
+    ...(r.mcp ? { mcp: clone(r.mcp) } : {}),
   };
 }
 

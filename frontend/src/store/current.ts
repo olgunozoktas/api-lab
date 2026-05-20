@@ -214,6 +214,14 @@ export const createCurrentSlice: StateCreator<Store, StoreMutators, [], CurrentA
       body: clone(cur.body),
       gql: clone(cur.gql),
       isGraphql,
+      // Protocol-specific state — saved only when populated so the
+      // snapshot stays tight for HTTP. Without these spreads, a ⌘S
+      // on a gRPC or MCP request silently dropped `fullMethod` /
+      // `message` / `metadata` / `tls` (gRPC) or `serverId` /
+      // `toolName` / `argsJson` (MCP) — the save-side half of the
+      // bug `currentFromSnapshot` now load-restores too.
+      ...(cur.grpc ? { grpc: clone(cur.grpc) } : {}),
+      ...(cur.mcp ? { mcp: clone(cur.mcp) } : {}),
     };
     const items = get().collectionItems.slice();
     if (cur.id) {

@@ -13,8 +13,9 @@ import type { Store, StoreMutators } from "./types";
 //
 // `http` is the default for back-compat with callers that don't pass
 // a kind. `graphql` marks isGraphql; the runtime URL detectors handle
-// `ws`, `sse`, `grpc` based on URL prefix.
-export type NewRequestKind = "http" | "graphql" | "ws" | "sse" | "grpc";
+// `ws`, `sse`, `grpc` based on URL prefix; `mcp` flags `request.mcp`
+// (no URL) which App.tsx routing pivots on.
+export type NewRequestKind = "http" | "graphql" | "ws" | "sse" | "grpc" | "mcp";
 
 export type CollectionsActions = {
   deleteCollectionItem: (id: string) => void;
@@ -60,6 +61,9 @@ function emptyRequestSnapshot(kind: NewRequestKind = "http"): RequestSnapshot {
     body: { mode: "none", text: "" },
     gql: { query: "", vars: "" },
     isGraphql: kind === "graphql",
+    // The presence of `mcp` is what routes the tab to the MCP panel
+    // (App.tsx); a brand-new MCP request hasn't picked a server yet.
+    mcp: kind === "mcp" ? { serverId: null, toolName: "", argsJson: "{}" } : undefined,
   };
 }
 
