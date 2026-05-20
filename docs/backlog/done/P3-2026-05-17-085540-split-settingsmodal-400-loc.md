@@ -19,16 +19,16 @@ land will face the same pressure.
 
 ## Items
 
-- [ ] Extract each settings section into its own component under
+- [x] Extract each settings section into its own component under
   `frontend/src/components/settings/` (e.g. `AppearanceSettings`,
   `RequestDefaultsSettings`, `ShortcutsReference`, `AboutCard`),
   mirroring the `SyncSettings.tsx` extraction.
-- [ ] Move the inline helper components (`Field`, `Pill`,
+- [x] Move the inline helper components (`Field`, `Pill`,
   `ThemeSwatch`, `ResetDefaultsRow`, …) into a shared
   `settings/primitives.tsx` if they are used by more than one section.
-- [ ] `SettingsModal.tsx` becomes a thin host: the Dialog shell + the
+- [x] `SettingsModal.tsx` becomes a thin host: the Dialog shell + the
   section list. Target: under 400 lines (ideally well under).
-- [ ] No behaviour change — pure structural refactor; verify with
+- [x] No behaviour change — pure structural refactor; verify with
   typecheck + the existing test suite.
 
 ## Acceptance
