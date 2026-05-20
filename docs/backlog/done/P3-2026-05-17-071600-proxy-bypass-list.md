@@ -12,11 +12,11 @@ that should skip the proxy — which was not shipped.
 
 ## Items
 
-- [ ] Add a "Proxy bypass" field to Settings (comma-separated host
+- [x] Add a "Proxy bypass" field to Settings (comma-separated host
   patterns, e.g. `localhost,127.0.0.1,*.internal`).
-- [ ] Thread it through the `http.request` bridge payload and emit
+- [x] Thread it through the `http.request` bridge payload and emit
   curl `--noproxy <list>` in `buildArgv` when set.
-- [ ] Test the `--noproxy` arg construction.
+- [x] Test the `--noproxy` arg construction.
 
 ## Acceptance
 

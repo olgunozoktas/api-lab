@@ -58,6 +58,10 @@ pub const HttpRequest = struct {
     binary_path: []const u8 = "",
     /// Outbound proxy URL — curl `--proxy` (scheme picks HTTP/SOCKS5).
     proxy: []const u8 = "",
+    /// Comma-separated host patterns to skip the proxy (curl `--noproxy`).
+    /// Only emitted when `proxy` is also set — curl needs a proxy to
+    /// have an exception list against. Empty = no bypass entries.
+    proxy_bypass: []const u8 = "",
     /// mTLS client certificate / key — absolute PEM file paths, plus
     /// an optional key passphrase. curl `--cert` / `--key` / `--pass`.
     client_cert: []const u8 = "",
@@ -282,6 +286,13 @@ pub fn buildArgv(a: std.mem.Allocator, req: HttpRequest) ![]const []const u8 {
     if (req.proxy.len > 0) {
         try argv.append(a, "--proxy");
         try argv.append(a, req.proxy);
+        // `--noproxy` only makes sense paired with `--proxy`; curl
+        // rejects the flag standalone. Gating here keeps the argv
+        // tight and surfaces the same shape to the unit tests.
+        if (req.proxy_bypass.len > 0) {
+            try argv.append(a, "--noproxy");
+            try argv.append(a, req.proxy_bypass);
+        }
     }
     // mTLS client certificate — curl loads the PEM files by path.
     if (req.client_cert.len > 0) {

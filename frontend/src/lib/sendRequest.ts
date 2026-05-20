@@ -162,6 +162,9 @@ async function viaNative(
     ...(multipart && multipart.length > 0 ? { multipart } : {}),
     ...(binaryPath ? { binary_path: binaryPath } : {}),
     ...(defaults.proxyUrl ? { proxy: defaults.proxyUrl } : {}),
+    // `--noproxy` only makes sense when a proxy is set; gate to keep
+    // the payload tight on the (much more common) no-proxy path.
+    ...(defaults.proxyUrl && defaults.proxyBypass ? { proxy_bypass: defaults.proxyBypass } : {}),
     ...(mtls?.certPath ? { client_cert: mtls.certPath } : {}),
     ...(mtls?.keyPath ? { client_key: mtls.keyPath } : {}),
     ...(mtls?.passphrase ? { client_key_pass: mtls.passphrase } : {}),

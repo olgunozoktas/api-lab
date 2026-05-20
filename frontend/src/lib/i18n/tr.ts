@@ -51,6 +51,9 @@ export const tr = {
   "settings.proxy": "Proxy URL",
   "settings.proxy.hint":
     "Her isteği bu proxy üzerinden yönlendirir (curl'ün --proxy bayrağı). http://, https:// ve socks5:// destekler — kurumsal ağlar veya Charles / mitmproxy ile debugging için. Proxy istemiyorsanız boş bırakın.",
+  "settings.proxyBypass": "Proxy atlanan adresler",
+  "settings.proxyBypass.hint":
+    "Proxy'yi atlayıp doğrudan bağlanacak host kalıpları, virgülle ayrılır (curl'ün --noproxy bayrağı). Yaygın örnekler: yerel geliştirme için localhost,127.0.0.1 veya kurumsal split-horizon DNS için *.internal. Proxy URL boşsa yok sayılır.",
   "settings.defaults.dirtyHint": "Varsayılanlardan farklı değerler var.",
   "settings.defaults.reset": "Varsayılana dön",
   "settings.section.shortcuts": "Klavye kısayolları",

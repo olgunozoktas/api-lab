@@ -399,6 +399,55 @@ test "buildArgv: no proxy omits --proxy" {
     for (argv) |arg| try testing.expect(!std.mem.eql(u8, arg, "--proxy"));
 }
 
+test "buildArgv: proxy_bypass emits --noproxy <list> when proxy is set" {
+    var arena = std.heap.ArenaAllocator.init(testing.allocator);
+    defer arena.deinit();
+    const a = arena.allocator();
+
+    const req = http.HttpRequest{
+        .url = "https://x.test",
+        .proxy = "http://127.0.0.1:8080",
+        .proxy_bypass = "localhost,127.0.0.1,*.internal",
+    };
+    const argv = try http.buildArgv(a, req);
+
+    try testing.expectEqualStrings(
+        "localhost,127.0.0.1,*.internal",
+        argvPairAfter(argv, "--noproxy").?,
+    );
+}
+
+test "buildArgv: proxy_bypass without proxy omits --noproxy" {
+    var arena = std.heap.ArenaAllocator.init(testing.allocator);
+    defer arena.deinit();
+    const a = arena.allocator();
+
+    // No proxy set → `--noproxy` must not be emitted. curl rejects the
+    // flag standalone, so this protects the user from a misconfig that
+    // would otherwise fail at request time.
+    const req = http.HttpRequest{
+        .url = "https://x.test",
+        .proxy_bypass = "localhost",
+    };
+    const argv = try http.buildArgv(a, req);
+
+    for (argv) |arg| try testing.expect(!std.mem.eql(u8, arg, "--noproxy"));
+}
+
+test "buildArgv: empty proxy_bypass omits --noproxy" {
+    var arena = std.heap.ArenaAllocator.init(testing.allocator);
+    defer arena.deinit();
+    const a = arena.allocator();
+
+    const req = http.HttpRequest{
+        .url = "https://x.test",
+        .proxy = "http://127.0.0.1:8080",
+    };
+    const argv = try http.buildArgv(a, req);
+
+    for (argv) |arg| try testing.expect(!std.mem.eql(u8, arg, "--noproxy"));
+}
+
 test "buildArgv: mTLS emits --cert / --key / --pass" {
     var arena = std.heap.ArenaAllocator.init(testing.allocator);
     defer arena.deinit();

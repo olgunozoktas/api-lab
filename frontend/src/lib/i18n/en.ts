@@ -52,6 +52,9 @@ export const en: Dict = {
   "settings.proxy": "Proxy URL",
   "settings.proxy.hint":
     "Route every request through this proxy (curl's --proxy). Supports http://, https://, and socks5:// — useful for corporate networks or debugging via Charles / mitmproxy. Leave empty for no proxy.",
+  "settings.proxyBypass": "Proxy bypass",
+  "settings.proxyBypass.hint":
+    "Comma-separated host patterns that skip the proxy and go direct (curl's --noproxy). Common entries: localhost,127.0.0.1 for local dev or *.internal for split-horizon corporate DNS. Ignored when Proxy URL is empty.",
   "settings.defaults.dirtyHint": "Some values differ from the shipped defaults.",
   "settings.defaults.reset": "Reset to defaults",
   "settings.section.shortcuts": "Keyboard shortcuts",

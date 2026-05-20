@@ -397,6 +397,11 @@ export type RequestDefaults = {
   // (HTTP / HTTPS / SOCKS5 — the scheme is part of the URL). Empty
   // string = no proxy. Optional so older persisted snapshots hydrate.
   proxyUrl?: string;
+  // Comma-separated host patterns that should skip the proxy and go
+  // direct (curl `--noproxy`). Common entries: `localhost,127.0.0.1`
+  // for local dev, `*.internal` for split-horizon corporate DNS.
+  // Ignored when `proxyUrl` is empty (curl would refuse anyway).
+  proxyBypass?: string;
 };
 
 export const defaultRequestDefaults = (): RequestDefaults => ({
@@ -404,6 +409,7 @@ export const defaultRequestDefaults = (): RequestDefaults => ({
   followRedirects: 10,
   insecure: false,
   proxyUrl: "",
+  proxyBypass: "",
 });
 
 // Optional git-based collection sync (Phase K). `repoUrl` is an SSH
