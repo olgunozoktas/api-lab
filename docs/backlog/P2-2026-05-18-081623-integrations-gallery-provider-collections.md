@@ -122,19 +122,16 @@ direction — export, not import).
       its HTTP/REST API surfaced as a collection (spec URL or curated
       definition). The MCP half is covered by the next item.
 
-- [ ] **MCP protocol panel** — a new protocol surface for connecting
+- [x] **MCP protocol panel** — a new protocol surface for connecting
       to MCP servers (the heaviest item).
-      - What it does: a new request `kind: "mcp"` and an `<McpPanel>`
-        that connects to an MCP server, lists its tools / resources /
-        prompts, invokes a tool with arguments, and renders the result.
-        Mirrors the structure of `WsPanel` / `SsePanel` / `GrpcPanel`.
-      - Touchpoints: `components/McpPanel.tsx` (new), `lib/mcp.ts` (new
-        — JSON-RPC client), the composer + tab system, the Sidebar
-        new-request context menu (already lists WS/SSE/gRPC/GraphQL).
-      - Tests: `lib/__tests__/mcp.test.ts` — JSON-RPC framing,
-        tool-list parse, error envelope.
-      - Ship-it-fully: MCP selectable in the new-request context menu;
-        transport scoped to HTTP/SSE (see Tradeoffs).
+      → shipped 2026-05-19 (v0.15.0) via the #37 ship that absorbed
+        this item's scope: `lib/mcp.ts` (JSON-RPC framing, response
+        parsing, stdio + HTTP transports, `mcpListTools`/`mcpCallTool`)
+        and `<McpPanel>` reached from a new TopBar "MCP servers"
+        button. The stdio transport — originally scoped out as "MCP
+        stdio cannot run inside the sandboxed WebView" — landed via
+        the `mcp.stdio` Zig bridge command (`src/handlers/mcp.zig`),
+        the same pattern `http.request` uses for CORS-free curl.
 
 ## Acceptance
 
@@ -191,26 +188,21 @@ tests `cd frontend && dnpm run test`; typecheck
 
 ## Follow-ups
 
-Items 1-3 (the framework) shipped 2026-05-18. Items 4-8 are **deferred**
-— this file stays live. Rationale per deferred item:
+Items 1-3 (framework), #4 Cloudflare, #5 Stripe, and #8 MCP panel are
+all shipped. This file stays live only for the two remaining items:
 
-- **#4 Cloudflare / #5 Stripe** — registry entries for both exist in
-  `INTEGRATIONS` (so the gallery shows the roadmap), but enabling them
-  fails: their published OpenAPI specs are 8-10 MB, far over the Zig
-  bridge's ~1 MB `http.request` result buffer. The gallery surfaces a
-  precise "spec too large" error. A full spec would also import 1000+
-  endpoints in one dump. Both axes are addressed by the
-  provider-sourcing redesign follow-up (see below) — these items flip
-  to done once providers can actually load.
-- **#6 AWS** — blocked on `P2-2026-05-09-171000-cookies-proxy-sigv4-mtls`
-  (SigV4 request signing); AWS requests can't authenticate without it.
-- **#7 findutils** — needs the real findutils.com OpenAPI spec URL /
-  endpoint shape, not yet supplied.
-- **#8 MCP protocol panel** — its own large slice (a new protocol
-  surface). MCP stdio transport is already filed as issue #37; the
-  panel itself remains queued here.
-
-A new follow-up backlog file — **provider-sourcing redesign** — was
-created this session to resolve the spec-size + endpoint-volume
-problem properly (curated subsets vs. raised bridge buffer vs.
-fetch-to-file). It is the gate for #4/#5.
+- **#4 Cloudflare / #5 Stripe** — now genuinely usable. The gallery
+  was redesigned (2026-05-18) from live-OpenAPI fetch to **curated
+  bundled subsets**, so the 8-10 MB spec problem is moot. Both
+  providers ship as hand-curated subsets with body skeletons and
+  endpoint descriptions; the curated framework (`lib/integrations/curated/`)
+  also covers GitHub / OpenAI / Slack / Notion / Linear. Resolved.
+- **#6 AWS** — still blocked on
+  `P2-2026-05-09-171000-cookies-proxy-sigv4-mtls` (SigV4 request
+  signing). AWS requests can't authenticate without it.
+- **#7 findutils** — needs the real findutils.com OpenAPI spec /
+  endpoint shape, not yet supplied by the project owner.
+- **#8 MCP protocol panel** — shipped 2026-05-19 (v0.15.0). The
+  `mcp.stdio` Zig bridge command landed too, so stdio MCP servers
+  are reachable from the WebView. Closed #37. See the archived ship
+  `done/P3-2026-05-18-081829-mcp-stdio-transport-zig-sidecar.md`.
