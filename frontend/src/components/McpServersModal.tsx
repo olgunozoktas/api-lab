@@ -4,7 +4,7 @@
 // `mcpServers` slice — every tool call lives in a request tab and
 // references a server by id. Local-state edit + explicit save mirrors
 // EnvEditorModal so cancelling a session of edits never half-writes.
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useStore } from "../store";
 import { useT } from "../lib/i18n/useT";
 import { uid } from "../lib/utils";
@@ -39,6 +39,21 @@ export function McpServersModal({ open, onOpenChange }: Props) {
   );
   // Only one row expanded at a time keeps the modal short.
   const [editingId, setEditingId] = useState<string | null>(null);
+
+  // Re-sync the local buffer from the store every time the modal
+  // opens. TopBar mounts <McpServersModal> unconditionally (only the
+  // inner DialogContent flips with `open`), so the lazy useState
+  // initializer above only fires ONCE — at app launch. Without this
+  // effect, a row added between opens (e.g. by enabling a `kind: "mcp"`
+  // integration from the Integrations gallery) never appears in the
+  // modal's list, even though it's correctly in the store. Resetting
+  // editingId at the same time clears any stale in-flight edits from
+  // a previous unsaved session.
+  useEffect(() => {
+    if (!open) return;
+    setLocal(JSON.parse(JSON.stringify(useStore.getState().mcpServers)));
+    setEditingId(null);
+  }, [open]);
 
   function add() {
     // Default to stdio when the bridge is reachable, http otherwise —
