@@ -17,7 +17,7 @@ import {
   ContextMenuItem,
   ContextMenuTrigger,
 } from "./ui/context-menu";
-import { Cable, FilePlus, Network, Radio, Sparkles } from "lucide-react";
+import { Boxes, Cable, FilePlus, Network, Radio, Sparkles } from "lucide-react";
 import type { NewRequestKind } from "../store/collections";
 
 export function Sidebar() {
@@ -121,6 +121,10 @@ export function Sidebar() {
                 <ContextMenuItem onSelect={() => resetCurrent("grpc" as NewRequestKind)}>
                   <Network className="w-3.5 h-3.5" aria-hidden />
                   {t("collections.context.newGrpc")}
+                </ContextMenuItem>
+                <ContextMenuItem onSelect={() => resetCurrent("mcp" as NewRequestKind)}>
+                  <Boxes className="w-3.5 h-3.5" aria-hidden />
+                  {t("collections.context.newMcp")}
                 </ContextMenuItem>
               </ContextMenuContent>
             </ContextMenu>

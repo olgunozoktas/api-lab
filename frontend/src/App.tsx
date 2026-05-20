@@ -23,6 +23,8 @@ import { ResponseViewerContainer } from "./components/ResponseViewer";
 import { WsPanelContainer } from "./components/WsPanel";
 import { GrpcPanelContainer } from "./components/GrpcPanelContainer";
 import { SsePanelContainer } from "./components/SsePanel";
+import { McpPanelContainer } from "./components/McpPanelContainer";
+import { McpServerBar } from "./components/McpServerBar";
 // The OpenAPI editor is a whole-screen alternate surface shown only
 // for spec tabs, and it pulls in Spectral (~500 KB). Lazy-load it so
 // neither the editor nor the linter lands in the first-paint bundle.
@@ -302,7 +304,11 @@ export function App() {
   const wsMode = !specMode && isWsUrl(substitutedUrl);
   const grpcMode = !specMode && !wsMode && isGrpcUrl(substitutedUrl);
   const sseMode = !specMode && !wsMode && !grpcMode && isSseUrl(substitutedUrl);
-  const singleColumn = wsMode || grpcMode || sseMode;
+  // MCP pivots on the presence of `request.mcp`, not a URL prefix —
+  // MCP servers don't have a comparable user-typed primitive. Routing
+  // through the same single-column slot as the other streaming panels.
+  const mcpMode = !specMode && !wsMode && !grpcMode && !sseMode && !!current.mcp;
+  const singleColumn = wsMode || grpcMode || sseMode || mcpMode;
 
   const layout = ui.layout ?? DEFAULT_LAYOUT;
   const setUi = useStore((s) => s.setUi);
@@ -352,14 +358,29 @@ export function App() {
         ) : singleColumn ? (
           <div className="flex flex-col min-h-0 min-w-0 overflow-hidden">
             <TabStripContainer />
-            <UrlBarContainer busy={false} onSend={onSend} onCancel={onCancel} hideSend hideMethod />
+            {mcpMode ? (
+              // MCP has no URL to type — the server is picked from the
+              // saved-servers library, so its bar swaps in for the
+              // standard URL bar in this slot.
+              <McpServerBar />
+            ) : (
+              <UrlBarContainer
+                busy={false}
+                onSend={onSend}
+                onCancel={onCancel}
+                hideSend
+                hideMethod
+              />
+            )}
             <div className="flex-1 min-h-0 overflow-hidden">
               {wsMode ? (
                 <WsPanelContainer key={activeTabId} />
               ) : grpcMode ? (
                 <GrpcPanelContainer key={activeTabId} />
-              ) : (
+              ) : sseMode ? (
                 <SsePanelContainer key={activeTabId} />
+              ) : (
+                <McpPanelContainer key={activeTabId} />
               )}
             </div>
           </div>
