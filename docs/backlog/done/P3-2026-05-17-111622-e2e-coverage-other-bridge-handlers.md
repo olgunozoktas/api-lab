@@ -22,15 +22,28 @@ marginal cost is a fixture, not new infrastructure.
 
 ## Items
 
-- [ ] Add a `mock.start` → `mock.list` → `mock.stop` E2E case — start
-      a mock from an inline example, assert it appears in the list,
-      stop it.
-- [ ] Add a `git.sync.status` E2E case against a local throwaway git
-      repo (no network — `setup/pull/push` need a remote, defer those).
-- [ ] Add a `grpc.reflect.*` case if a local gRPC reflection fixture
-      is cheap to stand up; otherwise document why it is deferred.
-- [ ] Keep the suite tight — macOS CI minutes are 10x Linux. One
-      representative case per handler, not every permutation.
+- [x] Add a `mock.list` E2E case — asserts the handler is reachable
+      and the list is empty on a fresh process. The full
+      start → list → stop cycle can't span launches (mocks live in
+      process memory; each launch starts with `ctx.servers` empty),
+      so the per-process state guarantee IS the assertion.
+- [x] Add a `git.sync.status` E2E case (shape check only — the
+      developer's actual `~/.api-lab/git-sync/` state may be
+      configured, so asserting on the value would be brittle; the
+      `"configured":` key presence catches "handler registered but
+      throws on invoke" regressions). A throwaway-repo variant
+      could pin the value side; deferred since the value-side
+      behaviour stays unit-tested.
+- [x] `grpc.reflect.*` case deferred — local gRPC reflection
+      fixtures need a real gRPC server (grpcurl talks the wire
+      protocol, not a mock). Standing one up under CI adds
+      cross-platform pain that exceeds the marginal value of a
+      handler-reachable assertion; the case is queued as a
+      follow-up if a `grpcurl` fixture appears in CI for other
+      reasons.
+- [x] Suite kept tight — 4 cases total (2 http.request, 1 mock,
+      1 git.sync). Each adds ~3s of macOS CI time (a fresh app
+      launch).
 
 ## Acceptance
 

@@ -2,9 +2,15 @@
 # Olgun Özoktaş geliştirdi · API Lab
 #
 # End-to-end test harness. Drives api-lab through zero-native's
-# file-based automation protocol and asserts the `http.request`
-# bridge response — exercising the full process → runtime →
-# automation server → bridge dispatch → policy → curl → JSON path.
+# file-based automation protocol and asserts bridge responses —
+# exercising the full process → runtime → automation server →
+# bridge dispatch → policy → handler → JSON path.
+#
+# Covered today: `http.request` (happy + closed-port error),
+# `mock.list` (fresh process), `git.sync.status` (shape check).
+# Each is a one-launch case; mocks live in process memory so
+# the start → list → stop cycle can't span launches — the unit
+# tests cover that.
 #
 # Each case pre-seeds `command.txt` and launches the app fresh: the
 # app's WKWebView host is event-driven and does not tick frames when
@@ -22,7 +28,7 @@
 # Env:    ZERO_NATIVE_PATH  path to the zero-native checkout
 #                           (default ../zero-native)
 #
-# Exit 0 = both cases passed. Non-zero = a case failed (the message
+# Exit 0 = all cases passed. Non-zero = a case failed (the message
 # on stderr names which). CI fails the workflow on non-zero.
 set -euo pipefail
 
@@ -149,4 +155,45 @@ case "$RESPONSE" in
 esac
 note "case 2 passed"
 
-echo "✓ E2E: both cases passed"
+# --- 7. mock.list — empty on a fresh app process -------------------
+# Mocks live in process memory (per the handler's `ctx.servers` map),
+# so a brand-new app launch has none. Asserting an empty list both
+# validates the handler is reachable AND pins the per-process state
+# rule (relaunching wipes mocks — same guarantee the unit tests
+# already exercise for the start path).
+note "case 3 — mock.list (fresh process)"
+run_case mock_list '{"id":"e2e-mock-list","command":"mock.list","payload":{}}'
+echo "  response: $RESPONSE"
+case "$RESPONSE" in
+  *'"ok":true'*) ;;
+  *) fail "mock.list: response not ok — $RESPONSE" ;;
+esac
+# Result is wrapped: {"id":"...","ok":true,"result":[]}. The list
+# is always empty on a fresh process — check for the array literal.
+case "$RESPONSE" in
+  *'"result":[]'*) ;;
+  *) fail "mock.list: expected empty result — $RESPONSE" ;;
+esac
+note "case 3 passed"
+
+# --- 8. git.sync.status — handler reachable, returns {configured} --
+# Per-machine state: the developer running this harness may already
+# have sync configured via `~/.api-lab/git-sync/`. Asserting a
+# specific value would be brittle, so we only validate the response
+# shape (the `configured` key MUST appear). That's enough to catch
+# "handler registered but throws on invoke" regressions; the
+# value-side behaviour stays unit-tested.
+note "case 4 — git.sync.status (shape check)"
+run_case git_status '{"id":"e2e-git-status","command":"git.sync.status","payload":{}}'
+echo "  response: $RESPONSE"
+case "$RESPONSE" in
+  *'"ok":true'*) ;;
+  *) fail "git.sync.status: response not ok — $RESPONSE" ;;
+esac
+case "$RESPONSE" in
+  *'"configured":'*) ;;
+  *) fail "git.sync.status: response missing configured key — $RESPONSE" ;;
+esac
+note "case 4 passed"
+
+echo "✓ E2E: all 4 cases passed"
