@@ -7,6 +7,7 @@ import {
   migrateV2toV3,
   migrateV3toV4,
   migrateV4toV5,
+  migrateV5toV6,
   type CoreState,
 } from "./internal";
 import { idbStorage } from "./idbStorage";
@@ -51,13 +52,14 @@ export const useStore = create<Store>()(
     }),
     {
       name: "apilab.store.v1",
-      version: 5,
+      version: 6,
       migrate: (persisted, fromVersion) => {
         let s: unknown = persisted;
         if (fromVersion < 2) s = migrateV1toV2(s);
         if (fromVersion < 3) s = migrateV2toV3(s);
         if (fromVersion < 4) s = migrateV3toV4(s);
         if (fromVersion < 5) s = migrateV4toV5(s);
+        if (fromVersion < 6) s = migrateV5toV6(s);
         return s as CoreState;
       },
       // Custom merge so the persisted responseCache is TTL-pruned on
@@ -94,6 +96,11 @@ export const useStore = create<Store>()(
           samplesSectionHidden: s.samplesSectionHidden,
           enabledIntegrations: s.enabledIntegrations,
           integrationFingerprints: s.integrationFingerprints,
+          // Saved MCP server configs — the library backing the MCP
+          // request panel. Per-tab `request.mcp` references entries
+          // by id; the configs themselves live here so editing one
+          // updates every request that uses it.
+          mcpServers: s.mcpServers,
           // syncConfig persists (repo URL + enabled); syncStatus does
           // NOT — it's this session's runtime sync state.
           syncConfig: s.syncConfig,
