@@ -165,6 +165,16 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
                   aria-label={t("settings.proxy")}
                 />
               </Field>
+              <Field label={t("settings.proxyBypass")} hint={t("settings.proxyBypass.hint")}>
+                <input
+                  type="text"
+                  value={defaults.proxyBypass ?? ""}
+                  placeholder="localhost,127.0.0.1,*.internal"
+                  onChange={(e) => setDefaults({ proxyBypass: e.target.value })}
+                  className="bg-[var(--color-bg-elev)] border border-[var(--color-border)] rounded px-2 py-1 font-mono text-xs outline-none focus:border-[var(--color-accent)] text-[var(--color-fg)] w-full"
+                  aria-label={t("settings.proxyBypass")}
+                />
+              </Field>
               <ResetDefaultsRow
                 defaults={defaults}
                 onReset={() => setDefaults(defaultRequestDefaults())}
