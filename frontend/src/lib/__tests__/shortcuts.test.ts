@@ -1,4 +1,12 @@
-/** Olgun Özoktaş geliştirdi · API Lab */
+/**
+ * Olgun Özoktaş geliştirdi · API Lab
+ * @vitest-environment node
+ *
+ * Forced node environment so `fileURLToPath(import.meta.url)` returns
+ * a real filesystem path. Under jsdom the URL is rebased to
+ * `http://localhost/...` and the path resolver strips the working-
+ * directory prefix, breaking the readFileSync calls below.
+ */
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
