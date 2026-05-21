@@ -22,17 +22,17 @@ review agreed render coverage stops being optional.
 
 ## Items
 
-- [ ] `dnpm install -D @testing-library/react @testing-library/dom jsdom`
+- [x] `dnpm install -D @testing-library/react @testing-library/dom jsdom`
       — then `dnpm check`.
-- [ ] Switch `frontend/vitest.config.ts` to `environment: "jsdom"` (the
+- [x] Switch `frontend/vitest.config.ts` to `environment: "jsdom"` (the
       file's own comment already anticipates this: "If we ever test a
       Zustand store or a hook, switch `environment` to jsdom").
-- [ ] Add a test setup file if needed (`@testing-library/jest-dom`
+- [x] Add a test setup file if needed (`@testing-library/jest-dom`
       matchers optional — decide during the slice).
-- [ ] Write render tests for `ui/tooltip.tsx`, `ui/popover.tsx`,
+- [x] Write render tests for `ui/tooltip.tsx`, `ui/popover.tsx`,
       `ui/skeleton.tsx` — open/close, portal content, `forwardRef`
       reaches the DOM node, `className` merges.
-- [ ] Verify the existing 618 pure-logic tests still pass under the
+- [x] Verify the existing 618 pure-logic tests still pass under the
       jsdom environment (jsdom is a superset — should be a no-op, but
       confirm: some tests stub `indexedDB`/`localStorage`).
 

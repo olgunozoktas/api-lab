@@ -1,12 +1,14 @@
 import { defineConfig } from "vitest/config";
 
-// Pure-Node Vitest runner. The utilities under test
-// (envSubst, toCurl, isProbablyJson, statusText, humanSize, methodClass)
-// are framework-agnostic — no DOM, no React, no jsdom needed.
-// If we ever test a Zustand store or a hook, switch `environment` to "jsdom".
+// Vitest runs under jsdom by default so .test.tsx render tests can
+// reach document / window / DOM APIs. Pure-Node tests stay green —
+// jsdom is a superset of the node environment for the operations our
+// utility tests use (envSubst, toCurl, statusText, etc.). Individual
+// test files can opt back to a different environment via a docblock
+// pragma: `/** @vitest-environment node */` at the top.
 export default defineConfig({
   test: {
-    environment: "node",
-    include: ["src/**/__tests__/**/*.test.ts", "src/**/*.test.ts"],
+    environment: "jsdom",
+    include: ["src/**/__tests__/**/*.test.{ts,tsx}", "src/**/*.test.{ts,tsx}"],
   },
 });
